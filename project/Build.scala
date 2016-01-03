@@ -17,4 +17,5 @@ object NeuroflowBuild extends Build {
 
   lazy val core = Project(id = "neuroflow-core", base = file("core"), settings = neuroflowSettings)
   lazy val application = Project(id = "neuroflow-application", base = file("application"), settings = neuroflowSettings) dependsOn core
+  lazy val playground = Project(id = "neuroflow-playground", base = file("playground"), settings = neuroflowSettings) dependsOn application
 }
