@@ -50,7 +50,7 @@ val maxIterations = 1000
 network.train(xs, ys, learningRate, precision, maxIterations)
 ```
 
-During training, all derivatives of the whole net with respect to the weights are constructed, 
+During training, the derivatives of the net with respect to the weights are constructed, 
 so the optimal weights can be computed iteratively (gradient descent). The learning progress will appear on console so you can see what is going on.
 
 # Evaluation
