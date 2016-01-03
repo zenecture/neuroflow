@@ -53,3 +53,14 @@ network.train(xs, ys, learningRate, precision, maxIterations)
 During training, all derivatives of the whole net with respect to the weights are constructed, 
 so the optimal weights can be computed iteratively. The learning progress will appear on console so you can see what is going on.
 
+# Evaluation
+
+A trained `Network` can be evaluated with the `evaluate` method.
+
+```scala
+network.evaluate(Seq(0.0, 0.0))
+```
+
+# IO
+
+Saving and loading a trained net is TODO. 
