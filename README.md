@@ -19,7 +19,7 @@ This project consists of three modules:
 For SBT-Usage, just add this GitHub repository to your dependencies.
 Also, you may have a look at the playground for some inspiration.
 
-# Construction of a net
+# Building a Net
 
 A net is constructed using a list of layers
 
