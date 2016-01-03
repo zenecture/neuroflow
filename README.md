@@ -19,12 +19,37 @@ This project consists of three modules:
 For SBT-Usage, just add this GitHub repository to your dependencies.
 Also, you may have a look at the playground for some inspiration.
 
-# Behind the scenes
+# Construction of a net
 
-A net is constructed with
+A net is constructed using a list of layers
 
 ```scala
-val network = Network(Input(2) :: Hidden(3, Sigmoid.apply) :: Output(1, Sigmoid.apply) :: Nil)
-network.train(Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0)), Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0)), 10.0, 0.001, 10000)
+val fn = Sigmoid.apply
+val network = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
 ```
+The whole architecture of the net is defined here. For instance, 
+if you want to use more hidden layers, just concatenate them.
+
+```scala
+Hidden(25, fn) :: Hidden(12, fn) :: Hidden(3, fn) :: Nil
+```
+
+Be aware that a network must start with one`Input` layer and end with one `Output(i, fn)` layer.
+
+# Training
+
+You can train a `Network` with the `train` method. It expects the inputs `xs` and their desired outputs `ys`.
+Also, some rates and rules need to be defined, like precision or maximum iterations.
+
+```scala
+val xs = Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0))
+val ys = Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0))
+val learningRate = 0.01
+val precision = 0.001
+val maxIterations = 1000
+network.train(xs, ys, learningRate, precision, maxIterations)
+```
+
+During training, all derivatives of the whole net with respect to the weights are constructed, 
+so the optimal weights can be computed iteratively. The learning progress will appear on console so you can see what is going on.
 
