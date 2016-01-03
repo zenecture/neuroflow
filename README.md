@@ -4,9 +4,7 @@ NeuroFlow is a lightweight library to construct, train and evaluate Artificial N
 It is written in Scala, matrix operations are performed with Breeze (+ NetLib for near-native performance).
 !Use in production at own risk!
 
-<p style="text-align: center;">
-    <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=500 height=500 />
-</p>
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=707 height=190 />
 
 # Introduction
 
@@ -22,6 +20,8 @@ For SBT-Usage, just add this GitHub repository to your dependencies.
 Also, you may have a look at the playground for some inspiration.
 
 # Building a Net
+
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=887 height=640 />
 
 A net is constructed using a list of layers
 
