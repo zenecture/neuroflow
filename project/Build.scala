@@ -3,7 +3,7 @@ import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbtassembly.PathList
 
-object ZeduceBuild extends Build {
+object NeuroflowBuild extends Build {
 
   val neuroflowSettings = Defaults.coreDefaultSettings ++ Seq(
     name in ThisBuild := "neuroflow",

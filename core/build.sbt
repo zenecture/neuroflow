@@ -1,8 +1,9 @@
-libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2-core" % "3.6.4" % "test",
-  "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+libraryDependencies  ++= Seq(
+  "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly(),
+  "org.scalanlp" %% "breeze" % "0.11.2"
 )
 
-scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-language:postfixOps", "-language:higherKinds", "-language:implicitConversions")
-
-scalacOptions in Test ++= Seq("-Yrangepos", "-deprecation", "-feature", "-language:postfixOps", "-language:higherKinds", "-language:implicitConversions")
+resolvers ++= Seq(
+  "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
+  "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
+)
