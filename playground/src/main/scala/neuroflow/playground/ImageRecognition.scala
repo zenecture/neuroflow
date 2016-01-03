@@ -58,6 +58,20 @@ object ImageRecognition {
     println(s"Heart distorted classified: $heartDistortedResult")
     println(s"Heart rotated classified: $heartRotatedResult")
     println(s"Random classified: $randomResult")
+
   }
 
 }
+
+/*
+
+After 15 minutes training
+
+Plus classified: List(0.9788047627760562, 0.015110374678663451, 0.008629435907872185)
+Plus Rotated classified: List(0.19817654172026036, 0.5433502010001126, 0.22983562055029222)
+Heart classified: List(0.017288947239028303, 0.9550344815286277, 0.037548470018198395)
+Heart distorted classified: List(0.08437785868142096, 0.7254457324970669, 0.13893398541818974)
+Heart rotated classified: List(0.16631278466233082, 0.6890792937832275, 0.2171326119296792)
+Random classified: List(0.008114396324584498, 0.03660262656636161, 0.9817708431605388)
+
+ */
