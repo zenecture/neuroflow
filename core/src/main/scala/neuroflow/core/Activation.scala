@@ -37,8 +37,8 @@ object Activator {
 
   object Tanh {
     def apply = new Activator[Double] {
-      def apply(x: Double): Double = (exp(x) - exp(-x))/(exp(x) + exp(-x))
-      def derivative: Double => Double = x => 4 * exp(2*x) / pow(exp(2*x) + 1, 2)
+      def apply(x: Double): Double = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
+      def derivative: Double => Double = x => 4 * exp(2 * x) / pow(exp(2 * x) + 1, 2)
     }
   }
 

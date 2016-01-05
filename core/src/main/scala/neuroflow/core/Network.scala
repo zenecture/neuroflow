@@ -42,7 +42,7 @@ object Network {
   def save(network: Network): Array[Byte] = ???
 }
 
-trait Network extends Logs{
+trait Network extends Logs {
 
   /**
     * Layers of this neural network

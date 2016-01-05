@@ -26,13 +26,14 @@ object Image {
   }
 
   /**
-    * Loads image from `file` and returns flattened sequence of pixels,
+    * Loads image from `file` or `path` and returns flattened sequence of pixels,
     * activated based on `selector` result
     */
-  def extractBinary(file: String, selector: Int => Boolean): Seq[Double] = {
-    val img = ImageIO.read(new File(file))
-    (0 to img.getWidth - 1) flatMap { w =>
-      (0 to img.getHeight - 1) flatMap { h =>
+  def extractBinary(path: String, selector: Int => Boolean): Seq[Double] = extractBinary(new File(path), selector)
+  def extractBinary(file: File, selector: Int => Boolean): Seq[Double] = {
+    val img = ImageIO.read(file)
+    (0 to img.getHeight - 1) flatMap { h =>
+      (0 to img.getWidth - 1) flatMap { w =>
         val c = new Color(img.getRGB(w, h))
         (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.0 else 0.0) :: Nil
       }
