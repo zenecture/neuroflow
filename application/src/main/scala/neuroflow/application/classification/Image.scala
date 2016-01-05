@@ -25,6 +25,10 @@ object Image {
     }
   }
 
+  /*
+    TODO: provide option to flip width/height for optimal training
+   */
+
   /**
     * Loads image from `file` or `path` and returns flattened sequence of pixels,
     * activated based on `selector` result
