@@ -12,7 +12,7 @@ object XOR {
   def apply = {
     val network = Network(Input(2) :: Hidden(3, Sigmoid.apply) :: Output(1, Sigmoid.apply) :: Nil)
     network.train(Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0)),
-      Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0)), 10.0, 0.001, 10000)
+      Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0)), 1.0, 0.001, 10000000)
 
     val a = network.evaluate(Seq(0.0, 0.0))
     val b = network.evaluate(Seq(0.0, 1.0))
