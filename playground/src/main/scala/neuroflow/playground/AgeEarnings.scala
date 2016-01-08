@@ -47,7 +47,7 @@ object AgeEarnings {
 
 
   /*
-      After 5000 Iterations (less than 1h training time) the model predicted:
+      After 5000 iterations the model predicted:
 
       Age 0.0 earning >50K  0.000000513427763447596
       Age 9.0 earning >50K  0.0001.281087951788469

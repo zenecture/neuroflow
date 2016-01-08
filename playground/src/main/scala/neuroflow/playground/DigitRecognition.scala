@@ -1,11 +1,8 @@
 package neuroflow.playground
 
-import java.io.File
-
 import neuroflow.application.classification.Image._
 import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.{Hidden, Output, Input, Network}
-import neuroflow.playground.ImageRecognition._
+import neuroflow.core._
 
 /**
   * @author bogdanski
@@ -13,60 +10,99 @@ import neuroflow.playground.ImageRecognition._
   */
 object DigitRecognition {
 
-  def getImg(path: String): File = new File(getClass.getClassLoader.getResource(path).toURI)
+  def getDigitSet(path: String) = {
+    val selector: Int => Boolean = c => c < 255
+    (0 to 9) map (i => extractBinary(getFile(path + s"$i.png"), selector).grouped(100).toList)
+  }
 
   def apply = {
-    val selector: Int => Boolean = c => if (c < 255) true else false
-    val digits = (0 to 9) map (i => extractBinary(getImg(s"img/digits/$i.png"), selector).grouped(100).toList)
-    val nets = 0 to (digits.head.size - 1) map { segment =>
-      val xs = (0 to 9) map { digit => digits(digit)(segment) }
+    val setA = getDigitSet("img/digits/e/") // training
+    val setB = getDigitSet("img/digits/b/") // training
+    val setC = getDigitSet("img/digits/c/") // training
+    val setD = getDigitSet("img/digits/d/") // training
+    val setE = getDigitSet("img/digits/a/") // test
+    val nets = (0 to (setA.head.size - 1)).par.map { segment =>
+      val xs =
+        ((0 to 9) map { digit => setA(digit)(segment) }) ++
+        ((0 to 9) map { digit => setB(digit)(segment) }) ++
+        ((0 to 9) map { digit => setC(digit)(segment) }) ++
+        ((0 to 9) map { digit => setD(digit)(segment) })
       val ys = (0 to 9) map { digit => Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).updated(digit, 1.0) }
       val fn = Sigmoid.apply
-      val net = Network(Input(xs.head.size) :: Hidden(12, fn) :: Output(10, fn) :: Nil)
-      net.train(xs, ys, 5.0, 0.001, 1000)
+      val net = Network(Input(xs.head.size) :: Hidden(50, fn) :: Output(10, fn) :: Nil)
+      net.train(xs, ys ++ ys ++ ys ++ ys, 2.0, 0.001, 30)
       net
     }
 
-    val results = digits map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) }
+    val setAResult = setA map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) }
+    val setBResult = setB map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) }
+    val setCResult = setC map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) }
+    val setDResult = setD map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) }
+    val setEResult = setE map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) }
 
-    (0 to 9) foreach { digit =>
-      val max = results(digit).max
-      println(s"$digit classified as " + results(digit).indexOf(max))
-    }
+    println("set A:")
+    (0 to 9) foreach { digit => println(s"$digit classified as " + setAResult(digit).indexOf(setAResult(digit).max)) }
+    println("set B:")
+    (0 to 9) foreach { digit => println(s"$digit classified as " + setBResult(digit).indexOf(setBResult(digit).max)) }
+    println("set C:")
+    (0 to 9) foreach { digit => println(s"$digit classified as " + setCResult(digit).indexOf(setCResult(digit).max)) }
+    println("set D:")
+    (0 to 9) foreach { digit => println(s"$digit classified as " + setDResult(digit).indexOf(setDResult(digit).max)) }
+    println("set E:")
+    (0 to 9) foreach { digit => println(s"$digit classified as " + setEResult(digit).indexOf(setEResult(digit).max)) }
 
-    println("All classes:")
-    results.foreach(println)
+
   }
 
 }
 
 
 /*
-After 20 minutes training:
 
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
+set A: 0 classified as 0
+set A: 1 classified as 1
+set A: 2 classified as 2
+set A: 3 classified as 3
+set A: 4 classified as 4
+set A: 5 classified as 5
+set A: 6 classified as 6
+set A: 7 classified as 7
+set A: 8 classified as 8
+set A: 9 classified as 9
+---
+set B: 0 classified as 0
+set B: 1 classified as 1
+set B: 2 classified as 2
+set B: 3 classified as 3
+set B: 4 classified as 4
+set B: 5 classified as 5
+set B: 6 classified as 6
+set B: 7 classified as 7
+set B: 8 classified as 8
+set B: 9 classified as 0
+---
+set C: 0 classified as 0
+set C: 1 classified as 1
+set C: 2 classified as 2
+set C: 3 classified as 3
+set C: 4 classified as 4
+set C: 5 classified as 5
+set C: 6 classified as 6
+set C: 7 classified as 7
+set C: 8 classified as 8
+set C: 9 classified as 9
+---
+set D: 0 classified as 0
+set D: 1 classified as 1
+set D: 2 classified as 2
+set D: 3 classified as 0  <--- Error
+set D: 4 classified as 4
+set D: 5 classified as 5
+set D: 6 classified as 6
+set D: 7 classified as 7
+set D: 8 classified as 8  <--- Error
+set D: 9 classified as 4
+[success] Total time: 618 s, completed 07.01.2016 12:42:15
 
-All classes (segments averaged, thus not normalized):
-List(1.0371750579747023, 0.009274539570757108, 0.49783084409033257, 0.005592137619932446, 0.013038717628596689, 0.06812207770503659, 0.08105523144408659, 0.5079706922390937, 0.4922248614873153, 0.041008700901593365)
-List(0.4828075913551939, 0.9575995159158035, 0.45284344998578724, 0.032169737083940254, 0.009015511400117847, 0.018024037729549032, 0.03771043860802678, 0.4703305184285171, 0.01769349110218324, 0.49677380256859144)
-List(0.16869646303239993, 1.1454897743422705E-4, 0.9685507674959803, 0.46483071458829683, 0.48967907095424695, 1.2046148613886452E-5, 0.2614998961460904, 9.099068467596966E-5, 0.02473934551497222, 1.6543420712121015E-6)
-List(0.11524549604037544, 7.737360370408474E-7, 0.17126789098588815, 1.7656802751914267, 4.724535131184158E-4, 0.041530285549277575, 0.4518292327461696, 0.017803929079694213, 1.296479195126379E-7, 2.7694121917659274E-6)
-List(0.5442397282407871, 0.01532869300771295, 0.032281077341612, 0.43005491640611304, 0.9687272323222281, 0.004800985180080454, 0.22967624235826795, 0.49725751316769695, 0.013517495971587733, 0.11086828896902322)
-List(0.2868332466990603, 0.013442404598222654, 0.03855489737479597, 0.9383640941994393, 2.6527193314252588E-5, 1.279139327687023, 0.2857456067632121, 0.07148140327644621, 8.13293125288543E-7, 0.008093890266256927)
-List(0.08544384548225516, 0.019533951371402618, 0.5198948382535219, 0.0839360742990137, 0.4648919010881524, 1.0214484177667139E-5, 0.6670925010079808, 8.511691623724341E-6, 0.04240235496425387, 4.000437828964176E-6)
-List(0.5027864190012334, 0.009408797139091523, 0.49790631968298743, 0.019248849924066207, 4.159228108119418E-4, 0.004973217929791861, 0.00932797223499446, 1.4428223964687505, 0.4805040842456632, 0.47175694167469695)
-List(0.542372202727229, 0.005819530191630267, 0.056783912127510106, 0.3878560898025905, 0.012731389736345317, 1.9971105170659158E-5, 0.1999870112087066, 0.42670022179649714, 0.9668407429052106, 0.5177050490086045)
-List(0.5435581812197412, 0.012175216967956868, 0.028001652892611546, 0.4287663167800615, 0.003083459683784757, 9.78863304382179E-4, 0.22891737962974615, 0.49937068122366496, 0.025476331001060757, 1.4499431654198882)
-
-[success] Total time: 1205 s, completed 05.01.2016 01:25:32
 
  */

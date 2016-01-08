@@ -1,10 +1,11 @@
 package neuroflow.core
 
-import breeze.linalg.{sum, DenseMatrix}
+import java.util.concurrent.ThreadLocalRandom
+
+import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
 
 import scala.annotation.tailrec
-import scala.util.Random
 
 /**
   * @author bogdanski
@@ -23,7 +24,7 @@ object Network {
       if (index < (layers.size - 1)) {
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
         val product = neuronsLeft * neuronsRight
-        val initialWeights = (1 to product).map(k => Random.nextDouble).toArray
+        val initialWeights = (1 to product).map(k => ThreadLocalRandom.current.nextDouble(-1, 1)).toArray
         Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
       } else None
     }.toList
@@ -132,7 +133,7 @@ trait Network extends Logs {
     */
   @tailrec private def run(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
+    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray)) //TODO: Measure performance impact
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
     val error = errorFunc(input, output)
     if (error.toArray.exists(_ > precision) && iteration < maxIterations) {
