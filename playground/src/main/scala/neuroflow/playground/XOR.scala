@@ -10,7 +10,7 @@ import neuroflow.core._
 object XOR {
 
   def apply = {
-    val network = Network(Input(2) :: Hidden(4, Sigmoid.apply) :: Output(1, Sigmoid.apply) :: Nil)
+    val network = Network(Input(2) :: Hidden(3, Sigmoid.apply) :: Output(1, Sigmoid.apply) :: Nil)
     network.train(Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0)),
       Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0)), 10.0, 0.001, 10000)
 

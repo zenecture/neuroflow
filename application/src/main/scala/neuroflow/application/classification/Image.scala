@@ -11,14 +11,19 @@ import javax.imageio.ImageIO
 object Image {
 
   /**
+    * Gets the `File` specified by `path`
+    */
+  def getFile(path: String): File = new File(getClass.getClassLoader.getResource(path).toURI)
+
+  /**
     * Loads image from `file` or `path` and returns flattened sequence
     * of all color channels and pixels
     */
   def extractRgb(path: String): Seq[Double] = extractRgb(new File(path))
   def extractRgb(file: File): Seq[Double] = {
     val img = ImageIO.read(file)
-    (0 to img.getWidth - 1) flatMap { w =>
-      (0 to img.getHeight - 1) flatMap { h =>
+    (0 to img.getHeight - 1) flatMap { h =>
+      (0 to img.getWidth - 1) flatMap { w =>
         val c = new Color(img.getRGB(w, h))
         c.getRed / 255.0 :: c.getGreen / 255.0 :: c.getBlue / 255.0 :: Nil
       }
@@ -39,7 +44,7 @@ object Image {
     (0 to img.getHeight - 1) flatMap { h =>
       (0 to img.getWidth - 1) flatMap { w =>
         val c = new Color(img.getRGB(w, h))
-        (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.0 else 0.0) :: Nil
+        (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.175 else -0.1) :: Nil
       }
     }
   }

@@ -1,10 +1,8 @@
 package neuroflow.playground
 
-import java.io.File
-
-import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.{Network, Input, Hidden, Output}
 import neuroflow.application.classification.Image._
+import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.{Hidden, Input, Network, Output}
 
 /**
   * @author bogdanski
@@ -12,23 +10,21 @@ import neuroflow.application.classification.Image._
   */
 object ImageRecognition {
 
-  def getImg(path: String): File = new File(getClass.getClassLoader.getResource(path).toURI)
-
   def apply = {
     // Training
-    val plus = extractRgb(getImg("img/plus.png")).grouped(30).toList
-    val heart = extractRgb(getImg("img/heart.png")).grouped(30).toList
+    val plus = extractRgb(getFile("img/plus.png")).grouped(30).toList
+    val heart = extractRgb(getFile("img/heart.png")).grouped(30).toList
 
     // Testing
-    val heartDistorted = extractRgb(getImg("img/heart_distorted.png")).grouped(30).toList
-    val heartRotated = extractRgb(getImg("img/heart_rotated.png")).grouped(30).toList
-    val plusRotated = extractRgb(getImg("img/plus_rotated.png")).grouped(30).toList
-    val random = extractRgb(getImg("img/random.png")).grouped(30).toList
+    val heartDistorted = extractRgb(getFile("img/heart_distorted.png")).grouped(30).toList
+    val heartRotated = extractRgb(getFile("img/heart_rotated.png")).grouped(30).toList
+    val plusRotated = extractRgb(getFile("img/plus_rotated.png")).grouped(30).toList
+    val random = extractRgb(getFile("img/random.png")).grouped(30).toList
 
     println(s"Training ${plus.size + heart.size} samples...")
 
     val training = plus.zip(heart).zip(random)
-    val nets = training.map { sample => // One could parallelize this to gain significant performance boosts
+    val nets = training.par.map { sample =>
       val (ph, r) = sample
       val (p, h) = ph
       val net = Network(Input(p.size) :: Hidden(20, Sigmoid.apply) :: Output(3, Sigmoid.apply) :: Nil)
