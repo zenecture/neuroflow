@@ -11,9 +11,10 @@ object XOR {
 
   def apply = {
     val fn = Sigmoid.apply
+    val xs = Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0))
+    val ys = Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0))
     val network = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
-    network.train(Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0)),
-      Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0)), 1.0, 0.001, 10000000)
+    network.train(xs, ys, 2.0, 0.001, 10000)
 
     val a = network.evaluate(Seq(0.0, 0.0))
     val b = network.evaluate(Seq(0.0, 1.0))
