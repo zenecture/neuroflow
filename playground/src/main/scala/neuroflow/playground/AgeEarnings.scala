@@ -15,10 +15,7 @@ import scala.io.Source
 object AgeEarnings {
   def apply = {
     val src = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("file/adult.txt")).getLines().map(_.split(",")).flatMap(k => {
-      val age = k(0)
-      (if (k.size > 14) Some(k(14)) else None).map { over50k =>
-        (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0)
-      }
+      (if (k.size > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
     }).toList
 
     val train = src.take(1000)
@@ -29,7 +26,7 @@ object AgeEarnings {
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => Seq(a._1 / maxAge))
     val ys = train.map(a => Seq(a._2))
-    network.train(xs, ys, 0.05, 0.001, 1000)
+    network.train(xs, ys, 0.05, 0.001, 5000)
 
     val result = Range.Double(0.0, 1.1, 0.1).map(k => (k * maxAge, network.evaluate(Seq(k))))
     result.foreach { r =>
