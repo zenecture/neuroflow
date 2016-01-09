@@ -4,6 +4,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
+import neuroflow.common.Logs
 
 import scala.annotation.tailrec
 
@@ -15,7 +16,7 @@ import scala.annotation.tailrec
 object Network {
 
   /**
-    * Construct a new network with layers `ls` and settings `sets`
+    * Constructs a new network with layers `ls` and settings `sets`
     */
   def apply(ls: Seq[Layer]): Network = apply(ls, Settings(false, 0.0, true))
   def apply(ls: Seq[Layer], sets: Settings): Network = new Network {
@@ -31,19 +32,6 @@ object Network {
       } else None
     }.toList
   }
-
-
-  /**
-    * Load a trained network from `file` or `byte` source
-    */
-  def load(file: String): Network = ???
-  def load(byte: Array[Byte]): Network = ???
-
-  /**
-    * Save a trained `network` to either `file` or byte array.
-    */
-  def save(network: Network, file: String): Unit = ???
-  def save(network: Network): Array[Byte] = ???
 }
 
 /**
@@ -52,7 +40,7 @@ object Network {
   */
 case class Settings(numericGradient: Boolean, Δ: Double, verbose: Boolean)
 
-trait Network extends Logs {
+trait Network extends Logs with Serializable {
 
   /**
     * Settings of this neural network
