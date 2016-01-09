@@ -15,11 +15,13 @@ import scala.annotation.tailrec
 object Network {
 
   /**
-    * Construct a new network with layers `ls` and random weights
+    * Construct a new network with layers `ls` and settings `sets`
     */
-  def apply(ls: Seq[Layer]) = new Network {
+  def apply(ls: Seq[Layer]): Network = apply(ls, Settings(false, 0.0, true))
+  def apply(ls: Seq[Layer], sets: Settings): Network = new Network {
+    val settings: Settings = sets
     val layers: Seq[Layer] = ls
-    val weights: List[DenseMatrix[Double]] = ls.zipWithIndex.flatMap { li =>
+    val weights: List[DenseMatrix[Double]] = layers.zipWithIndex.flatMap { li =>
       val (layer, index) = li
       if (index < (layers.size - 1)) {
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
@@ -29,6 +31,7 @@ object Network {
       } else None
     }.toList
   }
+
 
   /**
     * Load a trained network from `file` or `byte` source
@@ -43,7 +46,18 @@ object Network {
   def save(network: Network): Array[Byte] = ???
 }
 
+/**
+  * If `numericGradient` is true, the gradient will be approximated using step size `Δ`, which is alot faster
+  * than actually deriving the whole net. The `verbose` flag indicates logging behavior.
+  */
+case class Settings(numericGradient: Boolean, Δ: Double, verbose: Boolean)
+
 trait Network extends Logs {
+
+  /**
+    * Settings of this neural network
+    */
+  val settings: Settings
 
   /**
     * Layers of this neural network
@@ -105,6 +119,19 @@ trait Network extends Logs {
   }
 
   /**
+    * Computes the gradient numerically based on error func.
+    */
+  private def numericGradient(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+                              layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
+    import settings.Δ
+    val v = weights(layer)(weight)
+    val a = errorFunc(xs, ys)
+    weights(layer).update(weight, v + Δ)
+    val b = errorFunc(xs, ys)
+    (b - a) / Δ
+  }
+
+  /**
     * Evaluates the error function Σ1/2(prediction(x) - observation)²
     */
   private def errorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]]): DenseMatrix[Double] = {
@@ -121,7 +148,8 @@ trait Network extends Logs {
   private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
     weights.foreach { l =>
       l.foreachPair { (k, v) =>
-        val grad = deriveErrorFunc(xs, ys, weights.indexOf(l), k)
+        val layer = weights.indexOf(l)
+        val grad = if (settings.numericGradient) numericGradient(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
         val mean = stepSize * sum(grad) / grad.rows
         l.update(k, v - mean)
       }
@@ -133,21 +161,21 @@ trait Network extends Logs {
     */
   @tailrec private def run(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray)) //TODO: Measure performance impact
+    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
     val error = errorFunc(input, output)
     if (error.toArray.exists(_ > precision) && iteration < maxIterations) {
-      info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
+      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
       adaptWeights(input, output, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
-      info(s"Took $iteration iterations of $maxIterations with error $error")
+      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
     }
   }
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights. Uses default or explicit settings.
+    * Returns this `Network`, with new weights.
     */
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit =
     run(xs, ys, 0.01, 0.001, 0, 1000)
