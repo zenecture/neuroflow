@@ -27,6 +27,14 @@ object XOR {
     println(s"Input: 1.0, 1.0   Output: $d")
 
     println("Network was: " + network)
+
+    println("Taking alot of samples from model:")
+
+    Range.Double(0.0, 1.0, 0.01) map { x1 =>
+      Range.Double(0.0, 1.0, 0.01) map { x2 =>
+        println(s"$x1, $x2, ${network.evaluate(Seq(x1, x2)).head}")
+      }
+    }
   }
 
 }
