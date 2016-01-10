@@ -40,6 +40,11 @@ object AgeEarnings {
     }
 
     Range(10, 95, 5).foreach(testModel)
+
+    val allOver = src.filter(_._2 == 1.0).map(_._1)
+    val mean = allOver.sum / allOver.size
+
+    println(s"Mean of all $mean")
   }
 
 
