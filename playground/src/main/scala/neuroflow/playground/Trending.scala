@@ -30,6 +30,7 @@ object Trending {
     val oscillatingUp = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100*i) / 3))) // Oscillating Up Trend
     val oscillatingDown = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, -i + (Math.sin(100*i) / 3) + 1)) // Oscillating Down Trend
     val realWorld = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100*i) / 3) * Random.nextDouble)) // Real world data
+    val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, Random.nextDouble)) // Random
 
 
     val fn = Sigmoid.apply
@@ -49,6 +50,7 @@ object Trending {
     val oscillatingUpResult = net.evaluate(oscillatingUp)
     val oscillatingDownResult = net.evaluate(oscillatingDown)
     val realWorldResult = net.evaluate(realWorld)
+    val randomResult = net.evaluate(random)
 
     println(s"Flat Result: $flatResult")
     println(s"Linear Trend Result: $trendResult")
@@ -61,5 +63,10 @@ object Trending {
     println(s"Oscillating Up Result: $oscillatingUpResult")
     println(s"Oscillating Down Result: $oscillatingDownResult")
     println(s"Real World Result: $realWorldResult")
+    println(s"Random Result: $randomResult")
+
+    for {i <- random.indices by 2} {
+      println(s"${random(i)}, ${random(i + 1)}")
+    }
   }
 }
