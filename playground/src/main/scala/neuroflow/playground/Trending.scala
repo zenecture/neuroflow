@@ -64,9 +64,5 @@ object Trending {
     println(s"Oscillating Down Result: $oscillatingDownResult")
     println(s"Real World Result: $realWorldResult")
     println(s"Random Result: $randomResult")
-
-    for {i <- random.indices by 2} {
-      println(s"${random(i)}, ${random(i + 1)}")
-    }
   }
 }
