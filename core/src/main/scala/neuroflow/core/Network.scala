@@ -107,7 +107,7 @@ trait Network extends Logs with Serializable {
   }
 
   /**
-    * Computes the gradient numerically based on error func.
+    * Computes the gradient numerically based on finite differences.
     */
   private def numericGradient(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                               layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
