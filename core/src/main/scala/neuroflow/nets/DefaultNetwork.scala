@@ -15,6 +15,7 @@ import scala.annotation.tailrec
   * @author bogdanski
   * @since 15.01.16
   */
+
 trait DefaultNetwork extends Network {
 
   /**

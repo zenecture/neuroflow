@@ -18,7 +18,7 @@ trait HasActivator[N] {
 /**
   * The activator (or transport) function with its derivative, generic in `N`.
   */
-trait Activator[N] extends (N => N) {
+trait Activator[N] extends (N => N) with Serializable {
   def apply(x: N): N
   def derivative: N => N
 }
