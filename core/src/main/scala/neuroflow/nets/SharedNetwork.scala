@@ -7,7 +7,7 @@ import neuroflow.core.{Settings, Layer, Network}
   *
   * A shared network will constrain certain weights to have the same value.
   * This will lead to better performance for convoluted net architectures,
-  * as well as more stable network with respectto translations and distortions
+  * as well as more stable network with respect to translations and distortions
   * of an (still invariant) input.
   *
   * This is TODO.
