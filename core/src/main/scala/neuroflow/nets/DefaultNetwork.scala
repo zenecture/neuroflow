@@ -1,4 +1,4 @@
-package neurflow.nets
+package neuroflow.nets
 
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._

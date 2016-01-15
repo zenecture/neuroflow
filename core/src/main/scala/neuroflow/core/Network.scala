@@ -3,8 +3,8 @@ package neuroflow.core
 import java.util.concurrent.ThreadLocalRandom
 
 import breeze.linalg.DenseMatrix
-import neurflow.nets.DefaultNetwork
 import neuroflow.common.Logs
+import neuroflow.nets.DefaultNetwork
 
 /**
   * @author bogdanski
