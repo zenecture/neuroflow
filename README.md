@@ -65,4 +65,5 @@ network.evaluate(Seq(0.0, 0.0))
 
 # IO
 
-Saving and loading a trained net is TODO. 
+To keep the efforts of a hard, long training phase, it is important to save a net.
+You can save your net to file or byte array with `neuroflow.application.io.IO`.
