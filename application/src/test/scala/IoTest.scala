@@ -1,5 +1,6 @@
 import neuroflow.application.io.IO
-import neuroflow.core.Network
+import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.{Hidden, Output, Input, Network}
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 
@@ -15,6 +16,7 @@ class IoTest extends Specification {
     It should:
       - Serialize a net                       $serialize
       - De-serialize a net                    $deserialize
+      - Do file IO                            $fileIo
 
   """
 
@@ -29,6 +31,17 @@ class IoTest extends Specification {
     val serialized = IO.save(net)
     val deserialized = IO.load(serialized).getOrElse(throw new Exception("Couldn't deserialize the net."))
     net.layers.size must be equalTo deserialized.layers.size
+  }
+
+  def fileIo = {
+    val file = "/Users/felix/github/unversioned/savednets/net.nf"
+    val net = Network(Input(2) :: Hidden(3, Sigmoid.apply) :: Output(2, Sigmoid.apply) :: Nil)
+    IO.save(net, file)
+    val success = IO.load(file) exists { n =>
+      n.layers === net.layers
+    }
+
+    success must beTrue
   }
 
 }

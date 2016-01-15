@@ -1,7 +1,6 @@
 package neuroflow.nets
 
-import breeze.linalg.DenseMatrix
-import neuroflow.core.{Settings, Layer, Network}
+import neuroflow.core.Network
 
 /**
   *
@@ -10,26 +9,17 @@ import neuroflow.core.{Settings, Layer, Network}
   * as well as more stable network with respect to translations and distortions
   * of an (still invariant) input.
   *
-  * This is TODO.
   *
   * @author bogdanski
   * @since 15.01.16
   */
 trait SharedNetwork extends Network {
-  val settings: Settings = _
-  val weights: List[DenseMatrix[Double]] = _
-  val layers: Seq[Layer] = _
 
   /**
-    * Input `xs` will be evaluated based on current weights
+    *
+    *
+    * This is TODO.
+    *
     */
-  def evaluate(xs: Seq[Double]): List[Double] = ???
-
-  /**
-    * Input `xs` and output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights.
-    */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit = ???
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double, maxIterations: Int): Unit = ???
 
 }

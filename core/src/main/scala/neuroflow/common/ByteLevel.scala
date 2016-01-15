@@ -12,14 +12,16 @@ object ByteLevel {
   /**
     * Serializes `anyRef` to byte array.
     */
-  def serialize(anyRef: AnyRef): Array[Byte] = ~> (new ByteArrayOutputStream) map
-    (stream => (stream, new ObjectOutputStream(stream))) io (_._2.writeObject(anyRef)) map (_._1.toByteArray)
+  def serialize(anyRef: AnyRef): Array[Byte] = synchronized { ~> (new ByteArrayOutputStream) map
+    (stream => (stream, new ObjectOutputStream(stream))) io (_._2.writeObject(anyRef)) io (_._1.close) io (_._2.close) map (_._1.toByteArray)
+  }
 
   /**
     * Deserializes `bytes` to `T`.
     */
-  def deserialize[T](bytes: Array[Byte]): T = ~> (new ByteArrayInputStream(bytes)) map
-    (new CustomObjectReader(Thread.currentThread.getContextClassLoader, _)) map (_.readObject.asInstanceOf[T])
+  def deserialize[T](bytes: Array[Byte]): T = synchronized { ~> (new ByteArrayInputStream(bytes)) map
+    (new CustomObjectReader(Thread.currentThread.getContextClassLoader, _)) map (r => (r.readObject.asInstanceOf[T], r)) io (_._2.close) map (_._1)
+  }
 
 }
 
