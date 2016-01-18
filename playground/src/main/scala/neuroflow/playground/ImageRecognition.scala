@@ -2,7 +2,9 @@ package neuroflow.playground
 
 import neuroflow.application.classification.Image._
 import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.core._
+import neuroflow.nets.DefaultNetwork._
 
 /**
   * @author bogdanski

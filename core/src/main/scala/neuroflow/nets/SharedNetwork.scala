@@ -1,7 +1,5 @@
 package neuroflow.nets
 
-import neuroflow.core.Network
-
 /**
   *
   * A shared network will constrain certain weights to have the same value.
@@ -13,7 +11,7 @@ import neuroflow.core.Network
   * @author bogdanski
   * @since 15.01.16
   */
-trait SharedNetwork extends Network {
+object SharedNetwork {
 
   /**
     *
