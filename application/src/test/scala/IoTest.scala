@@ -37,10 +37,7 @@ class IoTest extends Specification {
     val file = "/Users/felix/github/unversioned/savednets/net.nf"
     val net = Network(Input(2) :: Hidden(3, Sigmoid.apply) :: Output(2, Sigmoid.apply) :: Nil)
     IO.save(net, file)
-    val success = IO.load(file) exists { n =>
-      n.layers === net.layers
-    }
-
+    val success = IO.load(file) exists (_.layers === net.layers)
     success must beTrue
   }
 

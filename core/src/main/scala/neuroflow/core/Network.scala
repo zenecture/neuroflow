@@ -20,7 +20,7 @@ object Network {
   def apply(ls: Seq[Layer], sets: Settings): Network = new DefaultNetwork {
     val settings: Settings = sets
     val layers: Seq[Layer] = ls
-    val weights: List[DenseMatrix[Double]] = layers.zipWithIndex.flatMap { li =>
+    val weights: Seq[DenseMatrix[Double]] = layers.zipWithIndex.flatMap { li =>
       val (layer, index) = li
       if (index < (layers.size - 1)) {
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
@@ -52,7 +52,7 @@ trait Network extends Logs with Serializable {
   /**
     * The weights packed as a list of matrices
     */
-  val weights: List[DenseMatrix[Double]]
+  val weights: Seq[DenseMatrix[Double]]
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.
