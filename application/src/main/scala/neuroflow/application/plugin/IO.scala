@@ -1,6 +1,6 @@
 package neuroflow.application.plugin
 
-import java.io.{FileReader, File, PrintWriter}
+import java.io.{File, PrintWriter}
 
 import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
@@ -9,7 +9,6 @@ import neuroflow.core.{Layer, Network, WeightProvider}
 import scala.io.Source
 import scala.pickling.Defaults._
 import scala.pickling.json._
-import scala.tools.nsc.classpath.FileUtils
 
 /**
   * @author bogdanski
