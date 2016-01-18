@@ -1,14 +1,15 @@
 package neuroflow.application.plugin
 
-import java.nio.file.{Files, Paths}
+import java.io.{FileReader, File, PrintWriter}
 
 import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
-import neuroflow.core.{Layer, WeightProvider}
+import neuroflow.core.{Layer, Network, WeightProvider}
 
-import scala.pickling._
-import scala.pickling.Defaults.genOpenSumUnpickler
-import scala.pickling.binary._
+import scala.io.Source
+import scala.pickling.Defaults._
+import scala.pickling.json._
+import scala.tools.nsc.classpath.FileUtils
 
 /**
   * @author bogdanski
@@ -16,49 +17,17 @@ import scala.pickling.binary._
   */
 object IO extends Logs {
 
-//  /**
-//    * Loads a trained network from `bytes`
-//    */
-//  def load(bytes: Array[Byte]): Option[Network] = try { Some(ByteLevel.deserialize[Network](bytes)) } catch { case ex => ~> (error(ex.toString)) next None }
+  object Json {
+    def read(json: String): WeightProvider = new WeightProvider {
+      def apply(v1: Seq[Layer]): Weights = JSONPickle(json).unpickle[Weights]
+    }
+    def write(network: Network): String = network.weights.pickle.value
+  }
 
-//  /**
-//    * Reads a network from file `path`.
-//    */
-//  def load(path: String): Option[Weights] = try { ~> (Paths.get(path)) map Files.readAllBytes map load } catch { case ex => ~> (error(ex.toString)) next None }
-//
-//  /**
-//    * Saves a `network` to file `path`.
-//    */
-//  def save(network: Network, path: String): Unit = ~> (new FileOutputStream(path)) io (_.write(save(network))) io (_.flush) io (_.close)
-//
-////  /**
-////    * Saves a trained `network` to byte array.
-////    */
-////  def save(network: Network): Array[Byte] = ByteLevel.serialize(network)
-//
-//  def save(network: Network): Array[Byte] = ??? /*{
-//    implicit val pickler = Pickler.generate[Weights]
-//    val pickled = network.weights.pickle
-//    pickled.value
-//  }*/
-//
-//  def load(bytes: Array[Byte]): Option[Weights] =  ??? /*{
-//    implicit val unpickler = Unpickler.generate[Weights]
-//    bytes.unpickle[Weights]
-//  }*/
-//
-//
-//  def huarz = {
-//
-//  }
 
-//  def unapply(bytes: Array[Byte]): WeightProvider = {
-//    //implicit val unpickler = Unpickler.generate[Weights]
-//    new WeightProvider {
-//      def apply(v1: Seq[Layer]): Weights = bytes.unpickle[Weights]
-//    }
-//  }
-//
-//  def unapply(path: String): WeightProvider = ~> (Paths.get(path)) map Files.readAllBytes map unapply
+  object File {
+    def read(path: String): WeightProvider = ~> (Source.fromFile(path).mkString) map Json.read
+    def write(network: Network, path: String): Unit = ~> (new PrintWriter(new File(path))) io (_.write(Json.write(network))) io (_.close)
+  }
 
 }
