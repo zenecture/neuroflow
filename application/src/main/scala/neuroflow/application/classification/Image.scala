@@ -22,8 +22,8 @@ object Image {
   def extractRgb(path: String): Seq[Double] = extractRgb(new File(path))
   def extractRgb(file: File): Seq[Double] = {
     val img = ImageIO.read(file)
-    (0 to img.getHeight - 1) flatMap { h =>
-      (0 to img.getWidth - 1) flatMap { w =>
+    (0 until img.getHeight) flatMap { h =>
+      (0 until img.getWidth) flatMap { w =>
         val c = new Color(img.getRGB(w, h))
         c.getRed / 255.0 :: c.getGreen / 255.0 :: c.getBlue / 255.0 :: Nil
       }
@@ -41,8 +41,8 @@ object Image {
   def extractBinary(path: String, selector: Int => Boolean): Seq[Double] = extractBinary(new File(path), selector)
   def extractBinary(file: File, selector: Int => Boolean): Seq[Double] = {
     val img = ImageIO.read(file)
-    (0 to img.getHeight - 1) flatMap { h =>
-      (0 to img.getWidth - 1) flatMap { w =>
+    (0 until img.getHeight) flatMap { h =>
+      (0 until img.getWidth) flatMap { w =>
         val c = new Color(img.getRGB(w, h))
         // For better results we could use a probability of white and black pixels,
         // so the input will be 0.0 on average, which would lead to faster training.
