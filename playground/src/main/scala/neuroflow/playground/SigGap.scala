@@ -1,7 +1,9 @@
 package neuroflow.playground
 
 import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.{Input, Output, Network}
+import neuroflow.core.WeightProvider.randomWeights
+import neuroflow.core.{Input, Network, Output}
+import neuroflow.nets.DefaultNetwork._
 
 /**
   * @author bogdanski

@@ -2,7 +2,9 @@ package neuroflow.playground
 
 
 import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.{Output, Hidden, Input, Network}
+import neuroflow.core.WeightProvider.randomWeights
+import neuroflow.core.{Hidden, Input, Network, Output}
+import neuroflow.nets.DefaultNetwork._
 
 import scala.io.Source
 
