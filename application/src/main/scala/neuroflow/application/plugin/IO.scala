@@ -1,4 +1,4 @@
-package neuroflow.application.io
+package neuroflow.application.plugin
 
 import java.nio.file.{Files, Paths}
 

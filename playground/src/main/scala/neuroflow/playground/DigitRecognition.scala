@@ -1,6 +1,6 @@
 package neuroflow.playground
 
-import neuroflow.application.classification.Image._
+import neuroflow.application.preprocessors.Image._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
 import neuroflow.core.WeightProvider.randomWeights

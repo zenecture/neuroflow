@@ -1,4 +1,4 @@
-package neuroflow.application.classification
+package neuroflow.application.preprocessors
 
 import java.awt.Color
 import java.io.File
