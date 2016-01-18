@@ -66,4 +66,4 @@ network.evaluate(Seq(0.0, 0.0))
 # IO
 
 To keep the efforts of a hard, long training phase, it is important to save a net.
-You can save your net to file or byte array with `neuroflow.application.io.IO`.
+You can save your net to file or byte array with `neuroflow.application.plugin.IO`.
