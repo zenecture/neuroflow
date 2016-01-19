@@ -41,13 +41,6 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   }
 
   /**
-    * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
-    */
-  @tailrec private def derive(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double], cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
-    if (cursor < ws.size - 1) derive(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1) else ds(cursorDs) :* (in * ws(cursor))
-  }
-
-  /**
     * Computes the error function derivative with respect to `weight` in `layer`
     */
   private def deriveErrorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
@@ -69,14 +62,21 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
           flow(x, 0, i).map(h.activator.derivative)
       }
       }
-      (flow(x, 0, layers.size - 1) - y) :* derive(ds, ws, in, layer, 0)
+      (flow(x, 0, layers.size - 1) - y) :* chain(ds, ws, in, layer, 0)
     }.reduce(_ + _)
+  }
+
+  /**
+    * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
+    */
+  @tailrec private def chain(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double], cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
+    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1) else ds(cursorDs) :* (in * ws(cursor))
   }
 
   /**
     * Computes the gradient numerically based on finite differences.
     */
-  private def numericGradient(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+  private def deriveErrorFuncNumerically(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                               layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
     import settings.Δ
     val v = weights(layer)(weight)
@@ -104,7 +104,7 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     weights.foreach { l =>
       l.foreachPair { (k, v) =>
         val layer = weights.indexOf(l)
-        val grad = if (settings.numericGradient) numericGradient(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
+        val grad = if (settings.numericGradient) deriveErrorFuncNumerically(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
         val mean = stepSize * sum(grad) / grad.rows
         l.update(k, v - mean)
       }
