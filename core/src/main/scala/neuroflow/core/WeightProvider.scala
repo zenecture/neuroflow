@@ -35,7 +35,7 @@ object WeightProvider {
 
   /**
     * Fully connected means all `layers` are connected such that their weight matrices can
-    * flow from left to right by regular matrix operations. The `seed` determines the initial weight value.
+    * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight value.
     */
   private def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights = layers.zipWithIndex.flatMap { li =>
     val (layer, index) = li
