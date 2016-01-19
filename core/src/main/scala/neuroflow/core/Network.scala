@@ -62,5 +62,5 @@ trait Network extends Logs with Serializable {
     */
   def evaluate(xs: Seq[Double]): Seq[Double]
 
-  override def toString: String = weights.foldLeft("")(_.toString + "\n---\n" + _.toString)
+  override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 }
