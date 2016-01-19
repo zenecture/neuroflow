@@ -25,6 +25,40 @@ object DefaultNetwork {
 case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
   /**
+    * Input `xs` and output `ys` will be the mold for the weights.
+    * Returns this `Network`, with new weights.
+    */
+  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit =
+    run(xs, ys, 0.01, 0.001, 0, 1000)
+  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double, maxIterations: Int): Unit =
+    run(xs, ys, stepSize, precision, 0, maxIterations)
+
+  /**
+    * Input `xs` will be evaluated based on current weights
+    */
+  def evaluate(xs: Seq[Double]): List[Double] = {
+    val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)
+    flow(input, 0, layers.size - 1).toArray.toList
+  }
+
+  /**
+    * Trains this `Network` with optimal weights based on `xs` and `ys`
+    */
+  @tailrec private def run(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double,
+                           iteration: Int, maxIterations: Int): Unit = {
+    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
+    val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
+    val error = errorFunc(input, output)
+    if (error.toArray.exists(_ > precision) && iteration < maxIterations) {
+      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
+      adaptWeights(input, output, stepSize)
+      run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
+    } else {
+      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
+    }
+  }
+
+  /**
     * Computes the network recursively from cursor until target
     */
   @tailrec private def flow(in: DenseMatrix[Double], cursor: Int, target: Int): DenseMatrix[Double] = {
@@ -37,6 +71,21 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
         case i => in * weights(cursor)
       }
       if (cursor < target) flow(processed, cursor + 1, target) else processed
+    }
+  }
+
+  /**
+    * Computes gradient via `deriveErrorFunc` for all weights,
+    * and adapts their value using gradient descent.
+    */
+  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
+    weights.foreach { l =>
+      l.foreachPair { (k, v) =>
+        val layer = weights.indexOf(l)
+        val grad = if (settings.numericGradient) deriveErrorFuncNumerically(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
+        val mean = stepSize * sum(grad) / grad.rows
+        l.update(k, v - mean)
+      }
     }
   }
 
@@ -96,52 +145,4 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     }.reduce(_ + _)
   }
 
-  /**
-    * Computes gradient via `deriveErrorFunc` for all weights,
-    * and adapts their value using gradient descent.
-    */
-  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
-    weights.foreach { l =>
-      l.foreachPair { (k, v) =>
-        val layer = weights.indexOf(l)
-        val grad = if (settings.numericGradient) deriveErrorFuncNumerically(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
-        val mean = stepSize * sum(grad) / grad.rows
-        l.update(k, v - mean)
-      }
-    }
-  }
-
-  /**
-    * Trains this `Network` with optimal weights based on `xs` and `ys`
-    */
-  @tailrec private def run(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double,
-                           iteration: Int, maxIterations: Int): Unit = {
-    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
-    val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
-    val error = errorFunc(input, output)
-    if (error.toArray.exists(_ > precision) && iteration < maxIterations) {
-      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
-      adaptWeights(input, output, stepSize)
-      run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
-    } else {
-      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
-    }
-  }
-
-  /**
-    * Input `xs` and output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights.
-    */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit =
-    run(xs, ys, 0.01, 0.001, 0, 1000)
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double, maxIterations: Int): Unit =
-    run(xs, ys, stepSize, precision, 0, maxIterations)
-
-  /**
-    * Input `xs` will be evaluated based on current weights
-    */
-  def evaluate(xs: Seq[Double]): List[Double] = {
-    val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)
-    flow(input, 0, layers.size - 1).toArray.toList
-  }
 }
