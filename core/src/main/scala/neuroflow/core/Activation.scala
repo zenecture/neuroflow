@@ -20,7 +20,7 @@ trait HasActivator[N] {
   */
 trait Activator[N] extends (N => N) with Serializable {
   def apply(x: N): N
-  def derivative: N => N
+  def derivative(x: N): N
 }
 
 /**
@@ -31,28 +31,28 @@ object Activator {
   object Sigmoid {
     def apply = new Activator[Double] {
       def apply(x: Double): Double = 1 / (1 + exp(-x))
-      def derivative: Double => Double = x => exp(x) / pow(exp(x) + 1, 2)
+      def derivative(x: Double): Double = exp(x) / pow(exp(x) + 1, 2)
     }
   }
 
   object Tanh {
     def apply = new Activator[Double] {
       def apply(x: Double): Double = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
-      def derivative: Double => Double = x => 4 * exp(2 * x) / pow(exp(2 * x) + 1, 2)
+      def derivative(x: Double): Double = 4 * exp(2 * x) / pow(exp(2 * x) + 1, 2)
     }
   }
 
   object Linear {
     def apply = new Activator[Double] {
       def apply(x: Double): Double = x
-      def derivative: Double => Double = x => 1
+      def derivative(x: Double): Double = 1
     }
   }
 
   object Square {
     def apply = new Activator[Double] {
       def apply(x: Double): Double = x * x
-      def derivative: Double => Double = x => 2 * x
+      def derivative(x: Double): Double = 2 * x
     }
   }
 
