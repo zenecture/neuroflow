@@ -3,7 +3,7 @@ package neuroflow.playground
 
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.WeightProvider.randomWeights
-import neuroflow.core.{Hidden, Input, Network, Output}
+import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
 
 import scala.io.Source
@@ -23,11 +23,12 @@ object AgeEarnings {
     val train = src.take(2000)
     //val test = src.drop(1000)
     val fn = Sigmoid.apply
+    val trainSets = TrainSettings(stepSize = 0.05, precision = 0.001, maxIterations = 5000)
     val network = Network(Input(1) :: Hidden(20, fn) :: Output(1, fn) :: Nil)
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => Seq(a._1 / maxAge))
     val ys = train.map(a => Seq(a._2))
-    network.train(xs, ys, 0.05, 0.001, 5000)
+    network.train(xs, ys, trainSets)
 
     val allOver = src.filter(_._2 == 1.0)
     val ratio = allOver.size / src.size

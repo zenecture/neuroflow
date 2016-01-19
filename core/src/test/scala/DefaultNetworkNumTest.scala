@@ -33,7 +33,7 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.nets.DefaultNetwork.constructor
 
     val fn = Linear.apply
-    val sets = Settings(true, 0.00001, true)
+    val sets = NetSettings(true, 0.00001, true)
     val net = Network(Input(1) :: Output(1, fn) :: Nil, sets)
 
     val xs = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
@@ -44,7 +44,7 @@ class DefaultNetworkNumTest extends Specification {
 
     val instance = m.reflect(net)
     val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
-    val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("numericGradient")).asMethod)
+    val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFuncNumerically")).asMethod)
 
     val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
     val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
@@ -57,7 +57,7 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.nets.DefaultNetwork.constructor
 
     val fn = Linear.apply
-    val sets = Settings(true, 0.00001, true)
+    val sets = NetSettings(true, 0.00001, true)
     val net = Network(Input(1) :: Output(2, fn) :: Nil, sets)
 
     val xs = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
@@ -70,7 +70,7 @@ class DefaultNetworkNumTest extends Specification {
       val (layer, weight) = lw
       val instance = m.reflect(net)
       val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
-      val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("numericGradient")).asMethod)
+      val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFuncNumerically")).asMethod)
       val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       if ((a - b).forall { (w, v) => v.abs < 0.0001 }) success else failure
@@ -84,7 +84,7 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.nets.DefaultNetwork.constructor
 
     val fn = Sigmoid.apply
-    val sets = Settings(true, 0.00001, true)
+    val sets = NetSettings(true, 0.00001, true)
     val net = Network(Input(2) :: Hidden(3, fn) :: Output(2, fn) :: Nil, sets)
 
     val xs = (Seq(1.0, 2.0) :: Seq(2.0, 4.0) :: Seq(3.0, 6.0) :: Nil) map toMatrix
@@ -92,7 +92,7 @@ class DefaultNetworkNumTest extends Specification {
 
     val instance = m.reflect(net)
     val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
-    val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("numericGradient")).asMethod)
+    val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFuncNumerically")).asMethod)
 
     val layers = 0 :: 0 :: 0 :: 0 :: 0 :: 0 :: 1 :: 1 :: 1 :: 1 :: 1 :: 1 :: Nil
     val weights =
@@ -107,7 +107,7 @@ class DefaultNetworkNumTest extends Specification {
       val (layer, weight) = lw
       val instance = m.reflect(net)
       val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
-      val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("numericGradient")).asMethod)
+      val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFuncNumerically")).asMethod)
       val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       if ((a - b).forall { (w, v) => v.abs < 0.0001 }) success else failure

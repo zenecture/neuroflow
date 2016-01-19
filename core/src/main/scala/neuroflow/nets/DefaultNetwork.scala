@@ -18,11 +18,11 @@ import scala.annotation.tailrec
 
 object DefaultNetwork {
   implicit val constructor: Constructor[Network] = new Constructor[Network] {
-    def apply(ls: Seq[Layer], sets: Settings)(implicit weightProvider: WeightProvider): Network = DefaultNetwork(ls, sets, weightProvider(ls))
+    def apply(ls: Seq[Layer], sets: NetSettings)(implicit weightProvider: WeightProvider): Network = DefaultNetwork(ls, sets, weightProvider(ls))
   }
 }
 
-case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+case class DefaultNetwork(layers: Seq[Layer], settings: NetSettings, weights: Weights) extends Network {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.
@@ -30,8 +30,10 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     */
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit =
     run(xs, ys, 0.01, 0.001, 0, 1000)
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double, maxIterations: Int): Unit =
+  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], trainSettings: TrainSettings): Unit = {
+    import trainSettings._
     run(xs, ys, stepSize, precision, 0, maxIterations)
+  }
 
   /**
     * Input `xs` will be evaluated based on current weights
