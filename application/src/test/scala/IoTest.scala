@@ -10,6 +10,9 @@ import org.specs2.specification.core.SpecStructure
   * @since 09.01.16
   */
 class IoTest extends Specification {
+
+  sequential // IO race conditions will appear otherwise
+
   def is: SpecStructure = s2"""
 
     This spec will test IO related functionality.

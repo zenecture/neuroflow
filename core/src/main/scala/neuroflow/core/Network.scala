@@ -28,7 +28,7 @@ trait Constructor[+T <: Network] {
 }
 
 /**
-  * If `numericGradient` is true, the gradient will be approximated using step size `Δ`, which is alot faster
+  * If `numericGradient` is true, the gradient will be approximated using step size `Δ`, which is a lot faster
   * than actually deriving the whole net. The `verbose` flag indicates logging behavior.
   */
 case class Settings(numericGradient: Boolean, Δ: Double, verbose: Boolean) extends Serializable
