@@ -9,6 +9,9 @@ import neuroflow.core.Network.Weights
   * @author bogdanski
   * @since 18.01.16
   */
+
+trait WeightProvider extends (Seq[Layer] => Weights)
+
 object WeightProvider {
   implicit val randomWeights = new WeightProvider {
     def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => ThreadLocalRandom.current.nextDouble(-1, 1))
@@ -28,5 +31,3 @@ object WeightProvider {
     } else None
   }.toList
 }
-
-trait WeightProvider extends (Seq[Layer] => Weights)
