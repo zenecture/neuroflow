@@ -10,6 +10,10 @@ import neuroflow.core.Network.Weights
   * @since 18.01.16
   */
 
+/**
+  * A `WeightProvider` connects the neurons within a `Layer`
+  * through the `Weights` (Synapses)
+  */
 trait WeightProvider extends (Seq[Layer] => Weights)
 
 object WeightProvider {
