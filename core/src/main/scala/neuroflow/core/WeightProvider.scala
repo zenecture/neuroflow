@@ -25,6 +25,18 @@ object WeightProvider {
     def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 0.0)
   }
 
+  implicit val oneWeights = new WeightProvider {
+    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 1.0)
+  }
+
+  implicit val minusOneWeights = new WeightProvider {
+    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => -1.0)
+  }
+
+  /**
+    * Fully connected means all `layers` are connected such that their weight matrices can
+    * flow from left to right by regular matrix operations. The `seed` determines the initial weight value.
+    */
   private def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights = layers.zipWithIndex.flatMap { li =>
     val (layer, index) = li
     if (index < (layers.size - 1)) {
