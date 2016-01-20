@@ -66,8 +66,10 @@ During training, the derivatives of the net with respect to the weights are cons
 Our trained net can be evaluated with the `evaluate` method.
 
 ```scala
-net.evaluate(->(0.0, 0.0))
+val result = net.evaluate(->(0.0, 0.0))
 ```
+
+This will give us a result vector (kind `Seq[_]`) with the dimension of our specified output layer.
 
 # IO
 
@@ -81,3 +83,8 @@ val net = Network(layers)
 
 Here, `read` will yield an implicit `WeightProvider` from file. 
 (More examples are found within the unit test) 
+
+# Next
+
+- More network implementations like Shared Network, Constrained Network, ...
+- Modularization of gradient techniques, as there are more solid ones than gradient descent
