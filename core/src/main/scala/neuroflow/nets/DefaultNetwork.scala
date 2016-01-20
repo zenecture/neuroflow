@@ -125,16 +125,17 @@ case class DefaultNetwork(layers: Seq[Layer], settings: NetSettings, weights: We
   }
 
   /**
-    * Computes the gradient numerically based on finite differences.
+    * Computes the gradient numerically based on finite central differences.
     */
   private def deriveErrorFuncNumerically(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                               layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
     import settings.Δ
     val v = weights(layer)(weight)
+    weights(layer).update(weight, v - Δ)
     val a = errorFunc(xs, ys)
     weights(layer).update(weight, v + Δ)
     val b = errorFunc(xs, ys)
-    (b - a) / Δ
+    (b - a) / (2 * Δ)
   }
 
   /**
