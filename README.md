@@ -48,7 +48,7 @@ val gn = Tanh.apply
 val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil)
 ```
 
-Be aware that a default network must start with one `Input` layer and end with one `Output(i, fn)` layer. 
+Be aware that a default network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
 
 # Training
 
