@@ -39,10 +39,12 @@ val fn = Sigmoid.apply
 val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
 ```
 
-The whole architecture of the net is defined here. For instance, we want to use a sigmoid activation function `fn` for our hidden and output layers. Optionally, we could provide a `NetSettings` instance to force numeric gradients or disable verbosity. If we would need more layers, we would simply stack them.
+The whole architecture of the net is defined here. For instance, we want to use a sigmoid activation function `fn` for our hidden and output layers. Optionally, we could provide a `NetSettings` instance to force numeric gradients or disable verbosity. If we would need a more complex net, we would simply stack layers and functions:
 
 ```scala
-val stacked = Input(50) :: Hidden(25, fn) :: Hidden(12, fn) :: Hidden(3, fn) :: Output(1, fn) :: Nil
+val fn = Sigmoid.apply
+val gn = Tanh.apply
+val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil)
 ```
 
 Be aware that a default network must start with one `Input` layer and end with one `Output(i, fn)` layer. 
@@ -83,7 +85,7 @@ File.write(net, file)
 ```
 
 Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net.
-Afterwards it will be saved to the same file with `File.save`. If the desired target is a database, simply use `Json` instead and save it on string-level.
+Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, simply use `Json` instead and save it on string-level.
 However, to not dictate anything, all important types extend `Serializable`, so feel free to work with the bytes on your own.
 
 # Next
