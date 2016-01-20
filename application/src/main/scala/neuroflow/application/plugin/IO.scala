@@ -18,14 +18,14 @@ object IO extends Logs {
 
   object Json {
     /**
-      * Deserializes `json` string to `WeightProvider`
+      * Deserializes weights as `json` to construct a `WeightProvider`
       */
     def read(json: String): WeightProvider = new WeightProvider {
       def apply(v1: Seq[Layer]): Weights = JSONPickle(json).unpickle[Weights]
     }
 
     /**
-      * Serializes `network` to json string
+      * Serializes weights of `network` to json string
       */
     def write(network: Network): String = network.weights.pickle.value
   }
@@ -33,14 +33,14 @@ object IO extends Logs {
 
   object File {
     /**
-      * Deserializes file from `path` to `WeightProvider`
+      * Deserializes weights as json from `file` to construct a `WeightProvider`
       */
-    def read(path: String): WeightProvider = ~> (Source.fromFile(path).mkString) map Json.read
+    def read(file: String): WeightProvider = ~> (Source.fromFile(file).mkString) map Json.read
 
     /**
-      * Serializes `network` to `path` as json
+      * Serializes weights of `network` to `file` as json
       */
-    def write(network: Network, path: String): Unit = ~> (new PrintWriter(new File(path))) io (_.write(Json.write(network))) io (_.close)
+    def write(network: Network, file: String): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(network))) io (_.close)
   }
 
 }
