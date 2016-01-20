@@ -53,7 +53,8 @@ Let's train our net with the `train` method. It expects the inputs `xs` and thei
 Also, some rates and rules need to be defined, like precision or maximum iterations through a `TrainSettings` instance.
 
 ```scala
-val (xs, ys) = (-->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0)), -->(->(0.0), ->(1.0), ->(1.0), ->(0.0)))
+val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
+val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 val trainSets = TrainSettings(stepSize = 2.0, precision = 0.001, maxIterations = 10000)
 net.train(xs, ys, trainSets)
 ```
