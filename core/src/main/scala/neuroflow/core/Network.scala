@@ -61,7 +61,6 @@ trait Network extends Logs with Serializable {
     * Input `xs` and desired output `ys` will be the mold for the weights.
     * Returns this `Network`, with new weights. Use `trainSettings` for fine tuning.
     */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], trainSettings: TrainSettings): Unit
 
   /**

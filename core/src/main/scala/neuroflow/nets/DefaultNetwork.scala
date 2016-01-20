@@ -28,8 +28,6 @@ case class DefaultNetwork(layers: Seq[Layer], settings: NetSettings, weights: We
     * Input `xs` and output `ys` will be the mold for the weights.
     * Returns this `Network`, with new weights.
     */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit =
-    run(xs, ys, 0.01, 0.001, 0, 1000)
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], trainSettings: TrainSettings): Unit = {
     import trainSettings._
     run(xs, ys, learningRate, precision, 0, maxIterations)
@@ -38,9 +36,9 @@ case class DefaultNetwork(layers: Seq[Layer], settings: NetSettings, weights: We
   /**
     * Input `xs` will be evaluated based on current weights
     */
-  def evaluate(xs: Seq[Double]): List[Double] = {
+  def evaluate(xs: Seq[Double]): Seq[Double] = {
     val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)
-    flow(input, 0, layers.size - 1).toArray.toList
+    flow(input, 0, layers.size - 1).toArray.toVector
   }
 
   /**
