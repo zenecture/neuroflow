@@ -39,10 +39,10 @@ val fn = Sigmoid.apply
 val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
 ```
 
-The whole architecture of the net is defined here. For instance, we want to use a sigmoid activation function `fn` for our hidden and output layers. If we would need more layers, we would simply stack them. Optionally, we could provide a `NetSettings` instance to force numeric gradients or disable verbosity.
+The whole architecture of the net is defined here. For instance, we want to use a sigmoid activation function `fn` for our hidden and output layers. Optionally, we could provide a `NetSettings` instance to force numeric gradients or disable verbosity. If we would need more layers, we would simply stack them.
 
 ```scala
-Hidden(25, fn) :: Hidden(12, fn) :: Hidden(3, fn) :: Nil
+val stacked = Input(50) :: Hidden(25, fn) :: Hidden(12, fn) :: Hidden(3, fn) :: Output(1, fn) :: Nil
 ```
 
 Be aware that a default network must start with one `Input` layer and end with one `Output(i, fn)` layer. 
