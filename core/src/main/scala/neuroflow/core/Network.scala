@@ -34,10 +34,11 @@ trait Constructor[+T <: Network] {
 case class NetSettings(numericGradient: Boolean, Δ: Double, verbose: Boolean) extends Serializable
 
 /**
-  * The `stepSize` indicates the multiplicative amplitude for gradient descent. The network will terminate
-  * either if `precision` is high enough or `maxIterations` is reached.
+  * The `learningRate` determines the amplification of the gradients. The network will terminate
+  * either if `precision` is high enough or `maxIterations` is reached. If `regularization` is provided,
+  * during training the respective regulator will try to avoid over-fitting.
   */
-case class TrainSettings(stepSize: Double, precision: Double, maxIterations: Int) extends Serializable
+case class TrainSettings(learningRate: Double, precision: Double, maxIterations: Int, regularization: Option[Regularization]) extends Serializable
 
 trait Network extends Logs with Serializable {
 

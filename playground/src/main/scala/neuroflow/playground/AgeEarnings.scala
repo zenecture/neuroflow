@@ -23,7 +23,7 @@ object AgeEarnings {
     val train = src.take(2000)
     //val test = src.drop(1000)
     val fn = Sigmoid.apply
-    val trainSets = TrainSettings(stepSize = 0.05, precision = 0.001, maxIterations = 5000)
+    val trainSets = TrainSettings(learningRate = 0.05, precision = 0.001, maxIterations = 5000, regularization = None)
     val network = Network(Input(1) :: Hidden(20, fn) :: Output(1, fn) :: Nil)
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => Seq(a._1 / maxAge))

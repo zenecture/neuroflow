@@ -58,7 +58,7 @@ Also, some rates and rules need to be defined, like precision or maximum iterati
 ```scala
 val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
 val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-val trainSets = TrainSettings(stepSize = 2.0, precision = 0.001, maxIterations = 10000)
+val trainSets = TrainSettings(learningRate = 0.1, precision = 0.001, maxIterations = 10000, regularization = None)
 net.train(xs, ys, trainSets)
 ```
 
@@ -89,7 +89,8 @@ Here, `File.read` will yield an implicit `WeightProvider` from file to construct
 Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, simply use `Json` instead and save it on string-level.
 However, to not dictate anything, all important types extend `Serializable`, so feel free to work with the bytes on your own.
 
-# Next
+# Todo
 
 - More network implementations like Shared Network, Constrained Network, ...
 - Modularization of gradient techniques, as there are more solid ones than gradient descent
+- Implement regularization techniques

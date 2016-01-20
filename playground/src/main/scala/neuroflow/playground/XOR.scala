@@ -17,7 +17,7 @@ object XOR {
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
     val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
-    val trainSets = TrainSettings(stepSize = 2.0, precision = 0.001, maxIterations = 10000)
+    val trainSets = TrainSettings(learningRate = 2.0, precision = 0.001, maxIterations = 10000, regularization = None)
     net.train(xs, ys, trainSets)
 
     val a = net.evaluate(->(0.0, 0.0))

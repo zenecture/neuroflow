@@ -32,7 +32,7 @@ case class DefaultNetwork(layers: Seq[Layer], settings: NetSettings, weights: We
     run(xs, ys, 0.01, 0.001, 0, 1000)
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], trainSettings: TrainSettings): Unit = {
     import trainSettings._
-    run(xs, ys, stepSize, precision, 0, maxIterations)
+    run(xs, ys, learningRate, precision, 0, maxIterations)
   }
 
   /**
