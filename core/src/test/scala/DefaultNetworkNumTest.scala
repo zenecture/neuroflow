@@ -1,5 +1,5 @@
 import breeze.linalg.DenseMatrix
-import neuroflow.core.Activator.{Sigmoid, Linear}
+import neuroflow.core.Activator.{Tanh, Sigmoid, Linear}
 import neuroflow.core._
 import neuroflow.nets.DefaultNetwork
 import org.specs2.Specification
@@ -84,8 +84,9 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.nets.DefaultNetwork.constructor
 
     val fn = Sigmoid.apply
+    val gn = Tanh.apply
     val sets = NetSettings(true, 0.00001, true)
-    val net = Network(Input(2) :: Hidden(3, fn) :: Output(2, fn) :: Nil, sets)
+    val net = Network(Input(2) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, sets)
 
     val xs = (Seq(1.0, 2.0) :: Seq(2.0, 4.0) :: Seq(3.0, 6.0) :: Nil) map toMatrix
     val ys = (Seq(1.0, 1.0) :: Seq(2.0, 2.0) :: Seq(3.0, 3.0) :: Nil) map toMatrix
