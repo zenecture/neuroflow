@@ -30,7 +30,7 @@ object ImageRecognition {
       val (ph, r) = sample
       val (p, h) = ph
       val net = Network(Input(p.size) :: Hidden(20, Sigmoid.apply) :: Output(3, Sigmoid.apply) :: Nil, NetSettings(numericGradient = true, Δ = 0.00001, verbose = true))
-      val trainSets = TrainSettings(stepSize = 20.0, precision = 0.001, maxIterations = 1000)
+      val trainSets = TrainSettings(learningRate = 20.0, precision = 0.001, maxIterations = 1000, regularization = None)
       net.train(Seq(p, h, r), Seq(Seq(1.0, 0.0, 0.0), Seq(0.0, 1.0, 0.0), Seq(0.0, 0.0, 1.0)), trainSets)
       net
     }
