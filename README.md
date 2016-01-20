@@ -52,7 +52,7 @@ Be aware that a default network must start with one `Input(i)` layer and end wit
 
 # Training
 
-Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. By design, the type signature is `Seq[Seq[_]]`, because this will promise the most general (Seq, List, Vector, ...) case in Scala.
+Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. By design, the type signature of `train` is `Seq[Seq[_]]`, because this promises the most general (Seq, List, Vector, ...) case in Scala.
 Also, some rates and rules need to be defined, like precision or maximum iterations through a `TrainSettings` instance.
 
 ```scala
