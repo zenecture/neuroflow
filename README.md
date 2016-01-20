@@ -2,7 +2,6 @@
 
 NeuroFlow is a lightweight library to construct, train and evaluate Artificial Neural Networks.
 It is written in Scala, matrix operations are performed with Breeze (+ NetLib for near-native performance).
-!Use in production at own risk!
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=707 height=190 />
 
@@ -11,7 +10,7 @@ It is written in Scala, matrix operations are performed with Breeze (+ NetLib fo
 This project consists of three modules:
 
 - core: the neural network architecture
-- application: functionality and helpers related to certain challenges
+- application: plugins, helpers, functionality related to application
 - playground: examples with resources
     
 # Getting Started
@@ -19,51 +18,65 @@ This project consists of three modules:
 For SBT-Usage, just add this GitHub repository to your dependencies.
 Also, you may have a look at the playground for some inspiration.
 
-# Building a Net
+# Construction of a Net  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=887 height=640 />
 
-A net is constructed using a list of layers
+Let's construct the net depicted above. First, we have to pick the desired behavior:
+
+```scala
+import neuroflow.nets.DefaultNetwork._
+import neuroflow.core.WeightProvider.randomWeights
+import neuroflow.application.plugin.Style._
+```
+
+The first import gives us an implicit constructor for the default net implementation with gradient descent. 
+The second one yields an implicit weight provider, which determines the initial weight values. The last one is eye candy to keep the notation a little shorter. 
+The idea behind this 'import a-la-carte' is to change the underlying net implementation without changing the 'meat' of the code.
 
 ```scala
 val fn = Sigmoid.apply
-val network = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
+val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
 ```
-The whole architecture of the net is defined here. For instance, 
-if you want to use more hidden layers, just concatenate them.
+
+The whole architecture of the net is defined here. For instance, we want to use a sigmoid activation function `fn` for our hidden and output layers. If we would need more layers, we would simply stack them. Optionally, we could provide a `NetSettings` instance to force numeric gradients or disable verbosity.
 
 ```scala
 Hidden(25, fn) :: Hidden(12, fn) :: Hidden(3, fn) :: Nil
 ```
 
-Be aware that a network must start with one`Input` layer and end with one `Output(i, fn)` layer.
+Be aware that a default network must start with one `Input` layer and end with one `Output(i, fn)` layer. 
 
 # Training
 
-You can train a `Network` with the `train` method. It expects the inputs `xs` and their desired outputs `ys`.
-Also, some rates and rules need to be defined, like precision or maximum iterations.
+Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. By design, the type signature is `Seq[Seq[_]]`, because this will promise the most general (Seq, List, Vector, ...) case in scala.
+Also, some rates and rules need to be defined, like precision or maximum iterations through a `TrainSettings` instance.
 
 ```scala
-val xs = Seq(Seq(0.0, 0.0), Seq(0.0, 1.0), Seq(1.0, 0.0), Seq(1.0, 1.0))
-val ys = Seq(Seq(0.0), Seq(1.0), Seq(1.0), Seq(0.0))
-val learningRate = 0.01
-val precision = 0.001
-val maxIterations = 1000
-network.train(xs, ys, learningRate, precision, maxIterations)
+val (xs, ys) = (-->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0)), -->(->(0.0), ->(1.0), ->(1.0), ->(0.0)))
+val trainSets = TrainSettings(stepSize = 2.0, precision = 0.001, maxIterations = 10000)
+net.train(xs, ys, trainSets)
 ```
 
-During training, the derivatives of the net with respect to the weights are constructed, 
-so the optimal weights can be computed iteratively (gradient descent). The learning progress will appear on console so you can see what is going on.
+During training, the derivatives of the net with respect to the weights are constructed, so the optimal weights can be computed. The learning progress will appear on console so we can track it.
 
 # Evaluation
 
-A trained `Network` can be evaluated with the `evaluate` method.
+Our trained net can be evaluated with the `evaluate` method.
 
 ```scala
-network.evaluate(Seq(0.0, 0.0))
+net.evaluate(->(0.0, 0.0))
 ```
 
 # IO
 
-To keep the efforts of a hard, long training phase, it is important to save a net.
-You can save your net to file or byte array with `neuroflow.application.plugin.IO`.
+To keep the efforts of a hard, long training phase, it is important to save and load a net.
+We can save and load our net to and from file or json-string with `neuroflow.application.plugin.IO`. Scala Pickling is used as the (de-)serialization framework.
+
+```scala
+implicit val wp = File.read("/path/to/net.json")
+val net = Network(layers)
+```
+
+Here, `read` will yield an implicit `WeightProvider` from file. 
+(More examples are found within the unit test) 
