@@ -77,12 +77,14 @@ To keep the efforts of a hard, long training phase, it is important to save and 
 We can save and load our net to and from file or json-string with `neuroflow.application.plugin.IO`. Scala Pickling is used as the (de-)serialization framework.
 
 ```scala
-implicit val wp = File.read("/path/to/net.json")
+val file = "/path/to/net.json"
+implicit val wp = File.read(file)
 val net = Network(layers)
+File.write(net, file)
 ```
 
-Here, `read` will yield an implicit `WeightProvider` from file. 
-(More examples are found within the unit test) 
+Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net.
+Afterwards it will be saved to the same file with `File.save`. If the desired target is a database, simply use `Json` instead.
 
 # Next
 
