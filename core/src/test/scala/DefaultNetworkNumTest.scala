@@ -86,7 +86,7 @@ class DefaultNetworkNumTest extends Specification {
     val fn = Sigmoid.apply
     val gn = Tanh.apply
     val sets = NetSettings(true, 0.00001, true)
-    val net = Network(Input(2) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, sets)
+    val net = Network(Input(2) :: Hidden(30, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, sets)
 
     val xs = (Seq(1.0, 2.0) :: Seq(2.0, 4.0) :: Seq(3.0, 6.0) :: Nil) map toMatrix
     val ys = (Seq(1.0, 1.0) :: Seq(2.0, 2.0) :: Seq(3.0, 3.0) :: Nil) map toMatrix
@@ -95,16 +95,11 @@ class DefaultNetworkNumTest extends Specification {
     val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
     val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFuncNumerically")).asMethod)
 
-    val layers = 0 :: 0 :: 0 :: 0 :: 0 :: 0 :: 1 :: 1 :: 1 :: 1 :: 1 :: 1 :: Nil
-    val weights =
-      (0, 0) :: (0, 1) :: (0, 2) ::
-      (1, 0) :: (1, 1) :: (1, 2) ::
-      (0, 0) :: (0, 1) ::
-      (1, 0) :: (1, 1) ::
-      (2, 0) :: (2, 1) :: Nil
+    val weights = net.layers.indices.dropRight(1) flatMap { i =>
+      net.weights(i).mapPairs((p, v) => (i, p)).activeValuesIterator.toList
+    }
 
-
-    val results = layers zip weights map { lw =>
+    val results = weights map { lw =>
       val (layer, weight) = lw
       val instance = m.reflect(net)
       val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
