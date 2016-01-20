@@ -20,7 +20,7 @@ Also, you may have a look at the playground for some inspiration.
 
 # Construction of a Net  
 
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=487 height=240 />
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=443 height=320 />
 
 Let's construct the net depicted above. First, we have to pick the desired behavior:
 
