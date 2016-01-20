@@ -15,7 +15,7 @@ This project consists of three modules:
     
 # Getting Started
 
-For SBT-Usage, just add this GitHub repository to your dependencies.
+For SBT-Usage, just add this GitHub repository to your dependencies. A maven (or similar) repository is planned for the future.
 Also, you may have a look at the playground for some inspiration.
 
 # Construction of a Net  
