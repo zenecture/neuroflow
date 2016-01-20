@@ -14,7 +14,8 @@ class DefaultNetworkNumTest extends Specification {
   def is: SpecStructure =
     s2"""
 
-    This spec will test the gradients from DefaultNetwork
+    This spec will test the gradients from DefaultNetwork by comparison of the derived values with
+    the approximated ones.
 
     It should:
       - Check the linear gradients                                $linGrad
