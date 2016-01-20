@@ -74,7 +74,7 @@ This will give us a result vector (kind `Seq[_]`) with the dimension of our spec
 # IO
 
 To keep the efforts of a hard, long training phase, it is important to save and load a net.
-We can save and load our net to and from file or json-string with `neuroflow.application.plugin.IO`. Scala Pickling is used as the (de-)serialization framework.
+We can go to and from file or json-string with `neuroflow.application.plugin.IO`. Scala Pickling is used as the (de-)serialization framework.
 
 ```scala
 val file = "/path/to/net.json"
