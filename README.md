@@ -3,7 +3,7 @@
 NeuroFlow is a lightweight library to construct, train and evaluate Artificial Neural Networks.
 It is written in Scala, matrix operations are performed with Breeze (+ NetLib for near-native performance).
 
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=707 height=190 />
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
 
 # Introduction
 
