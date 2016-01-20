@@ -59,7 +59,7 @@ val trainSets = TrainSettings(stepSize = 2.0, precision = 0.001, maxIterations =
 net.train(xs, ys, trainSets)
 ```
 
-During training, the derivatives of the net with respect to the weights are constructed, so the optimal weights can be computed. The learning progress will appear on console so we can track it.
+During training, the derivatives of the net with respect to the weights are constructed, so the optimal weights can be computed. This can take a short (or very long) time, depending on the challenge. The learning progress will appear on console so we can track it. Bear in mind that a net is intended to be an atomic instance, so it is blocking and has mutable state inside concerning the training. An immutable net is infeasible, because it needs huge stack and heap sizes during training. In practical applications, multiple net instances form an overall net architecture, and this usually is the place for any parallelism.
 
 # Evaluation
 
