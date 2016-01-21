@@ -9,18 +9,14 @@ import scala.annotation.tailrec
 
 /**
   *
+  *    !!!!! EXPERIMENTAL !!!!!
   *
   *
+  * Same as DefaultNetwork, but it uses the Armijo–Goldstein condition
+  * to adapt the learning rate. This promises more precise iterations,
+  * but more computational overhead than simple gradient descent.
   *
-  *    !!!!! HIGHLY EXPERIMENTAL !!!!!
-  *         (no numerical tests)
-  *
-  *
-  *
-  *
-  *
-  * Same as DefaultNetwork, but it uses the second derivative
-  * and an adaptive learning rate to find the optimal weights with less iterations.
+  * Here, the learning parameter should be a large starting value.
   *
   * @author bogdanski
   * @since 20.01.16
@@ -92,8 +88,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
       l.foreachPair { (k, v) =>
         val weightLayer = weights.indexOf(l)
         val firstOrder = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k) else errorFuncDerivative(xs, ys, weightLayer, k)
-        val secondOrder = approximateErrorFuncDerivativeSecond(xs, ys, weightLayer, k)
-        val direction = sum((-firstOrder) / secondOrder) / firstOrder.rows
+        val direction = sum(-firstOrder) / firstOrder.rows
         val a = α(stepSize, direction, xs, ys, weightLayer, k)
         val mean = a * direction
         l.update(k, v + mean)
@@ -165,7 +160,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     */
   private def finiteCentralDiff(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                                 layer: Int, weight: (Int, Int), order: Int): DenseMatrix[Double] = {
-    val Δ = settings.approximation.get.Δ
+    val Δ = settings.approximation.getOrElse(Approximation(0.0001)).Δ
     val f = () => if (order == 1) errorFunc(xs, ys) else approximateErrorFuncDerivative(xs, ys, layer, weight)
     val v = weights(layer)(weight)
     weights(layer).update(weight, v - Δ)
@@ -177,20 +172,20 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   }
 
   /**
-    * Tries to find the optimal learning rate
+    * Tries to find the optimal step size α through backtracking line search.
     */
   @tailrec private def α(stepSize: Double, direction: Double, xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                 weightLayer: Int, weight: (Int, Int)): Double = {
-    // f'(w + stepSize * direction) * direction
-    val Δ = 0.0001
+    val approx = settings.approximation.isDefined
     val v = weights(weightLayer)(weight)
+    val (t, c) = (0.5, 0.5)
+    val ds = if (approx) approximateErrorFuncDerivative(xs, ys, weightLayer, weight) else errorFuncDerivative(xs, ys, weightLayer, weight)
+    val τ = -c * (direction * sum(ds) / ds.rows)
+    val a = sum(errorFunc(xs, ys)) / ds.rows
     weights(weightLayer).update(weight, v + (stepSize * direction))
-    val f = sum(direction * errorFuncDerivative(xs, ys, weightLayer, weight))
+    val b = sum(errorFunc(xs, ys)) / ds.rows
     weights(weightLayer).update(weight, v)
-    if (f.abs > Δ) α(stepSize - f, direction, xs, ys, weightLayer, weight) else {
-      if (settings.verbose) info(s"adapted learning rate α: $stepSize")
-      stepSize
-    }
+    if ((a - b) < (stepSize * τ)) α(stepSize * t, direction, xs, ys, weightLayer, weight) else stepSize
   }
 
 }
