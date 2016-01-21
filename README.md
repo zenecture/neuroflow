@@ -40,12 +40,13 @@ val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
 ```
 
 The whole architecture of the net is defined here. We want to use a sigmoid activation function `fn` for our hidden and output layers. 
-Optionally, we could provide a `NetSettings` instance to force approximation of gradients or to disable verbosity. If we would need a more complex net, we would simply stack layers and functions:
+Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. If we would need a more complex net, we would simply stack layers and functions:
 
 ```scala
 val fn = Sigmoid.apply
 val gn = Tanh.apply
-val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil)
+val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 20000, regularization = None, approximation = None)
+val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, settings)
 ```
 
 Be aware that a default network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
@@ -53,13 +54,11 @@ Be aware that a default network must start with one `Input(i)` layer and end wit
 # Training
 
 Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. By design, the type signature of `train` is `Seq[Seq[_]]`, because this promises the most general (Seq, List, Vector, ...) case in Scala.
-Also, some rates and rules need to be defined, like precision or maximum iterations through a `TrainSettings` instance.
 
 ```scala
 val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
 val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-val trainSets = TrainSettings(learningRate = 0.1, precision = 0.001, maxIterations = 10000, regularization = None)
-net.train(xs, ys, trainSets)
+net.train(xs, ys)
 ```
 
 During training, the derivatives of the net with respect to the weights are constructed, so the optimal weights can be computed. This can take a short (or very long) time, depending on the challenge. The learning progress will appear on console so we can track it. Bear in mind that a net is intended to be an atomic instance, so it is blocking and has mutable state inside concerning the training. An immutable net is infeasible, because it needs huge stack and heap sizes during training. In practical applications, multiple net instances form an overall net architecture, and this usually is the place for any parallelism.

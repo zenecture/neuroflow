@@ -29,9 +29,9 @@ object ImageRecognition {
     val nets = training.par.map { sample =>
       val (ph, r) = sample
       val (p, h) = ph
-      val net = Network(Input(p.size) :: Hidden(20, Sigmoid.apply) :: Output(3, Sigmoid.apply) :: Nil, NetSettings(numericGradient = true, Δ = 0.00001, verbose = true))
-      val trainSets = TrainSettings(learningRate = 20.0, precision = 0.001, maxIterations = 1000, regularization = None)
-      net.train(Seq(p, h, r), Seq(Seq(1.0, 0.0, 0.0), Seq(0.0, 1.0, 0.0), Seq(0.0, 0.0, 1.0)), trainSets)
+      val settings = Settings(true, 20.0, 0.001, 1000, None, Some(Approximation(0.00001)))
+      val net = Network(Input(p.size) :: Hidden(20, Sigmoid.apply) :: Output(3, Sigmoid.apply) :: Nil, settings)
+      net.train(Seq(p, h, r), Seq(Seq(1.0, 0.0, 0.0), Seq(0.0, 1.0, 0.0), Seq(0.0, 0.0, 1.0)))
       net
     }
 
