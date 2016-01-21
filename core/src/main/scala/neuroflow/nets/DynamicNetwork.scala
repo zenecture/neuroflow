@@ -1,28 +1,37 @@
 package neuroflow.nets
 
-import breeze.linalg.{DenseMatrix, sum}
+import breeze.linalg.{sum, DenseMatrix}
 import breeze.numerics._
-import neuroflow.core.Network.Weights
+import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
 
 /**
   *
-  * This is a standard artificial neural network, using gradient descent,
-  * fully connected weights (no sharing).
+  *
+  *
+  *
+  *    !!!!! HIGHLY EXPERIMENTAL !!!!!
+  *         (no numerical tests)
+  *
+  *
+  *
+  *
+  *
+  * Same as DefaultNetwork, but it uses the second derivative
+  * and an adaptive learning rate to find the optimal weights with less iterations.
   *
   * @author bogdanski
-  * @since 15.01.16
+  * @since 20.01.16
   */
-
-object DefaultNetwork {
+object DynamicNetwork {
   implicit val constructor: Constructor[Network] = new Constructor[Network] {
-    def apply(ls: Seq[Layer], sets: Settings)(implicit weightProvider: WeightProvider): Network = DefaultNetwork(ls, sets, weightProvider(ls))
+    def apply(ls: Seq[Layer], sets: Settings)(implicit weightProvider: WeightProvider): Network = DynamicNetwork(ls, sets, weightProvider(ls))
   }
 }
 
-case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.
@@ -75,24 +84,37 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   }
 
   /**
-    * Computes gradient via `deriveErrorFunc` for all weights,
+    * Computes gradient via `errorFuncDerivative` for all weights,
     * and adapts their value using gradient descent.
     */
   private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
     weights.foreach { l =>
       l.foreachPair { (k, v) =>
-        val layer = weights.indexOf(l)
-        val grad = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
-        val mean = stepSize * sum(grad) / grad.rows
-        l.update(k, v - mean)
+        val weightLayer = weights.indexOf(l)
+        val firstOrder = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k) else errorFuncDerivative(xs, ys, weightLayer, k)
+        val secondOrder = approximateErrorFuncDerivativeSecond(xs, ys, weightLayer, k)
+        val direction = sum((-firstOrder) / secondOrder) / firstOrder.rows
+        val a = α(stepSize, direction, xs, ys, weightLayer, k)
+        val mean = a * direction
+        l.update(k, v + mean)
       }
     }
   }
 
   /**
+    * Evaluates the error function Σ1/2(prediction(x) - observation)²
+    */
+  private def errorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]]): DenseMatrix[Double] = {
+    xs.zip(ys).map { t =>
+      val (x, y) = t
+      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
+    }.reduce(_ + _)
+  }
+
+  /**
     * Computes the error function derivative with respect to `weight` in `weightLayer`
     */
-  private def deriveErrorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+  private def errorFuncDerivative(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                               weightLayer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
     xs.zip(ys).map { t =>
       val (x, y) = t
@@ -126,24 +148,49 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     * Approximates the gradient based on finite central differences.
     */
   private def approximateErrorFuncDerivative(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
-                              weightLayer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
+                                         layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
+    finiteCentralDiff(xs, ys, layer, weight, order = 1)
+  }
+
+  /**
+    * Approximates the second gradient based on finite central differences.
+    */
+  private def approximateErrorFuncDerivativeSecond(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+                                                        layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
+    finiteCentralDiff(xs, ys, layer, weight, order = 2)
+  }
+
+  /**
+    * Computes the finite central diff for respective `order`.
+    */
+  private def finiteCentralDiff(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+                                layer: Int, weight: (Int, Int), order: Int): DenseMatrix[Double] = {
     val Δ = settings.approximation.get.Δ
-    val v = weights(weightLayer)(weight)
-    weights(weightLayer).update(weight, v - Δ)
-    val a = errorFunc(xs, ys)
-    weights(weightLayer).update(weight, v + Δ)
-    val b = errorFunc(xs, ys)
+    val f = () => if (order == 1) errorFunc(xs, ys) else approximateErrorFuncDerivative(xs, ys, layer, weight)
+    val v = weights(layer)(weight)
+    weights(layer).update(weight, v - Δ)
+    val a = f.apply
+    weights(layer).update(weight, v + Δ)
+    val b = f.apply
+    weights(layer).update(weight, v)
     (b - a) / (2 * Δ)
   }
 
   /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)²
+    * Tries to find the optimal learning rate
     */
-  private def errorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]]): DenseMatrix[Double] = {
-    xs.zip(ys).map { t =>
-      val (x, y) = t
-      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
-    }.reduce(_ + _)
+  @tailrec private def α(stepSize: Double, direction: Double, xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+                weightLayer: Int, weight: (Int, Int)): Double = {
+    // f'(w + stepSize * direction) * direction
+    val Δ = 0.0001
+    val v = weights(weightLayer)(weight)
+    weights(weightLayer).update(weight, v + (stepSize * direction))
+    val f = sum(direction * errorFuncDerivative(xs, ys, weightLayer, weight))
+    weights(weightLayer).update(weight, v)
+    if (f.abs > Δ) α(stepSize - f, direction, xs, ys, weightLayer, weight) else {
+      if (settings.verbose) info(s"adapted learning rate α: $stepSize")
+      stepSize
+    }
   }
 
 }

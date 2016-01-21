@@ -16,36 +16,30 @@ object Network {
   /**
     * Constructs a new `Network` depending on `Constructor` with layers `ls` and settings `sets`.
     */
-  def apply[T <: Network](ls: Seq[Layer])(implicit constructor: Constructor[T], weightProvider: WeightProvider): T = constructor(ls, NetSettings(false, 0.0, true))
-  def apply[T <: Network](ls: Seq[Layer], sets: NetSettings)(implicit constructor: Constructor[T], weightProvider: WeightProvider): T = constructor(ls, sets)
+  def apply[T <: Network](ls: Seq[Layer], settings: Settings)(implicit constructor: Constructor[T], weightProvider: WeightProvider): T = constructor(ls, settings)
 }
 
 /**
   * Constructor for nets
   */
 trait Constructor[+T <: Network] {
-  def apply(ls: Seq[Layer], settings: NetSettings)(implicit weightProvider: WeightProvider): T
+  def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
 }
 
 /**
-  * If `numericGradient` is true, the gradient will be approximated using step size `Δ`, which is a lot faster
-  * than actually deriving the whole net. The `verbose` flag indicates logging behavior.
+  * The `verbose` flag indicates logging behavior. The `learningRate` determines the amplification of the gradients.
+  * The network will terminate either if `precision` is high enough or `maxIterations` is reached. If `regularization` is provided,
+  * during training the respective regulator will try to avoid over-fitting. If `approximation` is provided, gradients will be approximated numerically.
   */
-case class NetSettings(numericGradient: Boolean, Δ: Double, verbose: Boolean) extends Serializable
-
-/**
-  * The `learningRate` determines the amplification of the gradients. The network will terminate
-  * either if `precision` is high enough or `maxIterations` is reached. If `regularization` is provided,
-  * during training the respective regulator will try to avoid over-fitting.
-  */
-case class TrainSettings(learningRate: Double, precision: Double, maxIterations: Int, regularization: Option[Regularization]) extends Serializable
+case class Settings(verbose: Boolean, learningRate: Double, precision: Double, maxIterations: Int,
+                    regularization: Option[Regularization], approximation: Option[Approximation]) extends Serializable
 
 trait Network extends Logs with Serializable {
 
   /**
     * Settings of this neural network
     */
-  val settings: NetSettings
+  val settings: Settings
 
   /**
     * Layers of this neural network
@@ -59,9 +53,9 @@ trait Network extends Logs with Serializable {
 
   /**
     * Input `xs` and desired output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights. Use `trainSettings` for fine tuning.
+    * Returns this `Network`, with new weights.
     */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], trainSettings: TrainSettings): Unit
+  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit
 
   /**
     * Input `xs` will be evaluated based on current weights

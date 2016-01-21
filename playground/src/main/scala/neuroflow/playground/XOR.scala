@@ -16,9 +16,9 @@ object XOR {
     val fn = Sigmoid.apply
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-    val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
-    val trainSets = TrainSettings(learningRate = 2.0, precision = 0.001, maxIterations = 10000, regularization = None)
-    net.train(xs, ys, trainSets)
+    val settings = Settings(verbose = true, learningRate = 2.0, precision = 0.001, maxIterations = 20000, regularization = None, approximation = None)
+    val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil, settings)
+    net.train(xs, ys)
 
     val a = net.evaluate(->(0.0, 0.0))
     val b = net.evaluate(->(0.0, 1.0))
@@ -32,12 +32,12 @@ object XOR {
 
     println("Network was: " + net)
 
-    println("Taking alot of samples from model:")
-    Range.Double(0.0, 1.0, 0.01) map { x1 =>
-      Range.Double(0.0, 1.0, 0.01) map { x2 =>
-        println(s"$x1, $x2, ${net.evaluate(Seq(x1, x2)).head}")
-      }
-    }
+//    println("Taking alot of samples from model:")
+//    Range.Double(0.0, 1.0, 0.01) map { x1 =>
+//      Range.Double(0.0, 1.0, 0.01) map { x2 =>
+//        println(s"$x1, $x2, ${net.evaluate(Seq(x1, x2)).head}")
+//      }
+//    }
   }
 
 }
