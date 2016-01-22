@@ -26,7 +26,7 @@ class IoTest extends Specification {
   """
 
   val layers = Input(2) :: Hidden(3, Sigmoid.apply) :: Output(2, Sigmoid.apply) :: Nil
-  val settings = Settings(true, 0.01, 0.01, 200, None, None)
+  val settings = Settings(true, 0.01, 0.01, 200, None, None, None)
   val measure = {
     import neuroflow.core.WeightProvider.zeroWeights
     Network(layers, settings)

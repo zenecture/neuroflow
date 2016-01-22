@@ -36,7 +36,7 @@ object Trending {
 
 
     val fn = Sigmoid.apply
-    val settings = Settings(true, 20.0, 0.0001, 10000, None, None)
+    val settings = Settings(true, 20.0, 0.0001, 10000, None, None, None)
     val net = Network(Input(trend.size) :: Hidden(25, fn) :: Output(1, fn) :: Nil, settings)
     net.train(Seq(trend, flat), Seq(Seq(1.0), Seq(0.0)))
 

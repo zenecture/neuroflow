@@ -4,6 +4,8 @@ import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
 import neuroflow.core.Network.Weights
 
+import scala.annotation.implicitNotFound
+
 /**
   * @author bogdanski
   * @since 03.01.16
@@ -22,6 +24,7 @@ object Network {
 /**
   * Constructor for nets
   */
+@implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
 trait Constructor[+T <: Network] {
   def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
 }
@@ -30,9 +33,10 @@ trait Constructor[+T <: Network] {
   * The `verbose` flag indicates logging behavior. The `learningRate` determines the amplification of the gradients.
   * The network will terminate either if `precision` is high enough or `maxIterations` is reached. If `regularization` is provided,
   * during training the respective regulator will try to avoid over-fitting. If `approximation` is provided, gradients will be approximated numerically.
+  * Some nets require specific parameters which can be mapped with `specifics`.
   */
 case class Settings(verbose: Boolean, learningRate: Double, precision: Double, maxIterations: Int,
-                    regularization: Option[Regularization], approximation: Option[Approximation]) extends Serializable
+                    regularization: Option[Regularization], approximation: Option[Approximation], specifics: Option[Map[String, Double]]) extends Serializable
 
 trait Network extends Logs with Serializable {
 

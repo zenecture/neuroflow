@@ -5,6 +5,8 @@ import java.util.concurrent.ThreadLocalRandom
 import breeze.linalg.DenseMatrix
 import neuroflow.core.Network.Weights
 
+import scala.annotation.implicitNotFound
+
 /**
   * @author bogdanski
   * @since 18.01.16
@@ -14,6 +16,7 @@ import neuroflow.core.Network.Weights
   * A `WeightProvider` connects the neurons within a `Layer`
   * through the `Weights` (Synapses)
   */
+@implicitNotFound("No weight provider in scope. Import your desired provider or try: import neuroflow.core.WeightProvider.randomWeights")
 trait WeightProvider extends (Seq[Layer] => Weights)
 
 object WeightProvider {
