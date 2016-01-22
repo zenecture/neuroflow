@@ -54,7 +54,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
     val error = errorFunc(input, output)
-    if (error.toArray.exists(_ > precision) && iteration < maxIterations) {
+    if (((sum(error) / input.size) > precision) && iteration < maxIterations) {
       if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
       adaptWeights(input, output, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
@@ -160,7 +160,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     */
   private def finiteCentralDiff(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                                 layer: Int, weight: (Int, Int), order: Int): DenseMatrix[Double] = {
-    val Δ = settings.approximation.getOrElse(Approximation(0.0001)).Δ
+    val Δ = settings.approximation.getOrElse(Approximation(0.000001)).Δ
     val f = () => if (order == 1) errorFunc(xs, ys) else approximateErrorFuncDerivative(xs, ys, layer, weight)
     val v = weights(layer)(weight)
     weights(layer).update(weight, v - Δ)
@@ -176,10 +176,9 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     */
   @tailrec private def α(stepSize: Double, direction: Double, xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                 weightLayer: Int, weight: (Int, Int)): Double = {
-    val approx = settings.approximation.isDefined
     val v = weights(weightLayer)(weight)
-    val (t, c) = (0.5, 0.5)
-    val ds = if (approx) approximateErrorFuncDerivative(xs, ys, weightLayer, weight) else errorFuncDerivative(xs, ys, weightLayer, weight)
+    val (t, c) = settings.specifics.map(s => (s("t"), s("c"))).getOrElse((0.5, 0.5))
+    val ds = approximateErrorFuncDerivative(xs, ys, weightLayer, weight)
     val τ = -c * (direction * sum(ds) / ds.rows)
     val a = sum(errorFunc(xs, ys)) / ds.rows
     weights(weightLayer).update(weight, v + (stepSize * direction))

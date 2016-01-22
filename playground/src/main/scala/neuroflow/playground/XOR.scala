@@ -16,7 +16,8 @@ object XOR {
     val fn = Sigmoid.apply
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-    val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.00001, maxIterations = 20000, regularization = None, approximation = None)
+    val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.00001,
+      maxIterations = 20000, regularization = None, approximation = None, specifics = None)
     val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil, settings)
     net.train(xs, ys)
 

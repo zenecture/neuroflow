@@ -12,7 +12,7 @@ import neuroflow.nets.DefaultNetwork._
 object SigGap {
 
   def apply = {
-    val settings = Settings(true, 0.1, 0.00000000000000000001, 100000, None, None)
+    val settings = Settings(true, 0.1, 0.00000000000000000001, 100000, None, None, None)
     val net = Network(Input(2) :: Output(1, Sigmoid.apply) :: Nil, settings)
     net.train(Seq(Seq(0.3, 0.3)), Seq(Seq(0.5)))
 
