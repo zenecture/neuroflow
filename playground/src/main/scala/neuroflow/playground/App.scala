@@ -14,11 +14,11 @@ object App extends App {
     *
     */
 
-//  SigGap.apply
-//  XOR.apply
-//  Trending.apply
-//  AgeEarnings.apply
-//  ImageRecognition.apply
-//  DigitRecognition.apply
+  SigGap.apply
+  XOR.apply
+  Trending.apply
+  AgeEarnings.apply
+  ImageRecognition.apply
+  DigitRecognition.apply
   Sinusoidal.apply
 }
