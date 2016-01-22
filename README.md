@@ -45,7 +45,7 @@ Also, some rates and rules need to be defined, like precision or maximum iterati
 ```scala
 val fn = Sigmoid.apply
 val gn = Tanh.apply
-val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 20000, regularization = None, approximation = None)
+val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 200, regularization = None, approximation = None, specifics = None)
 val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, settings)
 ```
 
