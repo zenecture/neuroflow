@@ -2,6 +2,7 @@ package neuroflow.nets
 
 import breeze.linalg.{sum, DenseMatrix}
 import breeze.numerics._
+import breeze.stats.mean
 import neuroflow.core.Network._
 import neuroflow.core._
 
@@ -54,7 +55,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
     val error = errorFunc(input, output)
-    if (((sum(error) / input.size) > precision) && iteration < maxIterations) {
+    if ((mean(error) > precision) && iteration < maxIterations) {
       if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
       adaptWeights(input, output, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
@@ -88,10 +89,8 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
       l.foreachPair { (k, v) =>
         val weightLayer = weights.indexOf(l)
         val firstOrder = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k) else errorFuncDerivative(xs, ys, weightLayer, k)
-        val direction = sum(-firstOrder) / firstOrder.rows
-        val a = α(stepSize, direction, xs, ys, weightLayer, k)
-        val mean = a * direction
-        l.update(k, v + mean)
+        val direction = mean(-firstOrder)
+        l.update(k, v + α(stepSize, direction, xs, ys, weightLayer, k) * direction)
       }
     }
   }
@@ -178,11 +177,10 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
                 weightLayer: Int, weight: (Int, Int)): Double = {
     val v = weights(weightLayer)(weight)
     val (t, c) = settings.specifics.map(s => (s("t"), s("c"))).getOrElse((0.5, 0.5))
-    val ds = approximateErrorFuncDerivative(xs, ys, weightLayer, weight)
-    val τ = -c * (direction * sum(ds) / ds.rows)
-    val a = sum(errorFunc(xs, ys)) / ds.rows
+    val τ = -c * (-direction * direction)
+    val a = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v + (stepSize * direction))
-    val b = sum(errorFunc(xs, ys)) / ds.rows
+    val b = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v)
     if ((a - b) < (stepSize * τ)) α(stepSize * t, direction, xs, ys, weightLayer, weight) else stepSize
   }

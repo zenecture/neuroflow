@@ -2,6 +2,7 @@ package neuroflow.nets
 
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
+import breeze.stats.mean
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 
@@ -49,7 +50,7 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
     val error = errorFunc(input, output)
-    if (error.toArray.exists(_ > precision) && iteration < maxIterations) {
+    if (mean(error) > precision && iteration < maxIterations) {
       if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
       adaptWeights(input, output, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
@@ -83,8 +84,7 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
       l.foreachPair { (k, v) =>
         val layer = weights.indexOf(l)
         val grad = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
-        val mean = stepSize * sum(grad) / grad.rows
-        l.update(k, v - mean)
+        l.update(k, v - stepSize * mean(grad))
       }
     }
   }

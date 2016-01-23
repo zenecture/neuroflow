@@ -1,10 +1,11 @@
 package neuroflow.playground
 
 import neuroflow.core.Activator.Tanh
-import neuroflow.application.plugin.Style._
 import neuroflow.core._
 import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.nets.DynamicNetwork.constructor
+
+import scala.annotation.tailrec
 
 /**
   * @author bogdanski
@@ -13,18 +14,27 @@ import neuroflow.nets.DynamicNetwork.constructor
 object Sinusoidal {
 
   def apply = {
-    val sets = Settings(true, 10.0, 0.0001, 1000, None, None, Some(Map("t" -> 0.5, "c" -> 0.5)))
     val fn = Tanh.apply
-    val net = Network(Input(1) :: Hidden(6, fn) :: Hidden(6, fn) :: Output(1, fn) :: Nil, sets)
-    val sinusoidal = Range.Double(0.0, 1.0, 0.01).map(i => (i, Math.sin(10 * i)))
-    val xs = sinusoidal.map(p => ->(p._1))
-    val ys = sinusoidal.map(p => ->(p._2))
+    val group = 4
+    val sets = Settings(true, 10.0, 0.0000001, 500, None, None, Some(Map("t" -> 0.25, "c" -> 0.25)))
+    val net = Network(Input(3) :: Hidden(5, fn) :: Hidden(3, fn) :: Output(1, fn) :: Nil, sets)
+    val sinusoidal = Range.Double(0.0, 0.8, 0.05).grouped(group).toList.map(i => i.map(k => (k, Math.sin(10 * k))))
+    val xsys = sinusoidal.map(s => (s.dropRight(1).map(_._2), s.takeRight(1).map(_._2)))
+    val xs = xsys.map(_._1)
+    val ys = xsys.map(_._2)
     net.train(xs, ys)
-
-    val result = xs.map(p => (p.head, net.evaluate(p)))
+    val initial = Range.Double(0.0, 0.15, 0.05).zipWithIndex.map(p => (p._1, xs.head(p._2)))
+    val result = predict(net, xs.head, 0.15, initial)
     result.foreach { r =>
-      println(s"${r._1}, ${r._2.head}")
+      println(s"${r._1}, ${r._2}")
     }
+  }
+
+  @tailrec def predict(net: Network, last: Seq[Double], i: Double, results: Seq[(Double, Double)]): Seq[(Double, Double)] = {
+    if (i < 4.0) {
+      val score = net.evaluate(last).head
+      predict(net, last.drop(1) :+ score, i + 0.05, results :+ (i, score))
+    } else results
   }
 
 }
