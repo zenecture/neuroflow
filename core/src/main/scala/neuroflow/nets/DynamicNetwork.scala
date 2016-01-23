@@ -14,8 +14,8 @@ import scala.annotation.tailrec
   *
   *
   * Same as DefaultNetwork, but it uses the Armijo–Goldstein condition
-  * to adapt the learning rate. This promises more precise iterations,
-  * but more computational overhead than simple gradient descent.
+  * to adapt the learning rate to an optimal value. This promises faster convergence,
+  * but comes with more computational overhead than simple gradient descent.
   *
   * Here, the learning parameter should be a large starting value.
   *
