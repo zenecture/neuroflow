@@ -15,8 +15,9 @@ object Sinusoidal {
 
   /**
     * Here the goal is to predict the shape of sin(10*x).
-    * The net will be trained with the exact values from the interval [0.0 : 0.8]
-    * and the task is to continue (or predict) the next values ]0.8 : 4.0] based on learned history.
+    * The net will be trained with the exact function values drawn from the interval [0.0 : 0.8],
+    * and the task is to continue (or predict) the next values from the interval ]0.8 : 4.0]
+    * based solely on learned history.
     */
   def apply = {
     val fn = Tanh.apply
