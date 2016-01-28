@@ -176,13 +176,13 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   @tailrec private def α(stepSize: Double, direction: Double, xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                 weightLayer: Int, weight: (Int, Int)): Double = {
     val v = weights(weightLayer)(weight)
-    val (t, c) = settings.specifics.map(s => (s("t"), s("c"))).getOrElse((0.5, 0.5))
-    val τ = -c * (-direction * direction)
+    val (τ, c) = settings.specifics.map(s => (s("τ"), s("c"))).getOrElse((0.5, 0.5))
+    val t = -c * (-direction * direction)
     val a = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v + (stepSize * direction))
     val b = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v)
-    if ((a - b) < (stepSize * τ)) α(stepSize * t, direction, xs, ys, weightLayer, weight) else stepSize
+    if ((a - b) < (stepSize * t)) α(stepSize * τ, direction, xs, ys, weightLayer, weight) else stepSize
   }
 
 }
