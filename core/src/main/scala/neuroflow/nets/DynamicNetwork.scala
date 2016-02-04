@@ -125,7 +125,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
         case h: HasActivator[Double] =>
           val i = layers.indexOf(k) - 1
           flow(x, 0, i).map(h.activator.derivative)
-      }
+        }
       }
       (flow(x, 0, layers.size - 1) - y) :* chain(ds, ws, in, weightLayer, 0)
     }.reduce(_ + _)
