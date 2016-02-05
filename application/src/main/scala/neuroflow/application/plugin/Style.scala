@@ -10,6 +10,6 @@ object Style {
     * Just a little candy.
     */
   def ->[A](elems: A*): Vector[A] = elems.toVector
-  def -->[A](elems: A*) = elems
+  def -->[A](elems: A*): Vector[A] = elems.toVector
 
 }
