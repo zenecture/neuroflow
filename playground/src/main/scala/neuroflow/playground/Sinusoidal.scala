@@ -31,9 +31,7 @@ object Sinusoidal {
     net.train(xs, ys)
     val initial = Range.Double(0.0, 0.15, 0.05).zipWithIndex.map(p => (p._1, xs.head(p._2)))
     val result = predict(net, xs.head, 0.15, initial)
-    result.foreach { r =>
-      println(s"${r._1}, ${r._2}")
-    }
+    result.foreach(r =>  println(s"${r._1}, ${r._2}"))
   }
 
   @tailrec def predict(net: Network, last: Seq[Double], i: Double, results: Seq[(Double, Double)]): Seq[(Double, Double)] = {
