@@ -65,6 +65,21 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   }
 
   /**
+    * Computes gradient via `errorFuncDerivative` for all weights,
+    * and adapts their value using gradient descent.
+    */
+  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
+    weights.foreach { l =>
+      l.foreachPair { (k, v) =>
+        val weightLayer = weights.indexOf(l)
+        val firstOrder = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k) else errorFuncDerivative(xs, ys, weightLayer, k)
+        val direction = mean(-firstOrder)
+        l.update(k, v + α(stepSize, direction, xs, ys, weightLayer, k) * direction)
+      }
+    }
+  }
+
+  /**
     * Computes the network recursively from cursor until target
     */
   @tailrec private def flow(in: DenseMatrix[Double], cursor: Int, target: Int): DenseMatrix[Double] = {
@@ -77,21 +92,6 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
         case i => in * weights(cursor)
       }
       if (cursor < target) flow(processed, cursor + 1, target) else processed
-    }
-  }
-
-  /**
-    * Computes gradient via `errorFuncDerivative` for all weights,
-    * and adapts their value using gradient descent.
-    */
-  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
-    weights.foreach { l =>
-      l.foreachPair { (k, v) =>
-        val weightLayer = weights.indexOf(l)
-        val firstOrder = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k) else errorFuncDerivative(xs, ys, weightLayer, k)
-        val direction = mean(-firstOrder)
-        l.update(k, v + α(stepSize, direction, xs, ys, weightLayer, k) * direction)
-      }
     }
   }
 
