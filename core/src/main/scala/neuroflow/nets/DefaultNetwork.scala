@@ -60,6 +60,20 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   }
 
   /**
+    * Computes gradient via `deriveErrorFunc` for all weights,
+    * and adapts their value using gradient descent.
+    */
+  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
+    weights.foreach { l =>
+      l.foreachPair { (k, v) =>
+        val layer = weights.indexOf(l)
+        val grad = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
+        l.update(k, v - stepSize * mean(grad))
+      }
+    }
+  }
+
+  /**
     * Computes the network recursively from cursor until target
     */
   @tailrec private def flow(in: DenseMatrix[Double], cursor: Int, target: Int): DenseMatrix[Double] = {
@@ -72,20 +86,6 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
         case i => in * weights(cursor)
       }
       if (cursor < target) flow(processed, cursor + 1, target) else processed
-    }
-  }
-
-  /**
-    * Computes gradient via `deriveErrorFunc` for all weights,
-    * and adapts their value using gradient descent.
-    */
-  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
-    weights.foreach { l =>
-      l.foreachPair { (k, v) =>
-        val layer = weights.indexOf(l)
-        val grad = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
-        l.update(k, v - stepSize * mean(grad))
-      }
     }
   }
 
