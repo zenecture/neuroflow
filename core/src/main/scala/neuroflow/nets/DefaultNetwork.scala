@@ -74,7 +74,7 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
   }
 
   /**
-    * Computes the network recursively from cursor until target
+    * Computes the network recursively from `cursor` until `target` (both representing the 'layer indices')
     */
   @tailrec private def flow(in: DenseMatrix[Double], cursor: Int, target: Int): DenseMatrix[Double] = {
     if (target < 0) in
