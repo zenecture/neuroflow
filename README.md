@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Usually the Sonatype repository is provided by default. However, sometimes the explicit definition of the resolvers is needed:
+Usually the Sonatype repository resolvers are provided by default. However, sometimes the explicit definition is needed:
 
 ```scala
 resolvers ++= Seq(
