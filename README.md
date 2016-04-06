@@ -15,8 +15,26 @@ This project consists of three modules:
     
 # Getting Started
 
-For SBT-Usage, just add this GitHub repository to your dependencies. A maven (or similar) repository is planned for the future.
-Also, you may have a look at the playground for some inspiration.
+To use Neuroflow within your project, add these dependencies:
+
+```scala
+libraryDependencies  ++= Seq(
+  "com.zenecture" % "neuroflow-core_2.11" % "0.1-SNAPSHOT",
+  "com.zenecture" % "neuroflow-application_2.11" % "0.1-SNAPSHOT"
+)
+```
+
+Usually the Sonatype repository is provided by default. However, sometimes the explicit definition of the resolvers is needed:
+
+```scala
+resolvers ++= Seq(
+  "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
+  "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
+)
+```
+
+Seeing some code examples is a good way to get started. 
+You may have a look at the playground for some inspiration.
 
 # Construction of a Net  
 
