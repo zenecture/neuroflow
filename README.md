@@ -18,7 +18,7 @@ This project consists of three modules:
 To use Neuroflow within your project, add these dependencies (Scala Version 2.11.7):
 
 ```scala
-libraryDependencies  ++= Seq(
+libraryDependencies ++= Seq(
   "com.zenecture" % "neuroflow-core_2.11" % "0.1-SNAPSHOT",
   "com.zenecture" % "neuroflow-application_2.11" % "0.1-SNAPSHOT"
 )
