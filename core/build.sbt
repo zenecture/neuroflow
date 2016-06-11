@@ -1,6 +1,6 @@
 libraryDependencies  ++= Seq(
   "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly(),
-  "org.scalanlp" %% "breeze" % "0.11.2",
+  "org.scalanlp" %% "breeze" % "0.12",
   "joda-time" % "joda-time" % "2.8.2",
   "org.specs2" %% "specs2-core" % "3.6.4" % "test",
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
