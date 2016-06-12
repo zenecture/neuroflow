@@ -46,7 +46,7 @@ Let's construct the net depicted above. First, we have to pick the desired behav
 ```scala
 import neuroflow.nets.DefaultNetwork._
 import neuroflow.core._
-import neuroflow.core.WeightProvider.randomWeights // Also the default if not explicitly importing another one
+import neuroflow.core.WeightProvider.randomWeights // Also the default if not imported explicitly.
 import neuroflow.application.plugin.Style._
 import shapeless._
 ```
