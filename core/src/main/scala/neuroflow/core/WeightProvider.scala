@@ -54,9 +54,7 @@ trait LowPrioWeightProviders {
 
 
 object WeightProvider extends LowPrioWeightProviders {
-
   implicit val randomWeights = new WeightProvider {
     def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => ThreadLocalRandom.current.nextDouble(-1, 1))
   }
-
 }
