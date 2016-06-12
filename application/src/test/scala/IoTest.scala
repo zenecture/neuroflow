@@ -4,6 +4,7 @@ import neuroflow.core._
 import neuroflow.nets.DefaultNetwork.constructor
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
+import shapeless._
 
 /**
   * @author bogdanski
@@ -25,7 +26,7 @@ class IoTest extends Specification {
 
   """
 
-  val layers = Input(2) :: Hidden(3, Sigmoid.apply) :: Output(2, Sigmoid.apply) :: Nil
+  val layers = Input(2) :: Hidden(3, Sigmoid.apply) :: Output(2, Sigmoid.apply) :: HNil
   val settings = Settings(true, 0.01, 0.01, 200, None, None, None)
   val measure = {
     import neuroflow.core.WeightProvider.zeroWeights

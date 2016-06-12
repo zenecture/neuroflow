@@ -4,6 +4,7 @@ import neuroflow.core._
 import neuroflow.nets.DefaultNetwork
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
+import shapeless._
 
 /**
   * @author bogdanski
@@ -35,7 +36,7 @@ class DefaultNetworkNumTest extends Specification {
 
     val fn = Linear.apply
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
-    val net = Network(Input(1) :: Output(1, fn) :: Nil, sets)
+    val net = Network(Input(1) :: Output(1, fn) :: HNil, sets)
 
     val xs = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
     val ys = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
@@ -59,7 +60,7 @@ class DefaultNetworkNumTest extends Specification {
 
     val fn = Linear.apply
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
-    val net = Network(Input(1) :: Output(2, fn) :: Nil, sets)
+    val net = Network(Input(1) :: Output(2, fn) :: HNil, sets)
 
     val xs = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
     val ys = (Seq(1.0, 1.0) :: Seq(2.0, 2.0) :: Seq(3.0, 3.0) :: Nil) map toMatrix
@@ -87,7 +88,7 @@ class DefaultNetworkNumTest extends Specification {
     val fn = Sigmoid.apply
     val gn = Tanh.apply
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
-    val net = Network(Input(2) :: Hidden(30, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, sets)
+    val net = Network(Input(2) :: Hidden(30, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, sets)
 
     val xs = (Seq(1.0, 2.0) :: Seq(2.0, 4.0) :: Seq(3.0, 6.0) :: Nil) map toMatrix
     val ys = (Seq(1.0, 1.0) :: Seq(2.0, 2.0) :: Seq(3.0, 3.0) :: Nil) map toMatrix
