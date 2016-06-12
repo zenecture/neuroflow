@@ -15,7 +15,7 @@ import scala.annotation.tailrec
   *
   * Same as DefaultNetwork, but it uses the Armijo–Goldstein condition
   * to adapt the learning rate to an optimal value. This promises faster convergence,
-  * but comes with more computational overhead than simple gradient descent.
+  * but comes with more computational overhead than gradient descent.
   *
   * Here, the learning parameter should be a large starting value.
   *
@@ -30,7 +30,7 @@ object DynamicNetwork {
   }
 }
 
-case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.
