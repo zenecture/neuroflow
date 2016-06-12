@@ -5,6 +5,7 @@ import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
+import shapeless._
 
 /**
   * @author bogdanski
@@ -30,7 +31,7 @@ object ImageRecognition {
       val (ph, r) = sample
       val (p, h) = ph
       val settings = Settings(true, 20.0, 0.001, 1000, None, Some(Approximation(0.00001)), None)
-      val net = Network(Input(p.size) :: Hidden(20, Sigmoid.apply) :: Output(3, Sigmoid.apply) :: Nil, settings)
+      val net = Network(Input(p.size) :: Hidden(20, Sigmoid.apply) :: Output(3, Sigmoid.apply) :: HNil, settings)
       net.train(Seq(p, h, r), Seq(Seq(1.0, 0.0, 0.0), Seq(0.0, 1.0, 0.0), Seq(0.0, 0.0, 1.0)))
       net
     }

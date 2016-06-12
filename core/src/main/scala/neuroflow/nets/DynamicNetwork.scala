@@ -1,6 +1,6 @@
 package neuroflow.nets
 
-import breeze.linalg.{sum, DenseMatrix}
+import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
 import breeze.stats.mean
 import neuroflow.core.Network._
@@ -24,7 +24,9 @@ import scala.annotation.tailrec
   */
 object DynamicNetwork {
   implicit val constructor: Constructor[Network] = new Constructor[Network] {
-    def apply(ls: Seq[Layer], sets: Settings)(implicit weightProvider: WeightProvider): Network = DynamicNetwork(ls, sets, weightProvider(ls))
+    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): Network = {
+      DynamicNetwork(ls, settings, weightProvider(ls))
+    }
   }
 }
 
@@ -121,11 +123,10 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
           case _ => i
         }
       }
-      val ds = layers.drop(weightLayer + 1).map { k => k match {
+      val ds = layers.drop(weightLayer + 1).map {
         case h: HasActivator[Double] =>
-          val i = layers.indexOf(k) - 1
+          val i = layers.indexOf(h) - 1
           flow(x, 0, i).map(h.activator.derivative)
-        }
       }
       (flow(x, 0, layers.size - 1) - y) :* chain(ds, ws, in, weightLayer, 0)
     }.reduce(_ + _)

@@ -5,6 +5,7 @@ import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
+import shapeless._
 
 import scala.io.Source
 
@@ -25,7 +26,7 @@ object AgeEarnings {
     val fn = Sigmoid.apply
     val sets = Settings(verbose = true, learningRate = 0.05, precision = 0.001, maxIterations = 5000,
       regularization = None, approximation = None, specifics = None)
-    val network = Network(Input(1) :: Hidden(20, fn) :: Output(1, fn) :: Nil, sets)
+    val network = Network(Input(1) :: Hidden(20, fn) :: Output(1, fn) :: HNil, sets)
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => Seq(a._1 / maxAge))
     val ys = train.map(a => Seq(a._2))

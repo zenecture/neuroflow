@@ -3,6 +3,8 @@ package neuroflow.core
 import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
 import neuroflow.core.Network.Weights
+import shapeless._
+import shapeless.ops.hlist._
 
 import scala.annotation.implicitNotFound
 
@@ -16,18 +18,29 @@ object Network {
   type Weights = Seq[DenseMatrix[Double]]
 
   /**
-    * Constructs a new `Network` depending on `Constructor` with layers `ls` and settings `sets`.
+    * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
+    * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[T <: Network](ls: Seq[Layer], settings: Settings)(implicit constructor: Constructor[T], weightProvider: WeightProvider): T = constructor(ls, settings)
+  def apply[T <: Network, H, L <: HList](ls: H :: L, settings: Settings)(implicit
+                                                                 startsWith: (H :: L) StartsWith Input,
+                                                                 endsWith: L EndsWith Output,
+                                                                 weightProvider: WeightProvider,
+                                                                 constructor: Constructor[T],
+                                                                 toList: (H :: L) ToList Layer): T = {
+    constructor(ls.toList, settings)
+  }
+
 }
 
+
 /**
-  * Constructor for nets
+  * A minimal constructor for a [[Network]].
   */
 @implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
 trait Constructor[+T <: Network] {
   def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
 }
+
 
 /**
   * The `verbose` flag indicates logging behavior. The `learningRate` determines the amplification of the gradients.
@@ -36,7 +49,9 @@ trait Constructor[+T <: Network] {
   * Some nets require specific parameters which can be mapped with `specifics`.
   */
 case class Settings(verbose: Boolean, learningRate: Double, precision: Double, maxIterations: Int,
-                    regularization: Option[Regularization], approximation: Option[Approximation], specifics: Option[Map[String, Double]]) extends Serializable
+                    regularization: Option[Regularization], approximation: Option[Approximation],
+                    specifics: Option[Map[String, Double]]) extends Serializable
+
 
 trait Network extends Logs with Serializable {
 
