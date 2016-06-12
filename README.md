@@ -70,7 +70,7 @@ val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001,
 val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, settings)
 ```
 
-Be aware that a default network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. Ill-defined network architectures will not compile.
+Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. If a network doesn't follow this rule, it won't compile. 
 
 # Training
 
@@ -111,6 +111,8 @@ However, to not dictate anything, all important types extend `Serializable`, so 
 
 # Todo
 
-- More network implementations like Shared Network, Constrained Network, ...
-- Modularization of gradient techniques, as there are more solid ones than gradient descent
+- More network implementations like Shared, Constrained, Convoluted ...
+- Modularization of gradient descent techniques
 - Implement regularization techniques
+- Evaluate support for parallelization (Akka? Spark? scala.collection.parallel?)
+- Check Breeze GPU related work
