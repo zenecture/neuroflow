@@ -46,14 +46,14 @@ Let's construct the net depicted above. First, we have to pick the desired behav
 ```scala
 import neuroflow.nets.DefaultNetwork._
 import neuroflow.core._
-import neuroflow.core.WeightProvider.randomWeights
+import neuroflow.core.WeightProvider.randomWeights // Also the default if not explicitly importing another one
 import neuroflow.application.plugin.Style._
 import shapeless._
 ```
 
 The first import gives us an implicit constructor for the default net implementation with gradient descent. 
-The second one yields an implicit weight provider, which determines the initial weight values. The last one is eye candy to keep the notation a little shorter. 
-The idea behind this 'import a-la-carte' is to change the underlying net implementation without changing the 'meat' of the code.
+The second one yields a weight provider, which determines the initial weight values. The last one is eye candy to keep the notation a little shorter. 
+The idea behind this 'import a-la-carte' is to change the underlying net behavior without changing the 'meat' of the code.
 
 ```scala
 val fn = Sigmoid.apply

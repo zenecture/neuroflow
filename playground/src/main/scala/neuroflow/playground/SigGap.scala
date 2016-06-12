@@ -1,8 +1,7 @@
 package neuroflow.playground
 
 import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.WeightProvider.randomWeights
-import neuroflow.core.{Input, Network, Output, Settings}
+import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
@@ -18,7 +17,7 @@ object SigGap {
     net.train(Seq(Seq(0.3, 0.3)), Seq(Seq(0.5)))
 
     println("Output: " + net.evaluate(Seq(0.3, 0.3)))
-    println("Parameters must be of kind: -a, +a or +a, -a")
+    println("Parameters must roughly be of kind: -a, +a or +a, -a")
     println("Network was " + net)
   }
 
