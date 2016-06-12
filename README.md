@@ -2,6 +2,7 @@
 
 NeuroFlow is a lightweight library to construct, train and evaluate Artificial Neural Networks.
 It is written in Scala, matrix operations are performed with Breeze (+ NetLib for near-native performance).
+Type-safety, when needed, comes from Shapeless.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
 
@@ -44,8 +45,10 @@ Let's construct the net depicted above. First, we have to pick the desired behav
 
 ```scala
 import neuroflow.nets.DefaultNetwork._
+import neuroflow.core._
 import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.application.plugin.Style._
+import shapeless._
 ```
 
 The first import gives us an implicit constructor for the default net implementation with gradient descent. 
@@ -54,7 +57,7 @@ The idea behind this 'import a-la-carte' is to change the underlying net impleme
 
 ```scala
 val fn = Sigmoid.apply
-val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: Nil)
+val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil)
 ```
 
 The whole architecture of the net is defined here. We want to use a sigmoid activation function `fn` for our hidden and output layers. 
@@ -64,10 +67,10 @@ Also, some rates and rules need to be defined, like precision or maximum iterati
 val fn = Sigmoid.apply
 val gn = Tanh.apply
 val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 200, regularization = None, approximation = None, specifics = None)
-val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: Nil, settings)
+val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, settings)
 ```
 
-Be aware that a default network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
+Be aware that a default network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. Ill-defined network architectures will not compile.
 
 # Training
 
