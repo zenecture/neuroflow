@@ -11,7 +11,7 @@ import scala.annotation.tailrec
 /**
   *
   * This is a standard artificial neural network, using gradient descent,
-  * fully connected weights (no sharing).
+  * fully connected weights, no sharing.
   *
   * @author bogdanski
   * @since 15.01.16
@@ -25,7 +25,7 @@ object DefaultNetwork {
   }
 }
 
-case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.

@@ -5,7 +5,6 @@ package neuroflow.playground
   * @since 03.01.16
   */
 
-
 object App extends App {
 
   /**
@@ -14,6 +13,7 @@ object App extends App {
     *
     */
 
+  Hello.apply
   SigGap.apply
   XOR.apply
   Trending.apply
@@ -21,4 +21,5 @@ object App extends App {
   ImageRecognition.apply
   DigitRecognition.apply
   Sinusoidal.apply
+
 }

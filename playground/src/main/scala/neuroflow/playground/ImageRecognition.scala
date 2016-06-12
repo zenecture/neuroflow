@@ -1,5 +1,6 @@
 package neuroflow.playground
 
+import neuroflow.application.preprocessor.Util._
 import neuroflow.application.preprocessor.Image._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._

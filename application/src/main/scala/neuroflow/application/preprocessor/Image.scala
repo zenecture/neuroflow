@@ -11,11 +11,6 @@ import javax.imageio.ImageIO
 object Image {
 
   /**
-    * Gets the `File` specified by `path`
-    */
-  def getFile(path: String): File = new File(getClass.getClassLoader.getResource(path).toURI)
-
-  /**
     * Loads image from `file` or `path` and returns flattened sequence
     * of all color channels and pixels
     */
