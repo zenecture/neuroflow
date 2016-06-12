@@ -4,6 +4,7 @@ import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
+import shapeless._
 
 import scala.util.Random
 
@@ -37,7 +38,7 @@ object Trending {
 
     val fn = Sigmoid.apply
     val settings = Settings(true, 20.0, 0.0001, 10000, None, None, None)
-    val net = Network(Input(trend.size) :: Hidden(25, fn) :: Output(1, fn) :: Nil, settings)
+    val net = Network(Input(trend.size) :: Hidden(25, fn) :: Output(1, fn) :: HNil, settings)
     net.train(Seq(trend, flat), Seq(Seq(1.0), Seq(0.0)))
 
     println(s"Weights: ${net.weights.map(_.size).sum}")

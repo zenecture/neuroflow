@@ -5,6 +5,7 @@ import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
 import neuroflow.core.WeightProvider.randomWeights
 import neuroflow.nets.DynamicNetwork._
+import shapeless._
 
 /**
   * @author bogdanski
@@ -25,7 +26,7 @@ object DigitRecognition {
         regularization = None, approximation = Some(Approximation(0.00001)), specifics = Some(Map("t" -> 0.25, "c" -> 0.01)))
       val xs = sets dropRight 1 flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
       val ys = sets dropRight 1 flatMap { m => (0 to 9) map { digit => Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).updated(digit, 1.0) } }
-      val net = Network(Input(xs.head.size) :: Hidden(50, fn) :: Output(10, fn) :: Nil, settings)
+      val net = Network(Input(xs.head.size) :: Hidden(50, fn) :: Output(10, fn) :: HNil, settings)
       net.train(xs, ys)
       net
     }

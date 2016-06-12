@@ -23,9 +23,8 @@ trait Loggable[Return] {
 }
 
 /**
-  * Instead of depending on these heavy-metal logging frameworks,
-  * the idea is to just print to console, while redirecting this output
-  * to a file on OS-level.
+  * Instead of depending on a heavy-metal logging framework, the idea is to simply print to console,
+  * while redirecting this output to a file on OS-level.
   */
 trait Logs extends Loggable[Unit] {
 
