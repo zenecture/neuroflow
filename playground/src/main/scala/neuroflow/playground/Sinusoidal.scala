@@ -27,7 +27,7 @@ object Sinusoidal {
     */
 
   def apply = {
-    val fn = Tanh.apply
+    val fn = Tanh
     val group = 4
     val sets = Settings(true, 10.0, 0.0000001, 500, None, None, Some(Map("τ" -> 0.25, "c" -> 0.25)))
     val net = Network(Input(3) :: Hidden(5, fn) :: Hidden(3, fn) :: Output(1, fn) :: HNil, sets)

@@ -22,7 +22,7 @@ object XOR {
 
      */
 
-    val fn = Sigmoid.apply
+    val fn = Sigmoid
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
     val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.00001,

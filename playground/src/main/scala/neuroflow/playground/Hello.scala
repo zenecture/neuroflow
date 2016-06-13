@@ -25,11 +25,11 @@ object Hello {
 
   def prepare(s: String) = {
     val wav = getBytes(getFile(s)).map(_.toDouble).drop(44) // Drop WAV head data
-    wav.map(_ / wav.max).grouped(5875).toList // 2*5*5*5*47 = 11750
+    wav.map(_ / wav.max).grouped(2*5*5*5).toList // 2*5*5*5*47 = 11750
   }
 
   def apply = {
-    val fn = Tanh.apply
+    val fn = Tanh
     val sets = Settings(maxIterations = 20, precision = 1E-4)
     val (a, b, c) = (prepare("audio/hello.wav"), prepare("audio/goodbye.wav"), prepare("audio/hello-alt.wav"))
 
@@ -55,3 +55,20 @@ object Hello {
   }
 
 }
+
+
+/*
+
+      Layout:
+        Hello ->(1.0, -1.0)
+        Goodbye ->(-1.0, 1.0)
+
+      [ForkJoinPool-1-worker-7] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 8,45814e-05 (rel: 0,462) 0,00109807
+      [ForkJoinPool-1-worker-7] INFO neuroflow.nets.NFLBFGS - Converged because error function is sufficiently minimal.
+      hello.wav: Vector(0.9953617500652691, -0.9942334604656619)
+      goodbye.wav: Vector(-0.9952830206661016, 0.9937201854988833)
+      hello-alt.wav: Vector(0.9538430918578609, -0.9544885348625157)
+      [success] Total time: 57 s, completed 13.06.2016 23:45:11
+
+
+ */

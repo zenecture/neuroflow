@@ -30,7 +30,7 @@ object ImageRecognition {
 
     println(s"Training ${plus.size + heart.size} samples...")
 
-    val fn = Sigmoid.apply
+    val fn = Sigmoid
     val training = plus.zip(heart).zip(random).zip(plusRotated)
     val nets = training.par.map {
       case (((p, h), r), pr) =>
