@@ -30,7 +30,7 @@ object DynamicNetwork {
 }
 
 
-private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.

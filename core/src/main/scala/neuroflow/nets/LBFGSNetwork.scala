@@ -30,7 +30,7 @@ object LBFGSNetwork {
   }
 }
 
-private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
   /**
     * Input `xs` and desired output `ys` will be the mold for the weights.

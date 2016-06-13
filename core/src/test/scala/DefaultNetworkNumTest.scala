@@ -34,7 +34,7 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.core.WeightProvider.randomWeights
     import neuroflow.nets.DefaultNetwork.constructor
 
-    val fn = Linear.apply
+    val fn = Linear
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
     val net = Network(Input(1) :: Output(1, fn) :: HNil, sets)
 
@@ -58,7 +58,7 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.core.WeightProvider.randomWeights
     import neuroflow.nets.DefaultNetwork.constructor
 
-    val fn = Linear.apply
+    val fn = Linear
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
     val net = Network(Input(1) :: Output(2, fn) :: HNil, sets)
 
@@ -85,8 +85,8 @@ class DefaultNetworkNumTest extends Specification {
     import neuroflow.core.WeightProvider.randomWeights
     import neuroflow.nets.DefaultNetwork.constructor
 
-    val fn = Sigmoid.apply
-    val gn = Tanh.apply
+    val fn = Sigmoid
+    val gn = Tanh
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
     val net = Network(Input(2) :: Hidden(30, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, sets)
 

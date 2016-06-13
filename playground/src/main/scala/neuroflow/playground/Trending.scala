@@ -45,7 +45,7 @@ object Trending {
     val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, Random.nextDouble)) // Random
 
 
-    val fn = Sigmoid.apply
+    val fn = Sigmoid
     val settings = Settings(true, 20.0, 0.0001, 10000, None, None, None)
     val net = Network(Input(trend.size) :: Hidden(25, fn) :: Output(1, fn) :: HNil, settings)
     net.train(Seq(trend, flat), Seq(Seq(1.0), Seq(0.0)))

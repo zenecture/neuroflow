@@ -28,32 +28,24 @@ trait Activator[N] extends (N => N) with Serializable {
   */
 object Activator {
 
-  object Sigmoid {
-    def apply = new Activator[Double] {
-      def apply(x: Double): Double = 1 / (1 + exp(-x))
-      def derivative(x: Double): Double = exp(x) / pow(exp(x) + 1, 2)
-    }
+  object Sigmoid extends Activator[Double] {
+    def apply(x: Double): Double = 1 / (1 + exp(-x))
+    def derivative(x: Double): Double = exp(x) / pow(exp(x) + 1, 2)
   }
 
-  object Tanh {
-    def apply = new Activator[Double] {
-      def apply(x: Double): Double = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
-      def derivative(x: Double): Double = 4 * exp(2 * x) / pow(exp(2 * x) + 1, 2)
-    }
+  object Tanh extends Activator[Double] {
+    def apply(x: Double): Double = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
+    def derivative(x: Double): Double = 4 * exp(2 * x) / pow(exp(2 * x) + 1, 2)
   }
 
-  object Linear {
-    def apply = new Activator[Double] {
-      def apply(x: Double): Double = x
-      def derivative(x: Double): Double = 1
-    }
+  object Linear extends Activator[Double] {
+    def apply(x: Double): Double = x
+    def derivative(x: Double): Double = 1
   }
 
-  object Square {
-    def apply = new Activator[Double] {
-      def apply(x: Double): Double = x * x
-      def derivative(x: Double): Double = 2 * x
-    }
+  object Square extends Activator[Double] {
+    def apply(x: Double): Double = x * x
+    def derivative(x: Double): Double = 2 * x
   }
 
 }
