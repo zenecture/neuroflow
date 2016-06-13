@@ -37,6 +37,10 @@ resolvers ++= Seq(
 Seeing some code examples is a good way to get started. 
 You may have a look at the playground for some inspiration.
 
+If you want to use neural nets in your project, you can expect a journey of experiments.
+
+Never forget, each challenge is unique.
+
 # Construction of a Net  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=443 height=320 />
