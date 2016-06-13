@@ -14,12 +14,18 @@ import scala.annotation.tailrec
   */
 object Sinusoidal {
 
-  /**
-    * Here the goal is to predict the shape of sin(10*x).
-    * The net will be trained with the exact function values drawn from the interval [0.0 : 0.8],
-    * and the task is to continue (or predict) the next values from the interval ]0.8 : 4.0]
-    * based solely on learned history.
+   /*
+
+        Here the goal is to predict the shape of sin(10*x).
+        The net will be trained with the exact function values drawn from the interval [0.0 : 0.8],
+        and the task is to continue (or predict) the next values from the interval ]0.8 : 4.0]
+        based solely on learned history.
+
+        Feel free to read this article for the full story:
+          http://znctr.com/blog/time-series-prediction
+
     */
+
   def apply = {
     val fn = Tanh.apply
     val group = 4

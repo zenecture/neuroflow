@@ -13,6 +13,15 @@ import shapeless._
 object XOR {
 
   def apply = {
+
+    /*
+
+       If you are new to neural nets and on the hunt for a
+       rather informal blog post about the theory behind them:
+         http://znctr.com/blog/artificial-neural-networks
+
+     */
+
     val fn = Sigmoid.apply
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))

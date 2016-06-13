@@ -13,8 +13,8 @@ object App extends App {
     *
     */
 
-  SigGap.apply
   XOR.apply
+  SigGap.apply
   Trending.apply
   AgeEarnings.apply
   ImageRecognition.apply

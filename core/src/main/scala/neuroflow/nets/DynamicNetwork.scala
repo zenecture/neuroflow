@@ -3,15 +3,12 @@ package neuroflow.nets
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
 import breeze.stats.mean
-import neuroflow.core.Network._
+import neuroflow.core.Network.Weights
 import neuroflow.core._
 
 import scala.annotation.tailrec
 
 /**
-  *
-  *    !!!!! EXPERIMENTAL !!!!!
-  *
   *
   * Same as DefaultNetwork, but it uses the Armijo–Goldstein condition
   * to adapt the learning rate to an optimal value. This promises faster convergence,
@@ -21,7 +18,9 @@ import scala.annotation.tailrec
   *
   * @author bogdanski
   * @since 20.01.16
+  *
   */
+
 object DynamicNetwork {
   implicit val constructor: Constructor[Network] = new Constructor[Network] {
     def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): Network = {
@@ -29,6 +28,7 @@ object DynamicNetwork {
     }
   }
 }
+
 
 private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 
