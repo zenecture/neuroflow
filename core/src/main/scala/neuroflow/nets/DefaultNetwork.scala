@@ -8,6 +8,7 @@ import neuroflow.core._
 
 import scala.annotation.tailrec
 
+
 /**
   *
   * This is a standard artificial neural network, using gradient descent,
@@ -15,7 +16,9 @@ import scala.annotation.tailrec
   *
   * @author bogdanski
   * @since 15.01.16
+  *
   */
+
 
 object DefaultNetwork {
   implicit val constructor: Constructor[Network] = new Constructor[Network] {
@@ -24,6 +27,7 @@ object DefaultNetwork {
     }
   }
 }
+
 
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
 

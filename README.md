@@ -112,7 +112,6 @@ However, to not dictate anything, all important types extend `Serializable`, so 
 # Todo
 
 - More network implementations like Shared, Constrained, Convoluted ...
-- Modularization of gradient descent techniques
 - Implement regularization techniques
-- Maybe provide helpers to support parallelization (Akka? Spark? scala.collection.parallel?)
+- Provide helpers for easy parallelization (Akka? Spark? scala.collection.parallel?)
 - Check Breeze GPU related work

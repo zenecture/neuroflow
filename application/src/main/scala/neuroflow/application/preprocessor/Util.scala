@@ -2,6 +2,8 @@ package neuroflow.application.preprocessor
 
 import java.io.{BufferedInputStream, File, FileInputStream}
 
+import neuroflow.common.~>
+
 /**
   * @author bogdanski
   * @since 12.06.16
@@ -17,9 +19,7 @@ object Util {
   /**
     * Gets the plain bytes from `file`.
     */
-  def getBytes(file: File): Seq[Byte] = {
-    val bis = new BufferedInputStream(new FileInputStream(file))
-    Stream.continually(bis.read).takeWhile(_ != -1).map(_.toByte).toList
-  }
+  def getBytes(file: File): Seq[Byte] = ~> (new BufferedInputStream(new FileInputStream(file))) map
+    (s => (s, Stream.continually(s.read).takeWhile(_ != -1).map(_.toByte).toList)) io (_._1.close) map(_._2)
 
 }

@@ -12,6 +12,16 @@ import scala.util.Random
   * @since 03.01.16
   */
 object Trending {
+
+  /*
+
+     Here the goal is to detect a trend in two-dimensional space (stock market, audio waves, ...)
+
+     Feel free to read this article for the full story:
+       http://znctr.com/blog/natural-trend-detection
+
+   */
+
   def apply = {
 
     def noise = if (Random.nextDouble > 0.5) 0.0625 else -0.0625

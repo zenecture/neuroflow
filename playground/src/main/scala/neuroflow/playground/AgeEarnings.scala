@@ -15,6 +15,16 @@ import scala.io.Source
 
 
 object AgeEarnings {
+
+  /*
+
+     Here the goal is to compare Neural Net vs. Gaussian.
+     Feel free to read this article for the full story:
+        http://znctr.com/blog/gaussian-vs-neural-net
+
+  */
+
+
   def apply = {
     val src = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("file/income.txt")).getLines().map(_.split(",")).flatMap(k => {
       (if (k.size > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }

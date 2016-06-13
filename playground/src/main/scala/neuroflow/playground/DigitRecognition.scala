@@ -13,6 +13,14 @@ import shapeless._
   */
 object DigitRecognition {
 
+  /*
+
+   Here the goal is to classify digits from unknown font family 'h'.
+   Feel free to read this article for the full story:
+      http://znctr.com/blog/digit-recognition
+
+  */
+
   def getDigitSet(path: String) = {
     val selector: Int => Boolean = _ < 255
     (0 to 9) map (i => extractBinary(getFile(path + s"$i.png"), selector).grouped(100).toList)
