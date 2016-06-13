@@ -37,7 +37,7 @@ resolvers ++= Seq(
 Seeing some code examples is a good way to get started. 
 You may have a look at the playground for some inspiration.
 
-If you want to use neural nets in your project, you can expect a journey of experiments.
+If you want to use neural nets in your project, you can expect a journey full of experiments.
 
 Never forget, each challenge is unique.
 
