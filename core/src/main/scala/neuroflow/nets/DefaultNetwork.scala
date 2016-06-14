@@ -21,8 +21,8 @@ import scala.annotation.tailrec
 
 
 object DefaultNetwork {
-  implicit val constructor: Constructor[Network] = new Constructor[Network] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): Network = {
+  implicit val constructor: Constructor[DefaultNetwork] = new Constructor[DefaultNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): DefaultNetwork = {
       DefaultNetwork(ls, settings, weightProvider(ls))
     }
   }

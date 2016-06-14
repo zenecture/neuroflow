@@ -22,8 +22,8 @@ import scala.annotation.tailrec
   */
 
 object DynamicNetwork {
-  implicit val constructor: Constructor[Network] = new Constructor[Network] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): Network = {
+  implicit val constructor: Constructor[DynamicNetwork] = new Constructor[DynamicNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): DynamicNetwork = {
       DynamicNetwork(ls, settings, weightProvider(ls))
     }
   }
