@@ -23,8 +23,8 @@ import scala.annotation.tailrec
   */
 
 object LBFGSNetwork {
-  implicit val constructor: Constructor[Network] = new Constructor[Network] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): Network = {
+  implicit val constructor: Constructor[LBFGSNetwork] = new Constructor[LBFGSNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): LBFGSNetwork = {
       LBFGSNetwork(ls, settings, weightProvider(ls))
     }
   }
