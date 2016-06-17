@@ -101,7 +101,7 @@ case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     * Evaluates the error function Σ1/2(prediction(x) - observation)²
     */
   private def errorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]]): DenseMatrix[Double] = {
-    xs.zip(ys).map { t =>
+    xs.zip(ys).par.map { t =>
       val (x, y) = t
       0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
     }.reduce(_ + _)

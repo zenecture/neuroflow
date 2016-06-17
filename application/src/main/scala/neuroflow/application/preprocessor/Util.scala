@@ -2,6 +2,8 @@ package neuroflow.application.preprocessor
 
 import java.io.{BufferedInputStream, File, FileInputStream}
 
+import scala.collection.JavaConversions._
+
 import neuroflow.common.~>
 
 /**
@@ -12,9 +14,14 @@ import neuroflow.common.~>
 object Util {
 
   /**
-    * Gets the `File` specified by `path`
+    * Gets the `File` residing at `path`.
     */
   def getFile(path: String): File = new File(getClass.getClassLoader.getResource(path).toURI)
+
+  /**
+    * Gets all files within `path`.
+    */
+  def getFiles(path: String): Seq[File] = new File(getClass.getClassLoader.getResource(path).toURI).listFiles
 
   /**
     * Gets the plain bytes from `file`.
