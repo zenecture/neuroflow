@@ -60,7 +60,7 @@ case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights
       */
     def errorFunc(v: DenseVector[Double]): Double = {
       val err = {
-        in.zip(out).map { t =>
+        in.zip(out).par.map { t =>
           val (xx, yy) = t
           0.5 * pow(flow(ws(v, 0), xx, 0, layers.size - 1) - yy, 2)
         }.reduce(_ + _)
