@@ -1,8 +1,6 @@
-package neuroflow.application.preprocessor
+package neuroflow.application.processor
 
 import java.io.{BufferedInputStream, File, FileInputStream}
-
-import scala.collection.JavaConversions._
 
 import neuroflow.common.~>
 

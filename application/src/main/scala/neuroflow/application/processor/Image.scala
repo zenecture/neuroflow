@@ -1,4 +1,4 @@
-package neuroflow.application.preprocessor
+package neuroflow.application.processor
 
 import java.awt.Color
 import java.io.File
