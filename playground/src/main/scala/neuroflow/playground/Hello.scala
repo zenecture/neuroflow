@@ -1,6 +1,6 @@
 package neuroflow.playground
 
-import neuroflow.application.preprocessor.Util._
+import neuroflow.application.processor.Util._
 import neuroflow.application.plugin.Style._
 import neuroflow.core.Activator.Tanh
 import neuroflow.core._
