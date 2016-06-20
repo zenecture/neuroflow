@@ -10,8 +10,8 @@ Type-safety, when needed, comes from Shapeless.
 
 This project consists of three modules:
 
-- core: the neural network architecture
-- application: plugins, helpers, functionality related to application
+- core: the building blocks to create neural network architectures
+- application: plugins, helpers, functionality related to various applications
 - playground: examples with resources
     
 # Getting Started
@@ -115,7 +115,7 @@ However, to not dictate anything, all important types extend `Serializable`, so 
 
 # Todo
 
-- More network implementations like Shared, Constrained, Convoluted ...
-- Implement regularization techniques
+- Implement LSTM and softmax blocks
+- Investigate usefulness of known regularization techniques
 - Provide helpers for easy parallelization (Akka? Spark? scala.collection.parallel?)
-- Check Breeze GPU related work
+- Check whether GPU based matrix/net implementations are worth the hassle. Intel MKL CPU was faster than CUDA/OpenCL on my MacBookPro with a Geforce GT750 for SGEMM? The netlib benchmark confirms my observation: [github.com/fommil/netlib-java](https://github.com/fommil/netlib-java)

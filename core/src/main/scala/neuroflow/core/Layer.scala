@@ -7,7 +7,7 @@ package neuroflow.core
 
 
 /**
-  * Label for any layer with cardinality `neurons`
+  * Label for any layer with `neurons` count.
   */
 trait Layer {
   val neurons: Int

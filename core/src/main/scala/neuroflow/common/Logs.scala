@@ -1,9 +1,8 @@
 package neuroflow.common
 
+import breeze.util.LazyLogger
 import org.joda.time.DateTime
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import org.slf4j.LoggerFactory
 
 /**
   * @author bogdanski
@@ -11,8 +10,7 @@ import scala.concurrent.Future
   */
 
 /**
-  * Base trait for any loggers. May use monadic structure
-  * in `Return` to chain things.
+  * Base trait for any loggers.
   */
 trait Loggable[Return] {
 
@@ -23,17 +21,16 @@ trait Loggable[Return] {
 }
 
 /**
-  * Instead of depending on a heavy-metal logging framework, the idea is to simply print to console,
-  * while redirecting this output to a file on OS-level.
+  * Logs trait using slf4j.
   */
 trait Logs extends Loggable[Unit] {
 
+  private val logger = new LazyLogger(LoggerFactory.getLogger(this.getClass))
   private val datePattern = "dd.MM.yyyy HH:mm:ss:SSS"
-  private def format(s: String) = s"[${DateTime.now.toString(datePattern)}] [${Thread.currentThread.getName}] $s"
-  private def print(message: String) = Future(println(message))
+  private def format(s: String) = s"[${DateTime.now.toString(datePattern)}] $s"
 
-  def warn(message: String): Unit = print("[WARN] " + format(message))
-  def error(message: String): Unit = print("[ERROR] " + format(message))
-  def info(message: String): Unit = print("[INFO] " + format(message))
+  def warn(message: String): Unit = logger.warn(format(message))
+  def error(message: String): Unit = logger.error(format(message))
+  def info(message: String): Unit = logger.info(format(message))
 
 }

@@ -1,6 +1,6 @@
 package neuroflow.nets
 
-import breeze.linalg.{DenseMatrix, sum}
+import breeze.linalg._
 import breeze.numerics._
 import breeze.stats.mean
 import neuroflow.core.Network.Weights
