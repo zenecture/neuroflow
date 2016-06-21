@@ -19,14 +19,14 @@ object ImageRecognition {
     val groupSize = 1200 // max = 20*20*3 = 1200
 
     // Training
-    val plus = extractRgb(getFile("img/plus.png")).grouped(groupSize).toList
-    val heart = extractRgb(getFile("img/heart.png")).grouped(groupSize).toList
+    val plus = extractRgb(getResourceFile("img/plus.png")).grouped(groupSize).toList
+    val heart = extractRgb(getResourceFile("img/heart.png")).grouped(groupSize).toList
 
     // Testing
-    val heartDistorted = extractRgb(getFile("img/heart_distorted.png")).grouped(groupSize).toList
-    val heartRotated = extractRgb(getFile("img/heart_rotated.png")).grouped(groupSize).toList
-    val plusRotated = extractRgb(getFile("img/plus_rotated.png")).grouped(groupSize).toList
-    val random = extractRgb(getFile("img/random.png")).grouped(groupSize).toList
+    val heartDistorted = extractRgb(getResourceFile("img/heart_distorted.png")).grouped(groupSize).toList
+    val heartRotated = extractRgb(getResourceFile("img/heart_rotated.png")).grouped(groupSize).toList
+    val plusRotated = extractRgb(getResourceFile("img/plus_rotated.png")).grouped(groupSize).toList
+    val random = extractRgb(getResourceFile("img/random.png")).grouped(groupSize).toList
 
     println(s"Training ${plus.size + heart.size} samples...")
 

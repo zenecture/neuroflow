@@ -24,7 +24,7 @@ object Hello {
    */
 
   def prepare(s: String) = {
-    val wav = getBytes(getFile(s)).map(_.toDouble).drop(44) // Drop WAV head data
+    val wav = getBytes(getResourceFile(s)).map(_.toDouble).drop(44) // Drop WAV head data
     wav.map(_ / wav.max).grouped(2*5*5*5).toList // 2*5*5*5*47 = 11750
   }
 

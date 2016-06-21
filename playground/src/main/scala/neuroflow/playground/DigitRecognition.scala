@@ -23,7 +23,7 @@ object DigitRecognition {
 
   def getDigitSet(path: String) = {
     val selector: Int => Boolean = _ < 255
-    (0 to 9) map (i => extractBinary(getFile(path + s"$i.png"), selector).grouped(100).toList)
+    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).grouped(100).toList)
   }
 
   def apply = {

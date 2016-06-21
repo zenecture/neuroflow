@@ -29,7 +29,7 @@ object DefaultNetwork {
 }
 
 
-case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network {
+case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network with EarlyStoppingLogic {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.
@@ -56,7 +56,7 @@ case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weigh
     val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
     val error = errorFunc(input, output)
-    if (mean(error) > precision && iteration < maxIterations) {
+    if (mean(error) > precision && iteration < maxIterations && !shouldStopEarly) {
       if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
       adaptWeights(input, output, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
