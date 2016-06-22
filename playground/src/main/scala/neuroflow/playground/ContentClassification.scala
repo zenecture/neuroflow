@@ -13,7 +13,20 @@ import shapeless._
   * @since 20.06.16
   */
 
-object TopicClassification {
+object ContentClassification {
+
+
+  /*
+
+       Here the goal is to classify the content of arbitrary text.
+       The classes used for training are C = { cars, med }.
+       The data is an aggregate of newsgroup posts found at the internet.
+         (Source: qwone.com/%7Ejason/20Newsgroups)
+
+       Feel free to read this article for the full story:
+         http://znctr.com/blog/... <-- this is todo
+
+   */
 
   val netFile = "/Users/felix/github/unversioned/ct.nf"
   val maxSamples = 100
