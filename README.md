@@ -50,6 +50,7 @@ Let's construct the net depicted above. First, we have to pick the desired behav
 ```scala
 import neuroflow.nets.DefaultNetwork._
 import neuroflow.core._
+import neuroflow.core.Activator._
 import neuroflow.core.WeightProvider.randomWeights // Default, if not imported explicitly like here.
 import neuroflow.application.plugin.Style._
 import shapeless._
@@ -60,7 +61,7 @@ The second one yields a weight provider, which determines the initial weight val
 The idea behind this 'import a-la-carte' is to change the underlying net behavior without changing the 'meat' of the code.
 
 ```scala
-val fn = Sigmoid.apply
+val fn = Sigmoid
 val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil)
 ```
 
@@ -68,8 +69,8 @@ The whole architecture of the net is defined here. We want to use a sigmoid acti
 Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. If we would need a more complex net, we would simply stack layers and functions:
 
 ```scala
-val fn = Sigmoid.apply
-val gn = Tanh.apply
+val fn = Sigmoid
+val gn = Tanh
 val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 200, regularization = None, approximation = None, specifics = None)
 val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, settings)
 ```
@@ -118,4 +119,4 @@ However, to not dictate anything, all important types extend `Serializable`, so 
 - Implement LSTM and softmax blocks
 - Investigate usefulness of known regularization techniques
 - Provide helpers for easy parallelization (Akka? Spark? scala.collection.parallel?)
-- Check whether GPU based matrix/net implementations are worth the hassle. Intel MKL CPU was faster than CUDA/OpenCL on my MacBookPro with a Geforce GT750 for SGEMM? The netlib benchmark confirms my observation: [github.com/fommil/netlib-java](https://github.com/fommil/netlib-java)
+- Check whether GPU based matrix/net implementations are worth the hassle. Intel MKL CPU was faster than CUDA/OpenCL on my MacBookPro with a Geforce GT750 for highly optimized SGEMM benchmark. I have no clue why. The netlib benchmark confirmed my observation: [github.com/fommil/netlib-java](https://github.com/fommil/netlib-java)
