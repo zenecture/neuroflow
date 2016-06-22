@@ -13,12 +13,12 @@ import shapeless._
   * @since 20.06.16
   */
 
-object ContentClassification {
+object ContextClassification {
 
 
   /*
 
-       Here the goal is to classify the content of arbitrary text.
+       Here the goal is to classify the context of arbitrary text.
        The classes used for training are C = { cars, med }.
        The data is an aggregate of newsgroup posts found at the internet.
          (Source: qwone.com/%7Ejason/20Newsgroups)

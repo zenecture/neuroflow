@@ -21,7 +21,7 @@ object App extends App {
   DigitRecognition.apply
   Sinusoidal.apply
   Hello.apply
-  ContentClassification.apply
-  ContentClassification.test
+  ContextClassification.apply
+  ContextClassification.test
 
 }
