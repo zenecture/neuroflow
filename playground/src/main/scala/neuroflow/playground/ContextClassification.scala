@@ -24,7 +24,7 @@ object ContextClassification {
          (Source: qwone.com/%7Ejason/20Newsgroups)
 
        Feel free to read this article for the full story:
-         http://znctr.com/blog/... <-- this is todo
+         http://znctr.com/blog/language-processing
 
    */
 
@@ -76,8 +76,8 @@ object ContextClassification {
       Network(Input(20) :: Hidden(40, Tanh) :: Hidden(40, Tanh) :: Output(2, Tanh) :: HNil, Settings())
     }
 
-    val cars = normalize(readAll("file/newsgroup/cars/", offset = 0, max = maxSamples * 2))
-    val med = normalize(readAll("file/newsgroup/med/", offset = 0, max = maxSamples * 2))
+    val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))
+    val med = normalize(readAll("file/newsgroup/med/", offset = maxSamples, max = maxSamples))
     val free = normalize(readSingle("file/newsgroup/free.txt"))
 
     val trainCars = vectorize(cars)
