@@ -13,7 +13,7 @@ import shapeless._
   * @since 20.06.16
   */
 
-object ContextClassification {
+object LanguageProcessing {
 
 
   /*
