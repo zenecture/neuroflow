@@ -30,7 +30,7 @@ object Trending {
     val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i))
     val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.3))
 
-    //Testing
+    // Testing
     val trendTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (1 + Random.nextDouble) * i)) // Linear trend with noise on slope
     val flatTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.3 + noise)) // Flat with additive noise
     val declineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 1.0 - i)) // Linear decline trend
