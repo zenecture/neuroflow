@@ -77,5 +77,6 @@ object Trending {
     println(s"Oscillating Down Result: $oscillatingDownResult")
     println(s"Real World Result: $realWorldResult")
     println(s"Random Result: $randomResult")
+
   }
 }

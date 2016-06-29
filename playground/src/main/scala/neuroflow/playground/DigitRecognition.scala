@@ -27,6 +27,7 @@ object DigitRecognition {
   }
 
   def apply = {
+
     val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/"))
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid

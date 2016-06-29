@@ -31,6 +31,7 @@ object Hello {
   }
 
   def apply = {
+
     val fn = Tanh
     val sets = Settings(maxIterations = 20, precision = 1E-4)
     val (a, b, c) = (prepare("audio/hello.wav"), prepare("audio/goodbye.wav"), prepare("audio/hello-alt.wav"))
