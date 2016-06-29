@@ -16,7 +16,9 @@ object Hello {
 
   /*
 
-        First audio recogniton with LBFGS network.
+        Audio recogniton with LBFGS network.
+
+        This is a toy example, since one would do this with LSTMs instead.
 
         Hello = (1.0, -1.0)
         Good-Bye = (-1.0, 1.0)
