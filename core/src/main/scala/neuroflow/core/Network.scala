@@ -56,28 +56,28 @@ case class Settings(verbose: Boolean = true, learningRate: Double = 1.0, precisi
 trait Network extends Logs with Serializable {
 
   /**
-    * Settings of this neural network
+    * Settings of this neural network.
     */
   val settings: Settings
 
   /**
-    * Layers of this neural network
+    * Layers of this neural network.
     */
   val layers: Seq[Layer]
 
   /**
-    * The weights packed as a list of matrices
+    * The weights packed as a sequence of matrices.
     */
   val weights: Weights
 
   /**
-    * Input `xs` and desired output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights.
+    * Trains this net for given in- and outputs `xs` and `ys` respectively.
     */
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit
 
   /**
-    * Input `xs` will be evaluated based on current weights
+    * Input `xs` will be evaluated based on current weights.
+    * (Forward pass)
     */
   def evaluate(xs: Seq[Double]): Seq[Double]
 
