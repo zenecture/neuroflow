@@ -29,7 +29,7 @@ object DefaultNetwork {
 }
 
 
-private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends Network with EarlyStoppingLogic {
+private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork with EarlyStoppingLogic {
 
   /**
     * Input `xs` and output `ys` will be the mold for the weights.

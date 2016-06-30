@@ -24,13 +24,20 @@ trait Activator[N] extends (N => N) with Serializable {
 }
 
 /**
-  * Various, common pre-build functions
+  * Common pre-build activator/squashing functions.
   */
 object Activator {
 
   object Sigmoid extends Activator[Double] {
     def apply(x: Double): Double = 1 / (1 + exp(-x))
     def derivative(x: Double): Double = exp(x) / pow(exp(x) + 1, 2)
+  }
+
+  object CenteredSigmoid {
+    def apply(f: Int) = new Activator[Double] {
+      def apply(x: Double): Double = (f / (1 + exp(-x))) - 2
+      def derivative(x: Double): Double = f * exp(x) / pow(exp(x) + 1, 2)
+    }
   }
 
   object Tanh extends Activator[Double] {

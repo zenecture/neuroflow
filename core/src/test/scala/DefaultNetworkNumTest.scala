@@ -1,4 +1,4 @@
-package neuroflow.nets // this is for accessing DefaultNetwork
+package neuroflow.nets
 
 import breeze.linalg.DenseMatrix
 import neuroflow.core.Activator.{Tanh, Sigmoid, Linear}
@@ -19,7 +19,6 @@ class DefaultNetworkNumTest extends Specification {
     This spec will test the gradients from DefaultNetwork by comparison of the derived values with
     the approximated ones.
 
-    It should:
       - Check the linear gradients                                $linGrad
       - Check the linear gradients multiple output                $linGradMultiple
       - Check the nonlinear gradients                             $nonlinearGrad
