@@ -12,7 +12,7 @@ import shapeless._
   */
 class IoTest extends Specification {
 
-  sequential // IO race conditions will appear otherwise
+  sequential // IO race conditions will occur otherwise
 
   def is: SpecStructure = s2"""
 
