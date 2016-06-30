@@ -71,7 +71,7 @@ Also, some rates and rules need to be defined, like precision or maximum iterati
 ```scala
 val fn = Sigmoid
 val gn = Tanh
-val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 200, regularization = None, approximation = None, specifics = None)
+val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 200)
 val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, settings)
 ```
 
@@ -117,6 +117,6 @@ However, to not dictate anything, all important types extend `Serializable`, so 
 # Todo
 
 - Implement LSTM and softmax blocks
-- Investigate usefulness of known regularization techniques
+- Investigate usefulness of more regularization techniques
 - Provide helpers for easy parallelization (Akka? Spark? scala.collection.parallel?)
 - Check whether GPU based matrix/net implementations are worth the hassle. OSX veclib accelerated CPU was faster than CUDA/OpenCL on my MacBookPro with a Geforce GT750 in an optimized SGEMM benchmark test. I have no clue why exactly. The netlib benchmark seems to confirm my observation: [github.com/fommil/netlib-java](https://github.com/fommil/netlib-java)
