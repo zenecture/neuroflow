@@ -9,8 +9,6 @@ import neuroflow.application.processor.Normalizer
   */
 class ProcessorTest extends Specification {
 
-  // IO race conditions will appear otherwise
-
   def is: SpecStructure =
     s2"""
 
