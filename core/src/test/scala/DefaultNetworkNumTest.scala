@@ -1,7 +1,8 @@
+package neuroflow.nets // this is for accessing DefaultNetwork
+
 import breeze.linalg.DenseMatrix
 import neuroflow.core.Activator.{Tanh, Sigmoid, Linear}
 import neuroflow.core._
-import neuroflow.nets.DefaultNetwork
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
