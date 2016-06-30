@@ -21,12 +21,12 @@ object Network {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[T <: Network, H, L <: HList](ls: H :: L, settings: Settings)(implicit
-                                                                 startsWith: (H :: L) StartsWith Input,
+  def apply[T <: Network, L <: HList](ls: L, settings: Settings)(implicit
+                                                                 startsWith: L StartsWith Input,
                                                                  endsWith: L EndsWith Output,
                                                                  weightProvider: WeightProvider,
                                                                  constructor: Constructor[T],
-                                                                 toList: (H :: L) ToList Layer): T = {
+                                                                 toList: L ToList Layer): T = {
     constructor(ls.toList, settings)
   }
 
