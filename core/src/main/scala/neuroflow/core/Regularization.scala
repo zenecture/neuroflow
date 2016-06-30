@@ -20,7 +20,7 @@ trait Regularization extends Serializable
   */
 case class EarlyStopping(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], factor: Double) extends Regularization
 
-trait EarlyStoppingLogic { self: Network =>
+trait EarlyStoppingLogic { self: FeedForwardNetwork =>
 
   var best = Double.PositiveInfinity
   import settings._

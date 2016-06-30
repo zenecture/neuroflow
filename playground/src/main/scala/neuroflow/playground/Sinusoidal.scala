@@ -41,7 +41,7 @@ object Sinusoidal {
     result.foreach(r => println(s"${r._1}, ${r._2}"))
   }
 
-  @tailrec def predict(net: Network, last: Seq[Double], i: Double, results: Seq[(Double, Double)]): Seq[(Double, Double)] = {
+  @tailrec def predict[T <: FeedForwardNetwork](net: T, last: Seq[Double], i: Double, results: Seq[(Double, Double)]): Seq[(Double, Double)] = {
     if (i < 4.0) {
       val score = net.evaluate(last).head
       predict(net, last.drop(1) :+ score, i + 0.05, results :+ (i, score))
