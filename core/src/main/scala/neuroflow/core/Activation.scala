@@ -34,8 +34,8 @@ object Activator {
   }
 
   object CenteredSigmoid {
-    def apply(f: Int) = new Activator[Double] {
-      def apply(x: Double): Double = (f / (1 + exp(-x))) - 2
+    def apply(f: Int, b: Int) = new Activator[Double] {
+      def apply(x: Double): Double = (f / (1 + exp(-x))) - b
       def derivative(x: Double): Double = f * exp(x) / pow(exp(x) + 1, 2)
     }
   }

@@ -100,4 +100,9 @@ trait RecurrentNetwork extends Network {
     */
   def evaluate(xs: Seq[Seq[Double]]): Seq[Seq[Double]]
 
+  /**
+    * Resets internal memory cells.
+    */
+  def reset: Unit
+
 }
