@@ -57,9 +57,8 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       */
     def errorFunc(v: DenseVector[Double]): Double = {
       val err = {
-        in.zip(out).par.map { t =>
-          val (xx, yy) = t
-          0.5 * pow(flow(ws(v, 0), xx, 0, layers.size - 1) - yy, 2)
+        in.zip(out).par.map {
+          case (xx, yy) => 0.5 * pow(flow(ws(v, 0), xx, 0, layers.size - 1) - yy, 2)
         }.reduce(_ + _)
       }
       mean(err)
@@ -74,9 +73,10 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       * Updates W_i using V.
       */
     def update(v: DenseVector[Double]): Unit = {
-      (ws(v, 0) zip weights) foreach { nw =>
-        val (n, o) = nw
-        n.foreachPair { case ((r, c), nv) => o.update(r, c, nv) }
+      (ws(v, 0) zip weights) foreach {
+        case (n, o) => n.foreachPair {
+          case ((r, c), nv) => o.update(r, c, nv)
+        }
       }
     }
 
