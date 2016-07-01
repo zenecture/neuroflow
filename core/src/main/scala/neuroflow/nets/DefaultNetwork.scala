@@ -2,8 +2,8 @@ package neuroflow.nets
 
 import breeze.linalg._
 import breeze.numerics._
-import breeze.stats.mean
-import neuroflow.core.Network.Weights
+import breeze.stats._
+import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
@@ -89,7 +89,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
         case h: HasActivator[Double] =>
           if (cursor <= (weights.size - 1)) in.map(h.activator) * weights(cursor)
           else in.map(h.activator)
-        case i => in * weights(cursor)
+        case _ => in * weights(cursor)
       }
       if (cursor < target) flow(processed, cursor + 1, target) else processed
     }
