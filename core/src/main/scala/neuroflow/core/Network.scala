@@ -3,6 +3,7 @@ package neuroflow.core
 import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
 import neuroflow.core.Network.Weights
+import neuroflow.core.Network.Vector
 import shapeless._
 import shapeless.ops.hlist._
 
@@ -16,6 +17,7 @@ import scala.annotation.implicitNotFound
 object Network {
 
   type Weights = Seq[DenseMatrix[Double]]
+  type Vector = Seq[Double]
 
   /**
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
@@ -74,34 +76,39 @@ trait Network extends Logs with Serializable {
 
 }
 
+
 trait FeedForwardNetwork extends Network {
 
   /**
-    * Trains this net for given in- and outputs `xs` and `ys` respectively.
+    * Takes a sequence of input vectors `xs` and trains this
+    * feed forward network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
   /**
-    * Input `xs` will be evaluated based on current weights.
+    * Takes the input vector `x` to compute their output.
     */
-  def evaluate(xs: Seq[Double]): Seq[Double]
+  def evaluate(x: Vector): Vector
 
 }
+
+
 
 trait RecurrentNetwork extends Network {
 
   /**
-    * Trains this net for given in- and outputs `xs` and `ys` respectively.
+    * Takes a time sequence of input vector sequences `xs` and trains
+    * this recurrent network against the corresponding output time sequence `ys`.
     */
-  def train(xs: Seq[Seq[Seq[Double]]], ys: Seq[Seq[Seq[Double]]]): Unit
+  def train(xs: Seq[Seq[Vector]], ys: Seq[Seq[Vector]]): Unit
 
   /**
-    * Input `xs` will be evaluated based on current weights.
+    * Takes the input vector sequences `xs` to compute their output.
     */
-  def evaluate(xs: Seq[Seq[Double]]): Seq[Seq[Double]]
+  def evaluate(xs: Seq[Vector]): Seq[Vector]
 
   /**
-    * Resets internal memory cells.
+    * Resets the internal state of this recurrent network.
     */
   def reset: Unit
 
