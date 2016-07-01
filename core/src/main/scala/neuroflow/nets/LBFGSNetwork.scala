@@ -9,6 +9,7 @@ import neuroflow.core._
 
 import scala.annotation.tailrec
 
+
 /**
   *
   * This is a fully connected Neural Network that uses LBFGS,
@@ -19,6 +20,8 @@ import scala.annotation.tailrec
   *
   */
 
+
+
 object LBFGSNetwork {
   implicit val constructor: Constructor[LBFGSNetwork] = new Constructor[LBFGSNetwork] {
     def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): LBFGSNetwork = {
@@ -27,11 +30,12 @@ object LBFGSNetwork {
   }
 }
 
+
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork {
 
   /**
-    * Input `xs` and desired output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights.
+    * Takes a sequence of input vectors `xs` and trains this
+    * feed forward network against the corresponding output vectors `ys`.
     */
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit = {
 
@@ -41,7 +45,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
 
     /**
-      * Builds Net(W_i) from V.
+      * Maps from V to W_i
       */
     def ws(v: DenseVector[Double], i: Int): Weights = {
       val (neuronsLeft, neuronsRight) = (layers(i).neurons, layers(i + 1).neurons)
@@ -70,7 +74,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     def flatten: DenseVector[Double] = DenseVector(weights.foldLeft(Array.empty[Double])((l, r) => l ++ r.data))
 
     /**
-      * Updates W_i using V.
+      * Updates W_i using V
       */
     def update(v: DenseVector[Double]): Unit = {
       (ws(v, 0) zip weights) foreach {
@@ -94,7 +98,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   }
 
   /**
-    * Input `xs` will be evaluated based on current weights
+    * Takes the input vector `x` to compute their output.
     */
   def evaluate(xs: Seq[Double]): Seq[Double] = {
     val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)

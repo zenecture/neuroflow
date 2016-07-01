@@ -7,9 +7,12 @@ import breeze.optimize._
 import neuroflow.nets.NFLBFGS.ErrorFunctionMin
 
 /**
+  * Breeze related custom classes.
+  *
   * @author bogdanski
   * @since 01.07.16
   */
+
 
 private[nets] class NFLBFGS(cc: ConvergenceCheck[DenseVector[Double]], m: Int, maxZoomIter: Int, maxLineSearchIter: Int)
                            (implicit space: MutableInnerProductModule[DenseVector[Double], Double]) extends LBFGS[DenseVector[Double]](cc, m)(space) {
@@ -25,6 +28,7 @@ private[nets] class NFLBFGS(cc: ConvergenceCheck[DenseVector[Double]], m: Int, m
   }
 
 }
+
 
 private[nets] object NFLBFGS {
 

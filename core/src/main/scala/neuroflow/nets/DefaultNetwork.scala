@@ -32,8 +32,8 @@ object DefaultNetwork {
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork with EarlyStoppingLogic {
 
   /**
-    * Input `xs` and output `ys` will be the mold for the weights.
-    * Returns this `Network`, with new weights.
+    * Takes a sequence of input vectors `xs` and trains this
+    * feed forward network against the corresponding output vectors `ys`.
     */
   def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit = {
     import settings._
@@ -41,7 +41,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Input `xs` will be evaluated based on current weights
+    * Takes the input vector `x` to compute their output.
     */
   def evaluate(xs: Seq[Double]): Seq[Double] = {
     val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)
