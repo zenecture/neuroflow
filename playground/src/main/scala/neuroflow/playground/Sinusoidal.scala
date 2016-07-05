@@ -29,7 +29,7 @@ object Sinusoidal {
   def apply = {
     val fn = Tanh
     val group = 4
-    val sets = Settings(true, 10.0, 0.0000001, 500, None, None, Some(Map("τ" -> 0.25, "c" -> 0.25)))
+    val sets = Settings(verbose = true, learningRate = 10.0, precision = 1E-6, 500, specifics = Some(Map("τ" -> 0.25, "c" -> 0.25)))
     val net = Network(Input(3) :: Hidden(5, fn) :: Hidden(3, fn) :: Output(1, fn) :: HNil, sets)
     val sinusoidal = Range.Double(0.0, 0.8, 0.05).grouped(group).toList.map(i => i.map(k => (k, Math.sin(10 * k))))
     val xsys = sinusoidal.map(s => (s.dropRight(1).map(_._2), s.takeRight(1).map(_._2)))
@@ -41,7 +41,8 @@ object Sinusoidal {
     result.foreach(r => println(s"${r._1}, ${r._2}"))
   }
 
-  @tailrec def predict[T <: FeedForwardNetwork](net: T, last: Seq[Double], i: Double, results: Seq[(Double, Double)]): Seq[(Double, Double)] = {
+  @tailrec def predict[T <: FeedForwardNetwork](net: T, last: Seq[Double], i: Double,
+                                                results: Seq[(Double, Double)]): Seq[(Double, Double)] = {
     if (i < 4.0) {
       val score = net.evaluate(last).head
       predict(net, last.drop(1) :+ score, i + 0.05, results :+ (i, score))
