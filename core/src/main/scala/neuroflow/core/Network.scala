@@ -72,16 +72,9 @@ trait Network extends Logs with Serializable {
     */
   val weights: Weights
 
-  override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
-
-}
-
-
-trait FeedForwardNetwork extends Network {
-
   /**
     * Takes a sequence of input vectors `xs` and trains this
-    * feed forward network against the corresponding output vectors `ys`.
+    * network against the corresponding output vectors `ys`.
     */
   def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
@@ -90,26 +83,10 @@ trait FeedForwardNetwork extends Network {
     */
   def evaluate(x: Vector): Vector
 
-}
-
-
-
-trait RecurrentNetwork extends Network {
-
-  /**
-    * Takes a time sequence of input vector sequences `xs` and trains
-    * this recurrent network against the corresponding output time sequence `ys`.
-    */
-  def train(xs: Seq[Seq[Vector]], ys: Seq[Seq[Vector]]): Unit
-
-  /**
-    * Takes the input vector sequences `xs` to compute their output.
-    */
-  def evaluate(xs: Seq[Vector]): Seq[Vector]
-
-  /**
-    * Resets the internal state of this recurrent network.
-    */
-  def reset: Unit
+  override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
 }
+
+
+trait FeedForwardNetwork extends Network
+trait RecurrentNetwork extends Network
