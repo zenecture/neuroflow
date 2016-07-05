@@ -111,12 +111,11 @@ File.write(net, file)
 ```
 
 Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net.
-Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, simply use `Json` instead and save it on string-level.
-However, to not dictate anything, all important types extend `Serializable`, so feel free to work with the bytes on your own.
+Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, simply use `Json.write` instead and save it on string-level.
+However, all important types extend `Serializable`, so feel free to work with the bytes on your own.
 
 # Todo
 
 - Implement LSTM and softmax blocks
-- Investigate usefulness of more regularization techniques
 - Provide helpers for easy parallelization (Akka? Spark? scala.collection.parallel?)
 - Check whether GPU based matrix/net implementations are worth the hassle. OSX veclib accelerated CPU was faster than CUDA/OpenCL on my MacBookPro with a Geforce GT750 in an optimized SGEMM benchmark test. I have no clue why exactly. The netlib benchmark seems to confirm my observation: [github.com/fommil/netlib-java](https://github.com/fommil/netlib-java)
