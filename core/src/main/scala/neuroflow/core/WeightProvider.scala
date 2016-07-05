@@ -63,12 +63,10 @@ object WeightProvider extends LowPrioWeightProviders {
   /**
     * Gives a weight provider with random weights in range `i`.
     */
-  def apply(i: (Double, Double)) = new WeightProvider {
+  def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
     def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(i))
   }
 
-  implicit val randomWeights = new WeightProvider {
-    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(-1, 1))
-  }
+  implicit val randomWeights: WeightProvider = apply(-1, 1)
 
 }
