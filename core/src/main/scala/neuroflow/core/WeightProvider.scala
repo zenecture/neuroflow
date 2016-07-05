@@ -33,6 +33,11 @@ trait WeightProvider extends (Seq[Layer] => Weights) {
     } else None
   }
 
+  /**
+    * Gives a seed function to generate weights in range `i`.
+    */
+  def random(i: (Double, Double)) = () => ThreadLocalRandom.current.nextDouble(i._1, i._2)
+
 }
 
 
@@ -54,7 +59,16 @@ trait LowPrioWeightProviders {
 
 
 object WeightProvider extends LowPrioWeightProviders {
-  implicit val randomWeights = new WeightProvider {
-    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => ThreadLocalRandom.current.nextDouble(-1, 1))
+
+  /**
+    * Gives a weight provider with random weights in range `i`.
+    */
+  def apply(i: (Double, Double)) = new WeightProvider {
+    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(i))
   }
+
+  implicit val randomWeights = new WeightProvider {
+    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(-1, 1))
+  }
+
 }
