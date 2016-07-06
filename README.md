@@ -48,11 +48,11 @@ Never forget, each challenge is unique.
 Let's construct the net depicted above. First, we have to pick the desired behavior:
 
 ```scala
-import neuroflow.nets.DefaultNetwork._
-import neuroflow.core._
-import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.randomWeights // Default, if not imported explicitly like here.
 import neuroflow.application.plugin.Style._
+import neuroflow.core.Activator._
+import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 ```
 
@@ -69,10 +69,10 @@ The whole architecture of the net is defined here. We want to use a sigmoid acti
 Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. If we would need a more complex net, we would simply stack layers and functions:
 
 ```scala
-val fn = Sigmoid
-val gn = Tanh
-val settings = Settings(verbose = true, learningRate = 0.001, precision = 0.001, maxIterations = 200)
-val net = Network(Input(50) :: Hidden(20, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, settings)
+val f = Sigmoid
+val g = Tanh
+val settings = Settings(verbose = true, learningRate = 0.01, precision = 0.001, maxIterations = 200)
+val net = Network(Input(50) :: Hidden(20, f) :: Hidden(10, g) :: Output(2, fn) :: HNil, settings)
 ```
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. If a network doesn't follow this rule, it won't compile. 
