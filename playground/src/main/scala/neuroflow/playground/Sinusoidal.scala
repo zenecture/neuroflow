@@ -2,7 +2,7 @@ package neuroflow.playground
 
 import neuroflow.core.Activator.Tanh
 import neuroflow.core._
-import neuroflow.core.WeightProvider.randomWeights
+import neuroflow.core.FFN.WeightProvider._
 import neuroflow.nets.DynamicNetwork.constructor
 import shapeless._
 

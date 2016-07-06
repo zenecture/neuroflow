@@ -2,6 +2,7 @@ package neuroflow.playground
 
 import neuroflow.application.plugin.Style._
 import neuroflow.core.Activator._
+import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.nets.DynamicNetwork._
 import shapeless._

@@ -4,6 +4,7 @@ import neuroflow.application.plugin.Style._
 import neuroflow.application.processor.Util._
 import neuroflow.application.processor.Image._
 import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.nets.LBFGSNetwork._
 import shapeless._

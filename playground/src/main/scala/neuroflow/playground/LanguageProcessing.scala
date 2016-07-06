@@ -50,6 +50,8 @@ object LanguageProcessing {
 
   def apply = {
 
+    import neuroflow.core.FFN.WeightProvider._
+
     val cars = normalize(readAll("file/newsgroup/cars/"))
     val med = normalize(readAll("file/newsgroup/med/"))
 

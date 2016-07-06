@@ -1,6 +1,6 @@
 import neuroflow.core.Activator.Linear
 import neuroflow.core._
-import neuroflow.core.WeightProvider.oneWeights
+import neuroflow.core.FFN.WeightProvider.oneWeights
 import neuroflow.nets.DefaultNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
