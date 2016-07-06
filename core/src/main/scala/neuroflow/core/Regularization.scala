@@ -1,5 +1,7 @@
 package neuroflow.core
 
+import neuroflow.core.Network.Vector
+
 
 /**
   * @author bogdanski
@@ -14,11 +16,12 @@ trait Regularization extends Serializable
 
 
 /**
-  * Use training set `xs` with desired output `ys` to stop the training process
-  * if the error on this training set begins to increase due to over-training.
-  * The distance `factor` triggers the drop out.
+  * Continuously computes the average error for given test input and output vectors `xs`, `ys`.
+  * If the error moves too far away from the best result, measured in terms of a distance `factor`,
+  * the training process will stop early to avoid over-training.
   */
-case class EarlyStopping(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], factor: Double) extends Regularization
+case class EarlyStopping(xs: Seq[Vector], ys: Seq[Vector], factor: Double) extends Regularization
+
 
 trait EarlyStoppingLogic { self: Network =>
 

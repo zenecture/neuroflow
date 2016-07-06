@@ -36,9 +36,14 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
     */
-  override def check(): Unit =
+  override def checkSettings(): Unit = {
     if (settings.specifics.isDefined)
       throw new SettingsNotSupportedException("No specifics settings supported. Remove it from the settings object.")
+    settings.regularization.foreach {
+      case _: EarlyStopping =>
+      case _ => throw new SettingsNotSupportedException("No regularization other than EarlyStopping is supported.")
+    }
+  }
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
