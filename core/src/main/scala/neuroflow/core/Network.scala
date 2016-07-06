@@ -63,7 +63,7 @@ trait IllusionBreaker { self: Network =>
     * Checks if the [[Settings]] are properly defined for this network.
     * Throws a [[SettingsNotSupportedException]] if not.
     */
-  def check(): Unit = ()
+  def checkSettings(): Unit = ()
 
 }
 
@@ -101,12 +101,12 @@ trait Network extends Logs with Serializable {
 }
 
 
-trait FeedForwardNetwork extends Network with IllusionBreaker { check() }
+trait FeedForwardNetwork extends Network with IllusionBreaker { checkSettings() }
 
 
 trait RecurrentNetwork extends Network with IllusionBreaker {
 
-  check()
+  checkSettings()
 
   /**
     * Resets internal state of this network.

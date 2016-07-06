@@ -35,6 +35,17 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   extends FeedForwardNetwork with EarlyStoppingLogic {
 
   /**
+    * Checks if the [[Settings]] are properly defined.
+    * Might throw a [[SettingsNotSupportedException]].
+    */
+  override def checkSettings(): Unit = {
+    settings.regularization.foreach {
+      case _: EarlyStopping =>
+      case _ => throw new SettingsNotSupportedException("No regularization other than EarlyStopping is supported.")
+    }
+  }
+
+  /**
     * Takes a sequence of input vectors `xs` and trains this
     * feed forward network against the corresponding output vectors `ys`.
     */

@@ -21,7 +21,6 @@ import scala.annotation.tailrec
   */
 
 
-
 object LBFGSNetwork {
   implicit val constructor: Constructor[LBFGSNetwork] = new Constructor[LBFGSNetwork] {
     def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): LBFGSNetwork = {
@@ -37,7 +36,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
     */
-  override def check(): Unit =
+  override def checkSettings(): Unit =
     if (settings.regularization.isDefined)
       throw new SettingsNotSupportedException("No regularization other than built-in LBFGS supported.")
 
