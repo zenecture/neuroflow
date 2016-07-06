@@ -38,6 +38,11 @@ trait BaseOps {
   }
 
   /**
+    * Enriches the given `layers` and their `weights` with recurrent connections.
+    */
+  def recurrentEnrichment(layers: Seq[Layer], weights: Weights): Weights = ???
+
+  /**
     * Gives a seed function to generate weights in range `i`.
     */
   def random(i: (Double, Double)) = () => ThreadLocalRandom.current.nextDouble(i._1, i._2)
@@ -87,7 +92,9 @@ object RNN extends BaseOps {
     /**
       * Gives a weight provider with random weights in range `i`.
       */
-    def apply(i: (Double, Double)): WeightProvider = ???
+    def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = recurrentEnrichment(layers, fullyConnected(layers, random(i)))
+    }
 
     implicit val randomWeights: WeightProvider = apply(-1, 1)
 
