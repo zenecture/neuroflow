@@ -75,7 +75,9 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     weights.foreach { l =>
       l.foreachPair { (k, v) =>
         val weightLayer = weights.indexOf(l)
-        val firstOrder = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k) else errorFuncDerivative(xs, ys, weightLayer, k)
+        val firstOrder =
+          if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, weightLayer, k)
+          else errorFuncDerivative(xs, ys, weightLayer, k)
         val direction = mean(-firstOrder)
         l.update(k, v + α(stepSize, direction, xs, ys, weightLayer, k) * direction)
       }
