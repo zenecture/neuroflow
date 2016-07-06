@@ -175,7 +175,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   @tailrec private def α(stepSize: Double, direction: Double, xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
                 weightLayer: Int, weight: (Int, Int)): Double = {
     val v = weights(weightLayer)(weight)
-    val (τ, c) = settings.specifics.map(s => (s("τ"), s("c"))).getOrElse((0.5, 0.5))
+    val (τ, c) = settings.specifics.map(s => (s.getOrElse("τ", 0.5), s.getOrElse("c", 0.5))).getOrElse((0.5, 0.5))
     val t = -c * (-direction * direction)
     val a = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v + (stepSize * direction))

@@ -34,6 +34,14 @@ object LBFGSNetwork {
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork {
 
   /**
+    * Checks if the [[Settings]] are properly defined.
+    * Might throw a [[SettingsNotSupportedException]].
+    */
+  override def check(): Unit =
+    if (settings.regularization.isDefined)
+      throw new SettingsNotSupportedException("No regularization other than built-in LBFGS supported.")
+
+  /**
     * Takes a sequence of input vectors `xs` and trains this
     * feed forward network against the corresponding output vectors `ys`.
     */

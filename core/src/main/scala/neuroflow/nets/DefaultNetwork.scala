@@ -33,6 +33,14 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   extends FeedForwardNetwork with EarlyStoppingLogic {
 
   /**
+    * Checks if the [[Settings]] are properly defined.
+    * Might throw a [[SettingsNotSupportedException]].
+    */
+  override def check(): Unit =
+    if (settings.specifics.isDefined)
+      throw new SettingsNotSupportedException("No specifics settings supported. Remove it from the settings object.")
+
+  /**
     * Takes a sequence of input vectors `xs` and trains this
     * feed forward network against the corresponding output vectors `ys`.
     */
