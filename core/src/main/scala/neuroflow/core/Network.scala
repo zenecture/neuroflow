@@ -104,4 +104,13 @@ trait Network extends Logs with Serializable {
 trait FeedForwardNetwork extends Network with IllusionBreaker { check() }
 
 
-trait RecurrentNetwork extends Network
+trait RecurrentNetwork extends Network with IllusionBreaker {
+
+  check()
+
+  /**
+    * Resets internal state of this network.
+    */
+  def reset(): Unit
+
+}
