@@ -154,14 +154,6 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Approximates the second gradient based on finite central differences.
-    */
-  private def approximateErrorFuncDerivativeSecond(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
-                                                        layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
-    finiteCentralDiff(xs, ys, layer, weight, order = 2)
-  }
-
-  /**
     * Computes the finite central diff for respective `order`.
     */
   private def finiteCentralDiff(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
