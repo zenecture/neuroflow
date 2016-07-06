@@ -31,7 +31,8 @@ object DynamicNetwork {
 }
 
 
-private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork with EarlyStoppingLogic {
+private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights)
+  extends FeedForwardNetwork with EarlyStoppingLogic {
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
