@@ -89,9 +89,7 @@ object RNN extends BaseOps {
       */
     def apply(i: (Double, Double)): WeightProvider = ???
 
-    implicit val randomWeights: WeightProvider = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = ???
-    }
+    implicit val randomWeights: WeightProvider = apply(-1, 1)
 
   }
 
