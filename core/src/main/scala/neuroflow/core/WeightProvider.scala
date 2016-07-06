@@ -13,12 +13,11 @@ import scala.annotation.implicitNotFound
   */
 
 /**
-  * A `WeightProvider` connects the neurons within a `Layer`
-  * through the `Weights` (Synapses)
+  * A [[WeightProvider]] connects the neurons of a [[Layer]] through the weights, or synapses.
   */
 @implicitNotFound(
   "No weight provider in scope. Import your desired provider or try: " +
-  "import neuroflow.core.XXX.WeightProvider._ where XXX = { FFN | RNN }.")
+  "import neuroflow.core.XXX.WeightProvider._ (where XXX = { FFN | RNN }).")
 trait WeightProvider extends (Seq[Layer] => Weights)
 
 
@@ -28,14 +27,14 @@ trait BaseOps {
     * Fully connected means all `layers` are connected such that their weight matrices can
     * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight value.
     */
-  def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights = layers.zipWithIndex.flatMap { li =>
-    val (layer, index) = li
-    if (index < (layers.size - 1)) {
-      val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
-      val product = neuronsLeft * neuronsRight
-      val initialWeights = (1 to product).map(k => seed.apply).toArray
-      Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
-    } else None
+  def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights = layers.zipWithIndex.flatMap {
+    case (layer, index) =>
+      if (index < (layers.size - 1)) {
+        val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
+        val product = neuronsLeft * neuronsRight
+        val initialWeights = (1 to product).map(k => seed.apply).toArray
+        Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
+      } else None
   }
 
   /**
