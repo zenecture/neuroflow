@@ -29,7 +29,8 @@ object DefaultNetwork {
 }
 
 
-private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork with EarlyStoppingLogic {
+private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights)
+  extends FeedForwardNetwork with EarlyStoppingLogic {
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
@@ -73,7 +74,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     weights.foreach { l =>
       l.foreachPair { (k, v) =>
         val layer = weights.indexOf(l)
-        val grad = if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k) else deriveErrorFunc(xs, ys, layer, k)
+        val grad =
+          if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k)
+          else deriveErrorFunc(xs, ys, layer, k)
         l.update(k, v - stepSize * mean(grad))
       }
     }
@@ -123,8 +126,10 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
     */
-  @tailrec private def chain(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double], cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
-    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1) else ds(cursorDs) :* (in * ws(cursor))
+  @tailrec private def chain(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double],
+                             cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
+    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1)
+    else ds(cursorDs) :* (in * ws(cursor))
   }
 
   /**

@@ -17,7 +17,8 @@ import neuroflow.nets.NFLBFGS.ErrorFunctionMin
 private[nets] class NFLBFGS(cc: ConvergenceCheck[DenseVector[Double]], m: Int, maxZoomIter: Int, maxLineSearchIter: Int)
                            (implicit space: MutableInnerProductModule[DenseVector[Double], Double]) extends LBFGS[DenseVector[Double]](cc, m)(space) {
 
-  def this(maxIter: Int = -1, m: Int = 7, tolerance: Double = 1E-5, maxZoomIter: Int, maxLineSearchIter: Int)(implicit space: MutableInnerProductModule[DenseVector[Double], Double]) =
+  def this(maxIter: Int = -1, m: Int = 7, tolerance: Double = 1E-5, maxZoomIter: Int, maxLineSearchIter: Int)
+          (implicit space: MutableInnerProductModule[DenseVector[Double], Double]) =
     this(NFLBFGS.defaultConvergenceCheck(maxIter, tolerance), m, maxZoomIter, maxLineSearchIter)
 
   override protected def determineStepSize(state: State, f: DiffFunction[DenseVector[Double]], dir: DenseVector[Double]): Double = {
