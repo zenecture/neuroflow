@@ -139,8 +139,10 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
     */
-  @tailrec private def chain(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double], cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
-    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1) else ds(cursorDs) :* (in * ws(cursor))
+  @tailrec private def chain(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double],
+                             cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
+    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1)
+    else ds(cursorDs) :* (in * ws(cursor))
   }
 
   /**
