@@ -50,7 +50,7 @@ trait Constructor[+T <: Network] {
   * during training the respective regulator will try to avoid over-fitting. If `approximation` is provided, gradients will be approximated numerically.
   * Some nets require specific parameters which can be mapped with `specifics`.
   */
-case class Settings(verbose: Boolean = true, learningRate: Double = 1.0, precision: Double = 1E-5, maxIterations: Int = 10,
+case class Settings(verbose: Boolean = true, learningRate: Double = 0.1, precision: Double = 1E-5, maxIterations: Int = 10,
                     regularization: Option[Regularization] = None, approximation: Option[Approximation] = None,
                     specifics: Option[Map[String, Double]] = None) extends Serializable
 
