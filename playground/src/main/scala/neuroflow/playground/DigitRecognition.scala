@@ -3,6 +3,7 @@ package neuroflow.playground
 import neuroflow.application.processor.Image._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.nets.DynamicNetwork._
 import shapeless._

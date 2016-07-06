@@ -1,7 +1,8 @@
 package neuroflow.nets
 
 import breeze.linalg.DenseMatrix
-import neuroflow.core.Activator.{Tanh, Sigmoid, Linear}
+import neuroflow.core.Activator._
+import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
@@ -31,8 +32,7 @@ class DefaultNetworkNumTest extends Specification {
   private def toMatrix(xs: Seq[Double]) = DenseMatrix.create[Double](1, xs.size, xs.toArray)
 
   def linGrad = {
-    import neuroflow.core.WeightProvider.randomWeights
-    import neuroflow.nets.DefaultNetwork.constructor
+    import neuroflow.nets.DefaultNetwork._
 
     val fn = Linear
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
@@ -55,8 +55,7 @@ class DefaultNetworkNumTest extends Specification {
   }
 
   def linGradMultiple = {
-    import neuroflow.core.WeightProvider.randomWeights
-    import neuroflow.nets.DefaultNetwork.constructor
+    import neuroflow.nets.DefaultNetwork._
 
     val fn = Linear
     val sets = Settings(true, 0.01, 0.00001, 1000, None, Some(Approximation(0.0001)), None)
@@ -82,8 +81,7 @@ class DefaultNetworkNumTest extends Specification {
   }
 
   def nonlinearGrad = {
-    import neuroflow.core.WeightProvider.randomWeights
-    import neuroflow.nets.DefaultNetwork.constructor
+    import neuroflow.nets.DefaultNetwork._
 
     val fn = Sigmoid
     val gn = Tanh

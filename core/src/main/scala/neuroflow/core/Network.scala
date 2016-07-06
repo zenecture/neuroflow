@@ -89,4 +89,6 @@ trait Network extends Logs with Serializable {
 
 
 trait FeedForwardNetwork extends Network
+
+
 trait RecurrentNetwork extends Network

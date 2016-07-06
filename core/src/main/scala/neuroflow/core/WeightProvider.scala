@@ -16,8 +16,13 @@ import scala.annotation.implicitNotFound
   * A `WeightProvider` connects the neurons within a `Layer`
   * through the `Weights` (Synapses)
   */
-@implicitNotFound("No weight provider in scope. Import your desired provider or try: import neuroflow.core.WeightProvider.randomWeights")
-trait WeightProvider extends (Seq[Layer] => Weights) {
+@implicitNotFound(
+  "No weight provider in scope. Import your desired provider or try: " +
+  "import neuroflow.core.XXX.WeightProvider._ where XXX = { FFN | RNN }.")
+trait WeightProvider extends (Seq[Layer] => Weights)
+
+
+trait BaseOps {
 
   /**
     * Fully connected means all `layers` are connected such that their weight matrices can
@@ -41,32 +46,54 @@ trait WeightProvider extends (Seq[Layer] => Weights) {
 }
 
 
-trait LowPrioWeightProviders {
+object FFN extends BaseOps {
 
-  implicit val zeroWeights = new WeightProvider {
-    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 0.0)
+  trait LowPrioWeightProviders {
+
+    implicit val zeroWeights = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 0.0)
+    }
+
+    implicit val oneWeights = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 1.0)
+    }
+
+    implicit val minusOneWeights = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => -1.0)
+    }
+
   }
 
-  implicit val oneWeights = new WeightProvider {
-    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 1.0)
-  }
 
-  implicit val minusOneWeights = new WeightProvider {
-    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => -1.0)
+  object WeightProvider extends LowPrioWeightProviders {
+
+    /**
+      * Gives a weight provider with random weights in range `i`.
+      */
+    def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(i))
+    }
+
+    implicit val randomWeights: WeightProvider = apply(-1, 1)
+
   }
 
 }
 
 
-object WeightProvider extends LowPrioWeightProviders {
+object RNN extends BaseOps {
 
-  /**
-    * Gives a weight provider with random weights in range `i`.
-    */
-  def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
-    def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(i))
+  object WeightProvider {
+
+    /**
+      * Gives a weight provider with random weights in range `i`.
+      */
+    def apply(i: (Double, Double)): WeightProvider = ???
+
+    implicit val randomWeights: WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = ???
+    }
+
   }
-
-  implicit val randomWeights: WeightProvider = apply(-1, 1)
 
 }
