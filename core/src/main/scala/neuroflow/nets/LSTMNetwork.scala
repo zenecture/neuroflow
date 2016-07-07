@@ -33,7 +33,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
 
   val hiddenLayers = layers.drop(1).dropRight(1)
   val storageDelta = weights.size - hiddenLayers.size
-  val cells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
+  val memCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
@@ -52,7 +52,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Resets internal state of this network.
     */
-  private def reset(): Unit = cells.foreach(cell => cell.foreachPair { case ((r, c), v) => cell.update(r, c, 0.0) })
+  private def reset(): Unit = memCells.foreach(cell => cell.foreachPair { case ((r, c), v) => cell.update(r, c, 0.0) })
 
   /**
     * Unfolds this network through time and space.
@@ -77,25 +77,30 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
           val c = cursor - 1
           val los = lastOuts(c)
           val wl = weights(target + c)
-          val (wsNetIn, wsGateIn, wsGateOut) = {
-            val f = h.neurons * h.neurons
-            val a = DenseMatrix.create[Double](h.neurons, h.neurons, wl.data.slice(0, f))
-            val b = DenseMatrix.create[Double](h.neurons, h.neurons, wl.data.slice(f, 2 * f))
-            val c = DenseMatrix.create[Double](h.neurons, h.neurons, wl.data.slice(2 * f, 3 * f))
-            (a, b, c)
-          }
+          val (wsNetIn, wsGateIn, wsGateOut) = reconstructWeights(wl, h)
           val netIn = (in + (los * wsNetIn)).map(h.activator)
           val gateIn = (in + (los * wsGateIn)).map(Sigmoid)
           val gateOut = (in + (los * wsGateOut)).map(Sigmoid)
-          val state = (netIn :* gateIn) + cells(c)
+          val state = (netIn :* gateIn) + memCells(c)
           val netOut = state.map(h.activator) :* gateOut
-          cells(c).foreachPair { case ((row, col), i) => cells(c).update(row, col, i) }
+          state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
           (netOut * weights(cursor), Seq(netOut))
         case h: HasActivator[Double] => (in.map(h.activator), Nil)
         case _ => (in * weights(cursor), Nil)
       }
       if (cursor < target) flow(processed, lastOuts, newOuts ++ no, cursor + 1) else (processed, newOuts)
     }
+  }
+
+  /**
+    * Reconstructs the recurrent weights from a compressed matrix `m`.
+    */
+  private def reconstructWeights(m: Matrix, l: Layer): (Matrix, Matrix, Matrix) = {
+    val f = l.neurons * l.neurons
+    val netIn = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(0, f))
+    val gateIn = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(f, 2 * f))
+    val gateOut = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(2 * f, 3 * f))
+    (netIn, gateIn, gateOut)
   }
 
   /**
