@@ -23,5 +23,6 @@ object App extends App {
   Hello.apply
   LanguageProcessing.apply
   LanguageProcessing.test
+  Sequences.apply
 
 }

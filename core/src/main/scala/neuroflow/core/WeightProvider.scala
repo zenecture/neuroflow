@@ -32,7 +32,7 @@ trait BaseOps {
       if (index < (layers.size - 1)) {
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
         val product = neuronsLeft * neuronsRight
-        val initialWeights = (1 to product).map(k => seed.apply).toArray
+        val initialWeights = (1 to product).map(_ => seed.apply).toArray
         Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
       } else None
   }
@@ -40,7 +40,15 @@ trait BaseOps {
   /**
     * Enriches the given `layers` and their `weights` with recurrent connections.
     */
-  def recurrentEnrichment(layers: Seq[Layer], weights: Weights): Weights = ???
+  def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: () => Double): Weights = weights.zipWithIndex.flatMap {
+    case (_, index) =>
+      if (index < (weights.size - 1)) {
+        val neurons = layers(index + 1).neurons
+        val product = 3 * neurons * neurons
+        val initialWeights = (1 to product).map(_ => seed.apply).toArray
+        Some(DenseMatrix.create[Double](1, product, initialWeights))
+      } else None
+  }
 
   /**
     * Gives a seed function to generate weights in range `i`.
@@ -93,7 +101,10 @@ object RNN extends BaseOps {
       * Gives a weight provider with random weights in range `i`.
       */
     def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = recurrentEnrichment(layers, fullyConnected(layers, random(i)))
+      def apply(layers: Seq[Layer]): Weights = {
+        val fc = fullyConnected(layers, random(i))
+        fc ++ recurrentEnrichment(layers, fc, random(i))
+      }
     }
 
     implicit val randomWeights: WeightProvider = apply(-1, 1)

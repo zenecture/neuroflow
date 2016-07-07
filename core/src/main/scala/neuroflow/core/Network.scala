@@ -62,7 +62,7 @@ trait IllusionBreaker { self: Network =>
 
   /**
     * Checks if the [[Settings]] are properly defined for this network.
-    * Throws a [[SettingsNotSupportedException]] if not.
+    * Throws a [[SettingsNotSupportedException]] if not. Default behavior is no op.
     */
   def checkSettings(): Unit = ()
 
@@ -92,17 +92,21 @@ trait Network extends Logs with Serializable {
     */
   def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
-  /**
-    * Takes the input vector `x` to compute their output.
-    */
-  def evaluate(x: Vector): Vector
-
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
 }
 
 
-trait FeedForwardNetwork extends Network with IllusionBreaker { checkSettings() }
+trait FeedForwardNetwork extends Network with IllusionBreaker {
+
+  checkSettings()
+
+  /**
+    * Takes the input vector `x` to compute its output.
+    */
+  def evaluate(x: Vector): Vector
+
+}
 
 
 trait RecurrentNetwork extends Network with IllusionBreaker {
@@ -110,8 +114,8 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
   checkSettings()
 
   /**
-    * Resets internal state of this network.
+    * Takes the input sequence `xs` to compute its output.
     */
-  def reset(): Unit
+  def evaluate(xs: Seq[Vector]): Vector
 
 }
