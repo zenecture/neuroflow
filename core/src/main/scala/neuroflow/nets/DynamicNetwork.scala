@@ -3,7 +3,7 @@ package neuroflow.nets
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import neuroflow.core.Network._
+import neuroflow.core.Network.{Vector, _}
 import neuroflow.core._
 
 import scala.annotation.tailrec
@@ -47,25 +47,25 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
-    * feed forward network against the corresponding output vectors `ys`.
+    * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit = {
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
     import settings._
     run(xs, ys, learningRate, precision, 0, maxIterations)
   }
 
   /**
-    * Takes the input vector `x` to compute their output.
+    * Takes the input vector `x` to compute its output.
     */
-  def evaluate(xs: Seq[Double]): Seq[Double] = {
-    val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)
+  def evaluate(x: Vector): Vector = {
+    val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     flow(input, 0, layers.size - 1).toArray.toVector
   }
 
   /**
     * Trains this `Network` with optimal weights based on `xs` and `ys`
     */
-  @tailrec private def run(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]], stepSize: Double, precision: Double,
+  @tailrec private def run(xs: Seq[Vector], ys: Seq[Vector], stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))

@@ -4,7 +4,7 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.optimize._
 import breeze.stats._
-import neuroflow.core.Network._
+import neuroflow.core.Network.{Vector, _}
 import neuroflow.core._
 
 import scala.annotation.tailrec
@@ -42,9 +42,9 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
-    * feed forward network against the corresponding output vectors `ys`.
+    * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Seq[Double]], ys: Seq[Seq[Double]]): Unit = {
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
 
     import settings._
 
@@ -105,10 +105,10 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   }
 
   /**
-    * Takes the input vector `x` to compute their output.
+    * Takes the input vector `x` to compute its output.
     */
-  def evaluate(xs: Seq[Double]): Seq[Double] = {
-    val input = DenseMatrix.create[Double](1, xs.size, xs.toArray)
+  def evaluate(x: Vector): Vector = {
+    val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     flow(weights, input, 0, layers.size - 1).toArray.toVector
   }
 
