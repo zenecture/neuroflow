@@ -23,7 +23,7 @@ trait Regularization extends Serializable
 case class EarlyStopping(xs: Seq[Vector], ys: Seq[Vector], factor: Double) extends Regularization
 
 
-// TODO: Make this trait generic for all nets and use type classes for concrete impls.
+// TODO: Make this trait generic for all nets and use type classes for concrete error diff impls.
 trait EarlyStoppingLogic { self: FeedForwardNetwork =>
 
   var best = Double.PositiveInfinity
