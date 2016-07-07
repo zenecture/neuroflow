@@ -93,7 +93,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Reconstructs the recurrent weights from a compressed matrix `m`.
+    * Reconstructs the recurrent weights of layer `l` from a compressed matrix `m`.
     */
   private def reconstructWeights(m: Matrix, l: Layer): (Matrix, Matrix, Matrix) = {
     val f = l.neurons * l.neurons
