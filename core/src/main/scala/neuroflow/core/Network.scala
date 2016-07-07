@@ -1,7 +1,7 @@
 package neuroflow.core
 
 import breeze.linalg.DenseMatrix
-import neuroflow.common.Logs
+import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
 import neuroflow.core.Network.Vector
 import shapeless._
@@ -102,7 +102,7 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
   checkSettings()
 
   /**
-    * Takes the input vector `x` to compute its output.
+    * Takes the input vector `x` to compute the output vector.
     */
   def evaluate(x: Vector): Vector
 
@@ -113,9 +113,16 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
 
   checkSettings()
 
+
   /**
-    * Takes the input sequence `xs` to compute its output.
+    * Takes the input vector sequence `xs` to compute the mean output vector.
     */
-  def evaluate(xs: Seq[Vector]): Vector
+  def evaluateMean(xs: Seq[Vector]): Vector =
+    ~> (evaluate(xs)) map(res => res.reduce { (r, v) => r.zip(v).map { case (a, b) => a + b } } map { _ / res.size })
+
+  /**
+    * Takes the input vector sequence `xs` to compute the output vector sequence.
+    */
+  def evaluate(xs: Seq[Vector]): Seq[Vector]
 
 }
