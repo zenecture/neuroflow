@@ -69,7 +69,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Trains this `Network` with optimal weights based on `xs` and `ys`
+    * Trains this `Network` with optimal weights based on `xs` and `ys`.
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
@@ -84,7 +84,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)²
+    * Evaluates the error function Σ1/2(prediction(x) - observation)².
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     xs.zip(ys).par.map { t =>
@@ -111,7 +111,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Computes the network recursively from `cursor` until `target` (both representing the 'layer indices')
+    * Computes the network recursively from `cursor` until `target`.
     */
   @tailrec private def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
@@ -127,7 +127,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Computes the error function derivative with respect to `weight` in `weightLayer`
+    * Computes the error function derivative with respect to `weight` in `weightLayer`.
     */
   private def errorFuncDerivative(xs: Matrices, ys: Matrices,
                               weightLayer: Int, weight: (Int, Int)): Matrix = {
