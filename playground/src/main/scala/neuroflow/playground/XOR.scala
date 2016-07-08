@@ -4,7 +4,7 @@ import neuroflow.application.plugin.Style._
 import neuroflow.core.Activator._
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.DynamicNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 /**
@@ -26,8 +26,7 @@ object XOR {
     val fn = Sigmoid
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-    val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.00001,
-      maxIterations = 20000, regularization = None, approximation = None, specifics = None)
+    val settings = Settings(verbose = true, learningRate = 0.1, precision = 1E-5, maxIterations = 20000)
     val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 
