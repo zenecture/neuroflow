@@ -104,7 +104,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     // TODO: Finite central diffs are used here for the gradient. Check whether the exact (compare e.g. DefaultNetwork) derivative
     // would be feasible in terms of performance, since the mapping between neuroflow and breeze is already a costly thing.
     val gradientFunction = new ApproximateGradientFunction[Int, DVector](errorFunc, approx)
-    val lbfgs = new NFLBFGS(maxIter = maxIterations, m = mem, maxZoomIter = mzi, maxLineSearchIter = mlsi, tolerance = settings.precision)
+    val lbfgs = new NFLBFGS(maxIter = iterations, m = mem, maxZoomIter = mzi, maxLineSearchIter = mlsi, tolerance = settings.precision)
     val optimum = lbfgs.minimize(gradientFunction, flatten)
 
     update(optimum)
