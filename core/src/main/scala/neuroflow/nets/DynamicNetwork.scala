@@ -7,6 +7,7 @@ import neuroflow.core.Network.{Vector, _}
 import neuroflow.core._
 
 import scala.annotation.tailrec
+import scala.collection.Seq
 
 /**
   *
@@ -34,6 +35,9 @@ object DynamicNetwork {
 private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights)
   extends FeedForwardNetwork with EarlyStoppingLogic {
 
+  type Matrix = DenseMatrix[Double]
+  type Matrices = Seq[Matrix]
+
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -51,7 +55,9 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
     import settings._
-    run(xs, ys, learningRate, precision, 0, maxIterations)
+    val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
+    val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
+    run(in, out, learningRate, precision, 0, maxIterations)
   }
 
   /**
@@ -65,14 +71,12 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Trains this `Network` with optimal weights based on `xs` and `ys`
     */
-  @tailrec private def run(xs: Seq[Vector], ys: Seq[Vector], stepSize: Double, precision: Double,
+  @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val input = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
-    val output = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
-    val error = errorFunc(input, output)
+    val error = errorFunc(xs, ys)
     if ((mean(error) > precision) && iteration < maxIterations && !shouldStopEarly) {
-      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / input.size}")
-      adaptWeights(input, output, stepSize)
+      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / xs.size}")
+      adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
@@ -83,7 +87,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     * Computes gradient via `errorFuncDerivative` for all weights,
     * and adapts their value using gradient descent.
     */
-  private def adaptWeights(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]], stepSize: Double): Unit = {
+  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = {
     weights.foreach { l =>
       l.foreachPair { (k, v) =>
         val weightLayer = weights.indexOf(l)
@@ -99,7 +103,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Computes the network recursively from `cursor` until `target` (both representing the 'layer indices')
     */
-  @tailrec private def flow(in: DenseMatrix[Double], cursor: Int, target: Int): DenseMatrix[Double] = {
+  @tailrec private def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
     else {
       val processed = layers(cursor) match {
@@ -115,7 +119,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Evaluates the error function Σ1/2(prediction(x) - observation)²
     */
-  private def errorFunc(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]]): DenseMatrix[Double] = {
+  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     xs.zip(ys).par.map { t =>
       val (x, y) = t
       0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
@@ -125,8 +129,8 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Computes the error function derivative with respect to `weight` in `weightLayer`
     */
-  private def errorFuncDerivative(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
-                              weightLayer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
+  private def errorFuncDerivative(xs: Matrices, ys: Matrices,
+                              weightLayer: Int, weight: (Int, Int)): Matrix = {
     xs.zip(ys).map { t =>
       val (x, y) = t
       val ws = weights.map(_.copy)
@@ -150,8 +154,8 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
     */
-  @tailrec private def chain(ds: Seq[DenseMatrix[Double]], ws: Seq[DenseMatrix[Double]], in: DenseMatrix[Double],
-                             cursor: Int, cursorDs: Int): DenseMatrix[Double] = {
+  @tailrec private def chain(ds: Matrices, ws: Matrices, in: Matrix,
+                             cursor: Int, cursorDs: Int): Matrix = {
     if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1)
     else ds(cursorDs) :* (in * ws(cursor))
   }
@@ -159,16 +163,16 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Approximates the gradient based on finite central differences.
     */
-  private def approximateErrorFuncDerivative(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
-                                         layer: Int, weight: (Int, Int)): DenseMatrix[Double] = {
+  private def approximateErrorFuncDerivative(xs: Matrices, ys: Matrices,
+                                         layer: Int, weight: (Int, Int)): Matrix = {
     finiteCentralDiff(xs, ys, layer, weight, order = 1)
   }
 
   /**
     * Computes the finite central diff for respective `order`.
     */
-  private def finiteCentralDiff(xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
-                                layer: Int, weight: (Int, Int), order: Int): DenseMatrix[Double] = {
+  private def finiteCentralDiff(xs: Matrices, ys: Matrices,
+                                layer: Int, weight: (Int, Int), order: Int): Matrix = {
     val Δ = settings.approximation.getOrElse(Approximation(0.000001)).Δ
     val f = () => if (order == 1) errorFunc(xs, ys) else approximateErrorFuncDerivative(xs, ys, layer, weight)
     val v = weights(layer)(weight)
@@ -183,7 +187,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Tries to find the optimal step size α through backtracking line search.
     */
-  @tailrec private def α(stepSize: Double, direction: Double, xs: Seq[DenseMatrix[Double]], ys: Seq[DenseMatrix[Double]],
+  @tailrec private def α(stepSize: Double, direction: Double, xs: Matrices, ys: Matrices,
                 weightLayer: Int, weight: (Int, Int)): Double = {
     val v = weights(weightLayer)(weight)
     val (τ, c) = settings.specifics.map(s => (s.getOrElse("τ", 0.5), s.getOrElse("c", 0.5))).getOrElse((0.5, 0.5))
