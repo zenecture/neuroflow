@@ -52,7 +52,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
 
     /**
-      * Maps from V to W_i
+      * Maps from V to W_i.
       */
     def ws(v: DenseVector[Double], i: Int): Weights = {
       val (neuronsLeft, neuronsRight) = (layers(i).neurons, layers(i + 1).neurons)
@@ -64,7 +64,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     }
 
     /**
-      * Evaluates the error function Σ1/2(prediction(x) - observation)²
+      * Evaluates the error function Σ1/2(prediction(x) - observation)².
       */
     def errorFunc(v: DenseVector[Double]): Double = {
       val err = {
@@ -76,12 +76,12 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     }
 
     /**
-      * Maps from W_i to V
+      * Maps from W_i to V.
       */
     def flatten: DenseVector[Double] = DenseVector(weights.foldLeft(Array.empty[Double])((l, r) => l ++ r.data))
 
     /**
-      * Updates W_i using V
+      * Updates W_i using V.
       */
     def update(v: DenseVector[Double]): Unit = {
       (ws(v, 0) zip weights) foreach {
@@ -115,7 +115,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   }
 
   /**
-    * Computes the network recursively from `cursor` until `target` (both representing the 'layer indices')
+    * Computes the network recursively from `cursor` until `target`.
     */
   @tailrec private def flow(weights: Weights, in: DenseMatrix[Double], cursor: Int, target: Int): DenseMatrix[Double] = {
     if (target < 0) in
