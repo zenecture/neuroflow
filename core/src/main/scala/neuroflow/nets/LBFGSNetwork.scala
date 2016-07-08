@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 
 /**
   *
-  * This is a fully connected Neural Network that uses LBFGS,
+  * This is a fully connected Neural Network that uses Breeze's LBFGS,
   * a quasi-Newton method to find optimal weights.
   *
   * @author bogdanski
@@ -96,6 +96,8 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     val mlsi = settings.specifics.flatMap(_.get("maxLineSearchIterations").map(_.toInt)).getOrElse(10)
     val approx = approximation.getOrElse(Approximation(1E-5)).Δ
 
+    // TODO: Finite central diffs are used here for the gradient. Check whether the exact (compare e.g. DefaultNetwork) derivative
+    // would be feasible in terms of performance, since the mapping between neuroflow and breeze is already costly.
     val gradientFunction = new ApproximateGradientFunction[Int, DenseVector[Double]](errorFunc, approx)
     val lbfgs = new NFLBFGS(maxIter = maxIterations, m = mem, maxZoomIter = mzi, maxLineSearchIter = mlsi, tolerance = settings.precision)
     val optimum = lbfgs.minimize(gradientFunction, flatten)
