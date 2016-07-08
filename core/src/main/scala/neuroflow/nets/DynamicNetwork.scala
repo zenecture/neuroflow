@@ -84,6 +84,16 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
+    * Evaluates the error function Σ1/2(prediction(x) - observation)²
+    */
+  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
+    xs.zip(ys).par.map { t =>
+      val (x, y) = t
+      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
+    }.reduce(_ + _)
+  }
+
+  /**
     * Computes gradient via `errorFuncDerivative` for all weights,
     * and adapts their value using gradient descent.
     */
@@ -114,16 +124,6 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
       }
       if (cursor < target) flow(processed, cursor + 1, target) else processed
     }
-  }
-
-  /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)²
-    */
-  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
-    xs.zip(ys).par.map { t =>
-      val (x, y) = t
-      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
-    }.reduce(_ + _)
   }
 
   /**
