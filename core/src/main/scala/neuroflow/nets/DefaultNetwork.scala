@@ -84,6 +84,16 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
+    * Evaluates the error function Σ1/2(prediction(x) - observation)².
+    */
+  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
+    xs.zip(ys).par.map { t =>
+      val (x, y) = t
+      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
+    }.reduce(_ + _)
+  }
+
+  /**
     * Computes gradient via `deriveErrorFunc` for all weights,
     * and adapts their value using gradient descent.
     */
@@ -161,16 +171,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     weights(weightLayer).update(weight, v + Δ)
     val b = errorFunc(xs, ys)
     (b - a) / (2 * Δ)
-  }
-
-  /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)².
-    */
-  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
-    xs.zip(ys).par.map { t =>
-      val (x, y) = t
-      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
-    }.reduce(_ + _)
   }
 
 }
