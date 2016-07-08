@@ -1,6 +1,7 @@
 package neuroflow.nets
 
 import breeze.linalg._
+import breeze.stats._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Network.{Vector, _}
@@ -47,7 +48,47 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = ???
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
+    import settings._
+    val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
+    val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
+    run(in, out, learningRate, precision, 0, maxIterations)
+  }
+
+  @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
+                           iteration: Int, maxIterations: Int): Unit = {
+    val error = errorFunc(xs, ys)
+    if (mean(error) > precision && iteration < maxIterations) {
+      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / xs.size}")
+      adaptWeights(xs, ys, stepSize)
+      run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
+    } else {
+      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
+    }
+  }
+
+  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = ???
+
+  /**
+    * Adapts the weight using standard back prop.
+    */
+  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = {
+    weights.foreach { l =>
+      l.foreachPair { (k, v) =>
+        val layer = weights.indexOf(l)
+        val grad =
+          if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k)
+          else ???
+        l.update(k, v - stepSize * mean(grad))
+      }
+    }
+  }
+
+  /**
+    * Approximates the gradient based on finite central differences.
+    */
+  private def approximateErrorFuncDerivative(xs: Matrices, ys: Matrices,
+                                             layer: Int, weight: (Int, Int)): Matrix = ???
 
   /**
     * Resets internal state of this network.
