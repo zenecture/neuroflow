@@ -63,7 +63,7 @@ object LanguageProcessing {
     println("No. of samples: " + allTrain.size)
 
     val net = Network(Input(20) :: Hidden(40, Tanh) :: Hidden(40, Tanh) :: Output(2, Tanh) :: HNil,
-      Settings(maxIterations = 500, specifics = Some(Map("m" -> 7))))
+      Settings(iterations = 500, specifics = Some(Map("m" -> 7))))
 
     net.train(allTrain.map(_._1), allTrain.map(_._2))
 

@@ -57,7 +57,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     import settings._
     val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
-    run(in, out, learningRate, precision, 0, maxIterations)
+    run(in, out, learningRate, precision, 0, iterations)
   }
 
   /**
@@ -187,10 +187,12 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Tries to find the optimal step size α through backtracking line search.
     */
+
+  val (τ, c) = settings.specifics.map(s => (s.getOrElse("τ", 0.5), s.getOrElse("c", 0.5))).getOrElse((0.5, 0.5))
+
   @tailrec private def α(stepSize: Double, direction: Double, xs: Matrices, ys: Matrices,
                 weightLayer: Int, weight: (Int, Int)): Double = {
     val v = weights(weightLayer)(weight)
-    val (τ, c) = settings.specifics.map(s => (s.getOrElse("τ", 0.5), s.getOrElse("c", 0.5))).getOrElse((0.5, 0.5))
     val t = -c * (-direction * direction)
     val a = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v + (stepSize * direction))

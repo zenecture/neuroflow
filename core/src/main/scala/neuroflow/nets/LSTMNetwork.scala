@@ -1,6 +1,7 @@
 package neuroflow.nets
 
 import breeze.linalg._
+import breeze.numerics._
 import breeze.stats._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
@@ -37,6 +38,15 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   val memCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
 
   /**
+    * Checks if the [[Settings]] are properly defined.
+    * Might throw a [[SettingsNotSupportedException]].
+    */
+  override def checkSettings(): Unit = {
+    if (settings.specifics.isDefined)
+      throw new SettingsNotSupportedException("No specifics settings supported. Remove it from the settings object.")
+  }
+
+  /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
   def evaluate(xs: Seq[Vector]): Seq[Vector] = {
@@ -50,16 +60,16 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     */
   def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
     import settings._
-    val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
-    val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
-    run(in, out, learningRate, precision, 0, maxIterations)
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
+    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toList
+    run(in, out, learningRate, precision, 0, iterations)
   }
 
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val error = errorFunc(xs, ys)
     if (mean(error) > precision && iteration < maxIterations) {
-      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / xs.size}")
+      if (settings.verbose) info(s"Taking step $iteration - Error: $error")
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
@@ -67,10 +77,18 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     }
   }
 
-  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = ???
+  /**
+    * Evaluates the error function Σ1/2(prediction(x) - observation)² over time.
+    */
+  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
+    val res: Matrices = ~> (reset) next unfoldingFlow(xs, initialOut(xs), Nil, Nil)
+    res.zip(ys).par.map {
+      case (y, t) => 0.5 * pow(y - t, 2)
+    }.reduce(_ + _)
+  }
 
   /**
-    * Adapts the weight using standard back prop.
+    * Adapts the weight using standard backprop through time.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = {
     weights.foreach { l =>
@@ -78,7 +96,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
         val layer = weights.indexOf(l)
         val grad =
           if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k)
-          else ???
+          else ??? // this is TODO
         l.update(k, v - stepSize * mean(grad))
       }
     }
@@ -87,8 +105,16 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Approximates the gradient based on finite central differences.
     */
-  private def approximateErrorFuncDerivative(xs: Matrices, ys: Matrices,
-                                             layer: Int, weight: (Int, Int)): Matrix = ???
+  private def approximateErrorFuncDerivative(xs: Matrices, ys: Matrices, layer: Int, weight: (Int, Int)): Matrix = {
+    val Δ = settings.approximation.getOrElse(Approximation(0.000001)).Δ
+    val v = weights(layer)(weight)
+    weights(layer).update(weight, v - Δ)
+    val a = errorFunc(xs, ys)
+    weights(layer).update(weight, v + Δ)
+    val b = errorFunc(xs, ys)
+    weights(layer).update(weight, v)
+    (b - a) / (2 * Δ)
+  }
 
   /**
     * Resets internal state of this network.

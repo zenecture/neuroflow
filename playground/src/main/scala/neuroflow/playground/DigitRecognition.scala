@@ -32,7 +32,7 @@ object DigitRecognition {
     val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/"))
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid
-      val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.001, maxIterations = 50,
+      val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.001, iterations = 50,
         regularization = None, approximation = Some(Approximation(0.00001)), specifics = Some(Map("τ" -> 0.25, "c" -> 0.01)))
       val xs = sets dropRight 1 flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
       val ys = sets dropRight 1 flatMap { m => (0 to 9) map { digit => Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).updated(digit, 1.0) } }

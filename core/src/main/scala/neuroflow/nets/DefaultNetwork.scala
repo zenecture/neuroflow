@@ -57,7 +57,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     import settings._
     val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
     val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
-    run(in, out, learningRate, precision, 0, maxIterations)
+    run(in, out, learningRate, precision, 0, iterations)
   }
 
   /**

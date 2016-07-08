@@ -46,12 +46,12 @@ trait Constructor[+T <: Network] {
 
 /**
   * The `verbose` flag indicates logging behavior. The `learningRate` determines the amplification of the gradients.
-  * The network will terminate either if `precision` is high enough or `maxIterations` is reached. If `regularization`
+  * The network will terminate either if `precision` is high enough or `iterations` is reached. If `regularization`
   * is provided, during training the respective regulator will try to avoid over-fitting. If `approximation` is provided,
-  * gradients will be approximated numerically, which can be a lot faster. Some nets require specific parameters specified
-  * by the `specifics` mapping.
+  * gradients will be approximated numerically, which can be fast yet more unprecise. Some nets require specific parameters specified
+  * in the `specifics` mapping.
   */
-case class Settings(verbose: Boolean = true, learningRate: Double = 0.1, precision: Double = 1E-5, maxIterations: Int = 10,
+case class Settings(verbose: Boolean = true, learningRate: Double = 0.1, precision: Double = 1E-5, iterations: Int = 10,
                     regularization: Option[Regularization] = None, approximation: Option[Approximation] = None,
                     specifics: Option[Map[String, Double]] = None) extends Serializable
 

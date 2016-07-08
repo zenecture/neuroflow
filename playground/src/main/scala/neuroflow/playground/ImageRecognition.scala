@@ -35,7 +35,7 @@ object ImageRecognition {
     val training = plus.zip(heart).zip(random).zip(plusRotated)
     val nets = training.par.map {
       case (((p, h), r), pr) =>
-        val settings = Settings(maxIterations = 100)
+        val settings = Settings(iterations = 100)
         val net = Network(Input(p.size) :: Hidden(20, fn) :: Hidden(10, fn) :: Output(3, fn) :: HNil, settings)
         net.train(-->(p, h, r, pr), -->(->(1.0, 0.0, 0.0), ->(0.0, 1.0, 0.0), ->(0.0, 0.0, 1.0), ->(1.0, 0.0, 0.0)))
         net
