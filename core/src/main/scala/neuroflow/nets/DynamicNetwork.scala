@@ -73,13 +73,13 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val error = errorFunc(xs, ys)
-    if ((mean(error) > precision) && iteration < maxIterations && !shouldStopEarly) {
-      if (settings.verbose) info(s"Taking step $iteration - error: $error, error per sample: ${sum(error) / xs.size}")
+    val error = mean(errorFunc(xs, ys))
+    if (error > precision && iteration < maxIterations && !shouldStopEarly) {
+      if (settings.verbose) info(s"Taking step $iteration - Error: $error")
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
+      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error.")
     }
   }
 
