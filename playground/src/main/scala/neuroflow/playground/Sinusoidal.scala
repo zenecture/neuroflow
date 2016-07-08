@@ -1,9 +1,9 @@
 package neuroflow.playground
 
-import neuroflow.core.Activator.Tanh
+import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.core.FFN.WeightProvider._
-import neuroflow.nets.DynamicNetwork.constructor
+import neuroflow.nets.DynamicNetwork._
 import shapeless._
 
 import scala.annotation.tailrec
