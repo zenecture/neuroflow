@@ -7,11 +7,7 @@ package neuroflow.playground
 
 object App extends App {
 
-  /**
-    *
-    * Playground, examples, et cetera ...
-    *
-    */
+
 
   XOR.apply
   SigGap.apply
@@ -23,6 +19,8 @@ object App extends App {
   Hello.apply
   LanguageProcessing.apply
   LanguageProcessing.test
-  Sequences.apply
+  Sequences.sinusoidalFFN
+  Sequences.sinusoidalRNN
+  Sequences.sequenceClassification
 
 }

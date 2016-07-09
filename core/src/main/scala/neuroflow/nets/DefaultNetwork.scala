@@ -3,7 +3,7 @@ package neuroflow.nets
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import neuroflow.core.Network.{Vector, _}
+import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
@@ -33,8 +33,7 @@ object DefaultNetwork {
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights)
   extends FeedForwardNetwork with EarlyStoppingLogic {
 
-  type Matrix = DenseMatrix[Double]
-  type Matrices = Seq[Matrix]
+  import neuroflow.core.Network._
 
   /**
     * Checks if the [[Settings]] are properly defined.

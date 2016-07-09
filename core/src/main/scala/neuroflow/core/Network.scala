@@ -1,23 +1,20 @@
 package neuroflow.core
 
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common._
-import neuroflow.core.Network.Weights
-import neuroflow.core.Network.Vector
+import neuroflow.core.Network._
 import shapeless._
 import shapeless.ops.hlist._
 
 import scala.annotation.implicitNotFound
+import scala.collection._
 
 /**
   * @author bogdanski
   * @since 03.01.16
   */
 
-object Network {
-
-  type Weights = Seq[DenseMatrix[Double]]
-  type Vector = Seq[Double]
+object Network extends TypeAliases {
 
   /**
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
@@ -36,6 +33,20 @@ object Network {
 
 
 /**
+  * For the sake of beauty.
+  */
+trait TypeAliases {
+
+  type Weights = Seq[DenseMatrix[Double]]
+  type Vector = Seq[Double]
+  type DVector = DenseVector[Double]
+  type Matrix = DenseMatrix[Double]
+  type Matrices = Seq[Matrix]
+
+}
+
+
+/**
   * A minimal constructor for a [[Network]].
   */
 @implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
@@ -47,8 +58,8 @@ trait Constructor[+T <: Network] {
 /**
   * The `verbose` flag indicates logging behavior. The `learningRate` determines the amplification of the gradients.
   * The network will terminate either if `precision` is high enough or `iterations` is reached. If `regularization`
-  * is provided, during training the respective regulator will try to avoid over-fitting. If `approximation` is provided,
-  * gradients will be approximated numerically, which can be fast yet more unprecise. Some nets require specific parameters specified
+  * is provided, the respective regulator will try to avoid over-fitting. If `approximation` is provided, gradients
+  * will be approximated numerically, which can be fast yet more unprecise. Some nets require specific parameters
   * in the `specifics` mapping.
   */
 case class Settings(verbose: Boolean = true, learningRate: Double = 0.1, precision: Double = 1E-5, iterations: Int = 10,
@@ -69,7 +80,7 @@ trait IllusionBreaker { self: Network =>
 }
 
 
-trait Network extends Logs with Serializable {
+trait Network extends Logs with Welcoming with Serializable {
 
   /**
     * Settings of this neural network.
@@ -86,12 +97,6 @@ trait Network extends Logs with Serializable {
     */
   val weights: Weights
 
-  /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
-    */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
-
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
 }
@@ -100,6 +105,12 @@ trait Network extends Logs with Serializable {
 trait FeedForwardNetwork extends Network with IllusionBreaker {
 
   checkSettings()
+
+  /**
+    * Takes a sequence of input vectors `xs` and trains this
+    * network against the corresponding output vectors `ys`.
+    */
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
   /**
     * Takes the input vector `x` to compute the output vector.
@@ -114,6 +125,12 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
   checkSettings()
 
   /**
+    * Takes a sequence of input vectors `xs`, which may be partitioned by `ps`,
+    * and trains this network against the corresponding output vectors `ys`.
+    */
+  def train(xs: Seq[Vector], ys: Seq[Vector], ps: Set[Int] = Set.empty): Unit
+
+  /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
   def evaluate(xs: Seq[Vector]): Seq[Vector]
@@ -121,16 +138,9 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
 
   /**
     * Takes the input vector sequence `xs` to compute the mean output vector.
+    * The mean of the output vector is averaged for convenient classification.
     */
   def evaluateMean(xs: Seq[Vector]): Vector =
     ~> (evaluate(xs)) map(res => res.reduce { (r, v) => r.zip(v).map { case (a, b) => a + b } } map { _ / res.size })
-
-  /**
-    * Takes the input vector `x` to compute the output vector.
-    * The internal state is not reset after the computation,
-    * so the net can be traversed through time in a self-feeding loop.
-    *   (Ouroboros)
-    */
-  def evaluateSelf(x: Vector): Vector
 
 }
