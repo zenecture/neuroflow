@@ -4,7 +4,7 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.optimize._
 import breeze.stats._
-import neuroflow.core.Network.{Vector, _}
+import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
@@ -33,9 +33,7 @@ object LBFGSNetwork {
 
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork {
 
-  type Matrix = DenseMatrix[Double]
-  type DVector = DenseVector[Double]
-  type Matrices = Seq[Matrix]
+  import neuroflow.core.Network._
 
   /**
     * Checks if the [[Settings]] are properly defined.

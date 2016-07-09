@@ -5,7 +5,7 @@ import breeze.numerics._
 import breeze.stats._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core.Network.{Vector, _}
+import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.Seq
@@ -30,50 +30,49 @@ object LSTMNetwork {
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends RecurrentNetwork {
 
-  type Matrix = DenseMatrix[Double]
-  type Matrices = Seq[Matrix]
+  import neuroflow.core.Network._
 
-  val hiddenLayers = layers.drop(1).dropRight(1)
-  val storageDelta = weights.size - hiddenLayers.size
-  val memCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
-
-  /**
-    * Checks if the [[Settings]] are properly defined.
-    * Might throw a [[SettingsNotSupportedException]].
-    */
-  override def checkSettings(): Unit = {
-    if (settings.specifics.isDefined)
-      throw new SettingsNotSupportedException("No specifics settings supported. Remove it from the settings object.")
-  }
+  private val hiddenLayers = layers.drop(1).dropRight(1)
+  private val storageDelta = weights.size - hiddenLayers.size
+  private val memCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)) // mutable
+  private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
   def evaluate(xs: Seq[Vector]): Seq[Vector] = {
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
-    ~> (reset) next unfoldingFlow(in, initialOut(in), Nil, Nil) map (_.map(_.toArray.toVector))
+    ~> (reset) next unfoldingFlow(in, initialOut, Nil, Nil) map (_.map(_.toArray.toVector))
   }
 
   /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
+    * Takes a sequence of input vectors `xs`, which may be partitioned by `ps`,
+    * and trains this network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
+  def train(xs: Seq[Vector], ys: Seq[Vector], ps: Set[Int]): Unit = {
     import settings._
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
+    val in = xs.flatMap {
+      case x if ps.contains(xs.indexOf(x) - 1) =>
+        Seq(DenseMatrix.zeros[Double](0, 0), DenseMatrix.create[Double](1, x.size, x.toArray))
+      case x => Seq(DenseMatrix.create[Double](1, x.size, x.toArray))
+    }.toList
     val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toList
     run(in, out, learningRate, precision, 0, iterations)
   }
 
+  /**
+    * The eval loop.
+    */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val error = errorFunc(xs, ys)
-    if (mean(error) > precision && iteration < maxIterations) {
+    val error = mean(errorFunc(xs, ys))
+    if (error > precision && iteration < maxIterations) {
       if (settings.verbose) info(s"Taking step $iteration - Error: $error")
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
+      reset // finally reset one more time
     }
   }
 
@@ -81,14 +80,14 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Evaluates the error function Σ1/2(prediction(x) - observation)² over time.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
-    val res: Matrices = ~> (reset) next unfoldingFlow(xs, initialOut(xs), Nil, Nil)
-    res.zip(ys).par.map {
+    val errs = ~> (reset) next unfoldingFlow(xs, initialOut, Nil, Nil)
+    errs.zip(ys).map {
       case (y, t) => 0.5 * pow(y - t, 2)
     }.reduce(_ + _)
   }
 
   /**
-    * Adapts the weight using standard backprop through time.
+    * Adapts the weight with truncated back prop through time or finite differences.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = {
     weights.foreach { l =>
@@ -106,7 +105,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Approximates the gradient based on finite central differences.
     */
   private def approximateErrorFuncDerivative(xs: Matrices, ys: Matrices, layer: Int, weight: (Int, Int)): Matrix = {
-    val Δ = settings.approximation.getOrElse(Approximation(0.000001)).Δ
+    val Δ = settings.approximation.getOrElse(Approximation(1E-5)).Δ
     val v = weights(layer)(weight)
     weights(layer).update(weight, v - Δ)
     val a = errorFunc(xs, ys)
@@ -125,12 +124,16 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Unfolds this network through time and space.
     */
   @tailrec private def unfoldingFlow(xs: Matrices, lastOuts: Matrices,
-                                     newOuts: Matrices, res: Seq[Matrix]): Seq[Matrix] = xs match {
-    case hd :: tl =>
-      val (ri, no) = flow(hd, lastOuts, Nil)
-      unfoldingFlow(tl, lastOuts, no, res :+ ri)
-    case Nil => res
-  }
+                                     newOuts: Matrices, res: Seq[Matrix]): Seq[Matrix] =
+    xs match {
+      case hd :: tl if hd.size == 0 =>
+        reset()
+        unfoldingFlow(xs = tl, lastOuts = initialOut, newOuts = Nil, res = res)
+      case hd :: tl =>
+        val (ri, newOut) = flow(hd, lastOuts, Nil)
+        unfoldingFlow(xs = tl, lastOuts = newOut, newOuts = Nil, res = res :+ ri)
+      case Nil => res
+    }
 
   /**
     * Computes this network for a single time step.
@@ -142,12 +145,12 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
       val (processed, no) = layers(cursor) match {
         case h: HasActivator[Double] if cursor < storageDelta =>
           val c = cursor - 1
-          val los = lastOuts(c)
+          val yOut = lastOuts(c)
           val wl = weights(target + c)
           val (wsNetIn, wsGateIn, wsGateOut) = reconstructWeights(wl, h)
-          val netIn = (in + (los * wsNetIn)).map(h.activator)
-          val gateIn = (in + (los * wsGateIn)).map(Sigmoid)
-          val gateOut = (in + (los * wsGateOut)).map(Sigmoid)
+          val netIn = (in + (yOut * wsNetIn)).map(h.activator)
+          val gateIn = (in + (yOut * wsGateIn)).map(Sigmoid)
+          val gateOut = (in + (yOut * wsGateOut)).map(Sigmoid)
           val state = (netIn :* gateIn) + memCells(c)
           val netOut = state.map(h.activator) :* gateOut
           state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
@@ -160,7 +163,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Reconstructs the recurrent weights of layer `l` from a compressed matrix `m`.
+    * Reconstructs the recurrent weights of layer `l` from a nested matrix `m`.
     */
   private def reconstructWeights(m: Matrix, l: Layer): (Matrix, Matrix, Matrix) = {
     val f = l.neurons * l.neurons
@@ -169,10 +172,5 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     val gateOut = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(2 * f, 3 * f))
     (netIn, gateIn, gateOut)
   }
-
-  /**
-    * Gives the initial results for recurrent connections.
-    */
-  private def initialOut(in: Matrices): Matrices = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
 
 }
