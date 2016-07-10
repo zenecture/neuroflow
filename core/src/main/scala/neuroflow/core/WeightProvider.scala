@@ -45,11 +45,9 @@ trait BaseOps {
     weights.zipWithIndex.flatMap {
       case (_, index) =>
         if (index < (weights.size - 1)) {
-          val neurons = layers(index + 1).neurons
-          val product = 4 * neurons * neurons
-          val initialWeights = (1 to product).map(_ => seed.apply).toArray
-          Some(DenseMatrix.create[Double](1, product, initialWeights))
-        } else None
+          val ns = layers(index + 1).neurons
+          (1 to 4) map { w => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
+        } else Nil
     }
 
   /**
