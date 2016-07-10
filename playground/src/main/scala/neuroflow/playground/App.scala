@@ -7,8 +7,6 @@ package neuroflow.playground
 
 object App extends App {
 
-
-
   XOR.apply
   SigGap.apply
   Trending.apply
