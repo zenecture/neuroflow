@@ -125,10 +125,10 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
   checkSettings()
 
   /**
-    * Takes a sequence of input vectors `xs`, which may be partitioned by `ps`,
-    * and trains this network against the corresponding output vectors `ys`.
+    * Takes a sequence of input vectors `xs` and trains
+    * this network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector], ps: Set[Int] = Set.empty): Unit
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
