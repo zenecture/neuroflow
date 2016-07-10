@@ -15,24 +15,16 @@ import scala.collection._
 
 /**
   *
-  *
-  *
   * This is a recurrent neural network (RNN). These are good for learning sequences.
   * The standard LSTM model is implemented. It comes with recurrent connections for the
   * layer input and for the in-, out- and forget-gates. The training is done via truncated
   * backprop or finite differences. Multiple layers can be stacked horizontally, where
   * the current layer gets inputs from the previous layer at the same time step
   * and from the same layer at the previous time step.
-  *
-  *
-  *
-  *                     !! work in progress - experimental !!
-  *
-  *
+  *     (this is work in progress, things may change)
   *
   * @author bogdanski
   * @since 07.07.16
-  *
   *
   */
 
