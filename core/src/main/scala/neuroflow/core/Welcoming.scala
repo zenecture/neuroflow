@@ -21,13 +21,19 @@ trait Welcoming { self: Network =>
       |
       |         Version 0.301-SNAPSHOT
       |
-      |         Layout: ${layers.foldLeft("[")((s, l) => s + l.neurons + ", ").dropRight(2) + "]"}
       |         Network: ${this.getClass.getCanonicalName}
+      |         Layout: ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
       |         Number of Weights: ${weights.map(_.size).sum}
       |
       |
       |
     """.stripMargin
+
+  private def buildString(l: Layer) =
+    l match {
+      case h: HasActivator[_] => s"${h.neurons} (${h.activator.name})"
+      case i => l.neurons.toString
+    }
 
   print(welcome)
 
