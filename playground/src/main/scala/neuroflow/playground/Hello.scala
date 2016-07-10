@@ -17,9 +17,7 @@ object Hello {
 
   /*
 
-        Audio recogniton with LBFGS network.
-
-        This is a toy example, since one would do this with LSTMs instead.
+        WAV file classification with LBFGS network.
 
         Hello = (1.0, -1.0)
         Good-Bye = (-1.0, 1.0)
