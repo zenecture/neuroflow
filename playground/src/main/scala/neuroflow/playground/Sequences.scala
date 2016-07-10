@@ -18,7 +18,7 @@ object Sequences {
 
     /*
         The FFN will not be able to learn the function cos(10x) -> sin(10x)
-        without using a time window of higher kinded dimension.
+        without using an input time window of higher kinded dimension.
             ("No need to learn what to store")
      */
 
@@ -40,7 +40,7 @@ object Sequences {
 
   /*
       The LSTM is able to learn the function cos(10x) -> sin(10x)
-      as an expression of time.
+      as a sequence with input dimension = 1 (time step by time step).
    */
 
   def sinusoidalRNN = {
@@ -51,7 +51,7 @@ object Sequences {
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(sin(10 * s))))
     val f = Tanh
-    val net = Network(Input(1) :: Hidden(5, f) :: Hidden(5, f) :: Output(1, f) :: HNil,
+    val net = Network(Input(1) :: Hidden(5, f) :: Output(1, f) :: HNil,
       Settings(iterations = 5000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
