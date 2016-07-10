@@ -14,6 +14,14 @@ import scala.collection._
 
 
 /**
+  * This is a recurrent neural network (RNN). These are good for learning sequences.
+  * The standard LSTM model is implemented. It comes with recurrent connections for the
+  * input, output and forget gates. The training is done via truncated backprop or finite differences.
+  * Multiple layers can be stacked horizontally, where the current layer gets inputs from the previous
+  * layer at the same time step and from the same layer at the previous time step.
+  *
+  *                     !! work in progress - experimental !!
+  *
   * @author bogdanski
   * @since 07.07.16
   */
@@ -121,7 +129,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Unfolds this network through time and space.
     */
   @tailrec private def unfoldingFlow(xs: Matrices, lastOuts: Matrices,
-                                     newOuts: Matrices, res: Seq[Matrix]): Seq[Matrix] =
+                                     newOuts: Matrices, res: Matrices): Matrices =
     xs match {
       case hd :: tl =>
         val (ri, newOut) = flow(hd, lastOuts, Nil)
@@ -141,11 +149,12 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
           val c = cursor - 1
           val yOut = lastOuts(c)
           val wl = weights(target + c)
-          val (wsNetIn, wsGateIn, wsGateOut) = reconstructWeights(wl, h)
+          val (wsNetIn, wsGateIn, wsGateOut, wsForget) = reconstructWeights(wl, h)
           val netIn = (in + (yOut * wsNetIn)).map(h.activator)
           val gateIn = (in + (yOut * wsGateIn)).map(Sigmoid)
           val gateOut = (in + (yOut * wsGateOut)).map(Sigmoid)
-          val state = (netIn :* gateIn) + memCells(c)
+          val forget = (in + (yOut * wsForget)).map(Sigmoid)
+          val state = (netIn :* gateIn) + (forget :* memCells(c))
           val netOut = state.map(h.activator) :* gateOut
           state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
           (netOut * weights(cursor), Seq(netOut))
@@ -159,12 +168,13 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Reconstructs the recurrent weights of layer `l` from a nested matrix `m`.
     */
-  private def reconstructWeights(m: Matrix, l: Layer): (Matrix, Matrix, Matrix) = {
+  private def reconstructWeights(m: Matrix, l: Layer): (Matrix, Matrix, Matrix, Matrix) = {
     val f = l.neurons * l.neurons
     val netIn = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(0, f))
     val gateIn = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(f, 2 * f))
     val gateOut = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(2 * f, 3 * f))
-    (netIn, gateIn, gateOut)
+    val forget = DenseMatrix.create[Double](l.neurons, l.neurons, m.data.slice(3 * f, 4 * f))
+    (netIn, gateIn, gateOut, forget)
   }
 
 }

@@ -27,28 +27,30 @@ trait BaseOps {
     * Fully connected means all `layers` are connected such that their weight matrices can
     * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight value.
     */
-  def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights = layers.zipWithIndex.flatMap {
-    case (layer, index) =>
-      if (index < (layers.size - 1)) {
-        val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
-        val product = neuronsLeft * neuronsRight
-        val initialWeights = (1 to product).map(_ => seed.apply).toArray
-        Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
-      } else None
-  }
+  def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights =
+    layers.zipWithIndex.flatMap {
+      case (layer, index) =>
+        if (index < (layers.size - 1)) {
+          val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
+          val product = neuronsLeft * neuronsRight
+          val initialWeights = (1 to product).map(_ => seed.apply).toArray
+          Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
+        } else None
+    }
 
   /**
     * Enriches the given `layers` and their `weights` with recurrent connections.
     */
-  def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: () => Double): Weights = weights.zipWithIndex.flatMap {
-    case (_, index) =>
-      if (index < (weights.size - 1)) {
-        val neurons = layers(index + 1).neurons
-        val product = 3 * neurons * neurons
-        val initialWeights = (1 to product).map(_ => seed.apply).toArray
-        Some(DenseMatrix.create[Double](1, product, initialWeights))
-      } else None
-  }
+  def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: () => Double): Weights =
+    weights.zipWithIndex.flatMap {
+      case (_, index) =>
+        if (index < (weights.size - 1)) {
+          val neurons = layers(index + 1).neurons
+          val product = 4 * neurons * neurons
+          val initialWeights = (1 to product).map(_ => seed.apply).toArray
+          Some(DenseMatrix.create[Double](1, product, initialWeights))
+        } else None
+    }
 
   /**
     * Gives a seed function to generate weights in range `i`.

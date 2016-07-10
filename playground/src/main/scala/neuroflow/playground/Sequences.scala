@@ -14,43 +14,50 @@ import scala.math._
 
 object Sequences {
 
-  /**
-    *
-    */
   def sinusoidalFFN = {
+
+    /*
+        The FFN will not be able to learn the function cos(10x) -> sin(10x)
+        without using a time window of higher kinded dimension.
+            ("No need to learn what to store")
+     */
 
     import neuroflow.nets.DefaultNetwork._
     implicit val wp = FFN.WeightProvider(-0.2, 0.2)
 
     val stepSize = 0.1
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s), ->(sin(10 * s))))
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(sin(10 * s))))
     val f = Tanh
     val net = Network(Input(1) :: Hidden(10, f) :: Hidden(10, f) :: Hidden(10, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 2000, learningRate = 2.0))
+      Settings(iterations = 2000, learningRate = 0.1))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
     val res = xsys.map(_._1).map(net.evaluate)
-    xsys.map(_._1).zip(res).foreach { case (l, r) => println(s"${l.head}, ${r.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
 
   }
+
+  /*
+      The LSTM is able to learn the function cos(10x) -> sin(10x)
+      as an expression of time.
+   */
 
   def sinusoidalRNN = {
 
     import neuroflow.nets.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-0.2, 0.2)
 
-    val stepSize = 0.05
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s), ->(sin(10 * s))))
-    val zsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s), ->(cos(10 * s))))
+    val stepSize = 0.1
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(sin(10 * s))))
     val f = Tanh
-    val net = Network(Input(1) :: Hidden(10, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 2000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
+    val net = Network(Input(1) :: Hidden(5, f) :: Hidden(5, f) :: Output(1, f) :: HNil,
+      Settings(iterations = 5000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
     val res = net.evaluate(xsys.map(_._1))
-    xsys.map(_._1).zip(res).foreach { case (l, r) => println(s"${l.head}, ${r.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
 
   }
 
@@ -58,22 +65,6 @@ object Sequences {
 
     import neuroflow.nets.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-0.2, 0.2)
-
-    val stepSize = 0.1
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(0.2), ->(-1.0)))
-    val zsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(0.8), ->(1.0)))
-    val all = xsys ++ zsys
-    val f = Tanh
-    val net = Network(Input(1) :: Hidden(5, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 10000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
-
-    net.train(all.map(_._1), all.map(_._2), Set(xsys.length))
-
-    val resA = net.evaluateMean(xsys.map(_._1))
-    val resB = net.evaluateMean(zsys.map(_._1))
-
-    println(resA)
-    println(resB)
 
   }
 
