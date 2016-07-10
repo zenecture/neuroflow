@@ -97,6 +97,12 @@ trait Network extends Logs with Welcoming with Serializable {
     */
   val weights: Weights
 
+  /**
+    * Takes a sequence of input vectors `xs` and trains this
+    * network against the corresponding output vectors `ys`.
+    */
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
+
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
 }
@@ -105,12 +111,6 @@ trait Network extends Logs with Welcoming with Serializable {
 trait FeedForwardNetwork extends Network with IllusionBreaker {
 
   checkSettings()
-
-  /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
-    */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
   /**
     * Takes the input vector `x` to compute the output vector.
@@ -123,12 +123,6 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
 trait RecurrentNetwork extends Network with IllusionBreaker {
 
   checkSettings()
-
-  /**
-    * Takes a sequence of input vectors `xs` and trains
-    * this network against the corresponding output vectors `ys`.
-    */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
