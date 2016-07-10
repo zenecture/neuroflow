@@ -56,14 +56,21 @@ trait Constructor[+T <: Network] {
 
 
 /**
-  * The `verbose` flag indicates logging behavior. The `learningRate` determines the amplification of the gradients.
-  * The network will terminate either if `precision` is high enough or `iterations` is reached. If `regularization`
-  * is provided, the respective regulator will try to avoid over-fitting. If `approximation` is provided, gradients
-  * will be approximated numerically, which can be fast yet more unprecise. Some nets require specific parameters
-  * in the `specifics` mapping.
+  * The `verbose` flag indicates logging behavior.
+  * The `learningRate` determines the amplification of the gradients.
+  * The network will terminate either if `precision` is high enough or `iterations` is reached.
+  * The `errorFuncOutput` option prints the error func graph to the specified file/closure
+  * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
+  * With `approximation`  the gradients will be approximated numerically.
+  * Some nets require specific parameters in the `specifics` mapping.
   */
-case class Settings(verbose: Boolean = true, learningRate: Double = 0.1, precision: Double = 1E-5, iterations: Int = 10,
-                    regularization: Option[Regularization] = None, approximation: Option[Approximation] = None,
+case class Settings(verbose: Boolean = true,
+                    learningRate: Double = 0.1,
+                    precision: Double = 1E-5,
+                    iterations: Int = 100,
+                    errorFuncOutput: Option[ErrorFuncOutput] = None,
+                    regularization: Option[Regularization] = None,
+                    approximation: Option[Approximation] = None,
                     specifics: Option[Map[String, Double]] = None) extends Serializable
 
 
@@ -80,7 +87,7 @@ trait IllusionBreaker { self: Network =>
 }
 
 
-trait Network extends Logs with Welcoming with Serializable {
+trait Network extends Logs with ErrorFuncGrapher with Welcoming with Serializable {
 
   /**
     * Settings of this neural network.

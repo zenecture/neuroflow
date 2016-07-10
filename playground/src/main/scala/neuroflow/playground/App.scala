@@ -17,8 +17,6 @@ object App extends App {
   Hello.apply
   LanguageProcessing.apply
   LanguageProcessing.test
-  Sequences.sinusoidalFFN
-  Sequences.sinusoidalRNN
-  Sequences.sequenceClassification
+  Sequences.apply
 
 }

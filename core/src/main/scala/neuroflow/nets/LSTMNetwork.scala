@@ -73,11 +73,12 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     val error = mean(errorFunc(xs, ys))
     if (error > precision && iteration < maxIterations) {
       if (settings.verbose) info(s"Taking step $iteration - Error: $error")
+      maybeGraph(error)
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
-      reset // finally reset one more time
+      reset() // finally reset one more time
     }
   }
 
