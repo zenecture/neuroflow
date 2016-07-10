@@ -46,16 +46,12 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Takes a sequence of input vectors `xs`, which may be partitioned by `ps`,
-    * and trains this network against the corresponding output vectors `ys`.
+    * Takes a sequence of input vectors `xs` and trains
+    * this network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector], ps: Set[Int]): Unit = {
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
     import settings._
-    val in = xs.flatMap {
-      case x if ps.contains(xs.indexOf(x) - 1) =>
-        Seq(DenseMatrix.zeros[Double](0, 0), DenseMatrix.create[Double](1, x.size, x.toArray))
-      case x => Seq(DenseMatrix.create[Double](1, x.size, x.toArray))
-    }.toList
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
     val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toList
     run(in, out, learningRate, precision, 0, iterations)
   }
@@ -80,7 +76,8 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Evaluates the error function Σ1/2(prediction(x) - observation)² over time.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
-    val errs = ~> (reset) next unfoldingFlow(xs, initialOut, Nil, Nil)
+    reset()
+    val errs = unfoldingFlow(xs, initialOut, Nil, Nil)
     errs.zip(ys).map {
       case (y, t) => 0.5 * pow(y - t, 2)
     }.reduce(_ + _)
@@ -126,9 +123,6 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   @tailrec private def unfoldingFlow(xs: Matrices, lastOuts: Matrices,
                                      newOuts: Matrices, res: Seq[Matrix]): Seq[Matrix] =
     xs match {
-      case hd :: tl if hd.size == 0 =>
-        reset()
-        unfoldingFlow(xs = tl, lastOuts = initialOut, newOuts = Nil, res = res)
       case hd :: tl =>
         val (ri, newOut) = flow(hd, lastOuts, Nil)
         unfoldingFlow(xs = tl, lastOuts = newOut, newOuts = Nil, res = res :+ ri)
