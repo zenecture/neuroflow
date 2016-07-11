@@ -15,9 +15,11 @@ import scala.math._
 object Sequences {
 
   def apply = {
-//    cosine2sineFFN
-//    cosine2sineRNN
-    linearToStep
+    cosine2sineFFN
+    cosine2sineRNN
+    linear2Step
+    linear2cosinesine
+    cosinesineClassification
   }
 
   def cosine2sineFFN = {
@@ -67,23 +69,74 @@ object Sequences {
 
   }
 
-  def linearToStep = {
+  /*
+      Simply learn to map from x -> { 0.5 | x < 0.8, 1.0 | >= 0.8 }
+
+            it looks like this:  ________‾‾
+   */
+
+  def linear2Step = {
 
     import neuroflow.nets.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-2.0, 2.0)
+    implicit val wp = RNN.WeightProvider(-5.0, 5.0)
 
     val stepSize = 0.01
     val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s),->(if (s < 0.8) 0.5 else 1.0)))
     val f = Sigmoid
-    val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Hidden(3, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 4000, learningRate = 0.2,
-        approximation = Some(Approximation(1E-9)),
+    val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Output(1, f) :: HNil,
+      Settings(iterations = 5000, learningRate = 0.2,
+        approximation = Some(Approximation(1E-12)),
         errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
     val res = net.evaluate(xsys.map(_._1))
     Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
+
+  }
+
+  /*
+
+        Simply learn to map from x -> (sin(10x), cos(10x))
+
+   */
+
+  def linear2cosinesine = {
+
+    import neuroflow.nets.LSTMNetwork._
+    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+
+    val stepSize = 0.1
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s), ->(sin(10 * s), cos(10 * s))))
+    val f = Tanh
+    val net = Network(Input(1) :: Hidden(7, f) :: Hidden(7, f) :: Output(2, f) :: HNil,
+      Settings(iterations = 5000, learningRate = 0.5, approximation = Some(Approximation(1E-9))))
+
+    net.train(xsys.map(_._1), xsys.map(_._2))
+
+    val res = net.evaluate(xsys.map(_._1))
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.tail.head}") }
+
+  }
+
+  def cosinesineClassification = {
+
+    import neuroflow.nets.LSTMNetwork._
+    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+
+    val stepSize = 0.1
+    val a = Range.Double(-1.0, 0.0, stepSize).map(s => (->(sin(10 * s)), ->(1.0, -1.0)))
+    val b = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(-1.0, 1.0)))
+    val all = a ++ Range.Double(0.0, 1.0, stepSize).map(s => (->(0.0), ->(0.0, 0.0))) ++ b
+    val f = Tanh
+    val net = Network(Input(1) :: Hidden(2, f) :: Hidden(2, f) :: Output(2, f) :: HNil,
+      Settings(iterations = 2000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
+
+    net.train(all.map(_._1), all.map(_._2))
+
+    val res = net.evaluate(b.map(_._1))
+    b.map(_._1).zip(res).foreach { case (l, r) => println(s"${l.head}, $r") }
 
   }
 
