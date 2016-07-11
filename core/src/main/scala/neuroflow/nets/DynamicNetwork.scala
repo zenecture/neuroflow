@@ -14,7 +14,7 @@ import scala.collection.Seq
   * to adapt the learning rate to an optimal value. This promises faster convergence,
   * but comes with more computational overhead than gradient descent.
   *
-  * Here, the learning parameter should be a large starting value.
+  * Here, the learning parameter should be a large starting value, e.g. 10.
   *
   * @author bogdanski
   * @since 20.01.16
