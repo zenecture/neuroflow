@@ -85,9 +85,8 @@ val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys)
 ```
 
-The learning progress will appear on console so we can track it. Bear in mind that a net is intended to be an atomic instance, 
-so it is blocking and has mutable state inside. It is not thread safe. However, in practical applications, multiple net instances 
-give an overall net architecture. These are usually trained in parallel.
+The learning progress will appear on console so we can track it. 
+Bear in mind that a net may have mutable state inside and is not thread-safe. 
 
 # Evaluation
 
