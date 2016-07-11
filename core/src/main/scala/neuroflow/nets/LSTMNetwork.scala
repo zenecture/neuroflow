@@ -153,9 +153,9 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
           val getWs = (wt: Int) => weights(target + ((c * 4) + wt))
           val (wsNetIn, wsGateIn, wsGateOut, wsForget) = (getWs(0), getWs(1), getWs(2), getWs(3))
           val netIn = (in + (yOut * wsNetIn)).map(h.activator)
-          val gateIn = Sigmoid(in + (yOut * wsGateIn))
-          val gateOut = Sigmoid(in + (yOut * wsGateOut))
-          val forget = Sigmoid(in + (yOut * wsForget))
+          val gateIn = (in + (yOut * wsGateIn)).map(Sigmoid)
+          val gateOut = (in + (yOut * wsGateOut)).map(Sigmoid)
+          val forget = (in + (yOut * wsForget)).map(Sigmoid)
           val state = (netIn :* gateIn) + (forget :* memCells(c))
           val netOut = state.map(h.activator) :* gateOut
           state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
