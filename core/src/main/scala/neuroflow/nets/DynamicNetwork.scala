@@ -67,7 +67,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Trains this `Network` with optimal weights based on `xs` and `ys`.
+    * The eval loop.
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
