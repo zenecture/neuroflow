@@ -82,19 +82,19 @@ object LanguageProcessing {
     val med = normalize(readAll("file/newsgroup/med/", offset = maxSamples, max = maxSamples))
     val free = normalize(readSingle("file/newsgroup/free.txt"))
 
-    val trainCars = vectorize(cars)
-    val trainMed = vectorize(med)
-    val trainFree = vectorize(free)
+    val testCars = vectorize(cars)
+    val testMed = vectorize(med)
+    val testFree = vectorize(free)
 
     def eval(id: String, maxIndex: Int, xs: Seq[Seq[Double]]) = {
       val (ok, fail) = xs.map(net.evaluate).map(k => k.indexOf(k.max) == maxIndex).partition(l => l)
       println(s"Correctly classified $id: ${ok.size.toDouble / (ok.size.toDouble + fail.size.toDouble) * 100.0} % !")
     }
 
-    eval("cars", 0, trainCars)
-    eval("med", 1, trainMed)
+    eval("cars", 0, testCars)
+    eval("med", 1, testMed)
 
-    trainFree.map(net.evaluate).foreach(k => println(s"Free classified as: ${if (k.indexOf(k.max) == 0) "cars" else "med"}"))
+    testFree.map(net.evaluate).foreach(k => println(s"Free classified as: ${if (k.indexOf(k.max) == 0) "cars" else "med"}"))
 
   }
 
