@@ -20,7 +20,7 @@ import scala.collection._
   * and a memory cell with input, output and forget gates. Multiple layers can be
   * stacked horizontally, where the current layer gets input from the lower
   * layers at the same time step and from itself at the previous time step.
-  *     (this is work in progress, things may change)
+  *     (this is experimental work in progress, things may change)
   *
   * @author bogdanski
   * @since 07.07.16
