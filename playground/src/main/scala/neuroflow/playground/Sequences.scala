@@ -76,7 +76,7 @@ object Sequences {
     val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s),->(if (s < 0.8) 0.5 else 1.0)))
     val f = Sigmoid
     val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Hidden(3, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 2000, learningRate = 0.2,
+      Settings(iterations = 4000, learningRate = 0.2,
         approximation = Some(Approximation(1E-9)),
         errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
 
