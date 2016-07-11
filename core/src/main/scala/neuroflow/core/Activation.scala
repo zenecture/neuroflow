@@ -1,5 +1,6 @@
 package neuroflow.core
 
+import breeze.generic._
 import breeze.numerics._
 
 /**
@@ -8,17 +9,17 @@ import breeze.numerics._
   */
 
 /**
-  * Label for neurons in the network performing a function on their synapses
-  * (thus all, except input neurons)
+  * Label for neurons in the network performing a function on their synapses.
   */
 trait HasActivator[N] {
   val activator: Activator[N]
 }
 
 /**
-  * The activator (or transport) function with its derivative, generic in `N`.
+  * The activator function with its derivative.
   */
-trait Activator[N] extends (N => N) with Serializable {
+trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializable { self =>
+  implicit object impl extends Impl[N, N] { def apply(v: N): N = self.apply(x = v) }
   val name: String
   def apply(x: N): N
   def derivative(x: N): N
