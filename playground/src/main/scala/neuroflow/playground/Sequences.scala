@@ -15,8 +15,8 @@ import scala.math._
 object Sequences {
 
   def apply = {
-    cosine2sineFFN
-    cosine2sineRNN
+//    cosine2sineFFN
+//    cosine2sineRNN
     linearToStep
   }
 

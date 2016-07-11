@@ -17,11 +17,12 @@ import scala.collection._
   *
   * This is a Long Short-Term Memory Network. It is good for learning sequences.
   * The standard LSTM model is implemented. It comes with recurrent connections
-  * and a memory cell with input, output and forget gates. Multiple layers can be
-  * stacked horizontally, where the current layer gets input from the lower
-  * layers at the same time step and from itself at the previous time step.
+  * and a memory cell for each neuron with input, output and forget gates.
+  * Multiple layers can be stacked horizontally, where the current layer gets
+  * input from the lower layers at the same time step and from itself at the
+  * previous time step.
   *
-  *     (this is experimental and work in progress, things may change)
+  *     (this is experimental and in progress, things may change, use at own risk)
   *
   * @author bogdanski
   * @since 07.07.16
