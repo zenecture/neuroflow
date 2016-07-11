@@ -55,16 +55,15 @@ import neuroflow.nets.DefaultNetwork._
 import shapeless._
 ```
 
-The first import gives us an implicit constructor for the default net implementation with gradient descent. 
-The second one yields a weight provider, which determines the initial weight values. The last one is eye candy to keep the notation a little shorter. 
-The idea behind this 'import a-la-carte' is to change the underlying net behavior without changing the 'meat' of the code.
+This will give us a fully connected ANN, with random weights and standard gradient descent / backprop training.
+
 
 ```scala
 val fn = Sigmoid
 val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil)
 ```
 
-The whole architecture of the net is defined here. We want to use a sigmoid activation function `fn` for our hidden and output layers. 
+The architecture of the net is defined here. We use a sigmoid activation function `fn` for our hidden and output layers. 
 Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. If we would need a more complex net, we would simply stack layers and functions:
 
 ```scala
