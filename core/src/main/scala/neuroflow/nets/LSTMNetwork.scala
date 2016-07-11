@@ -17,7 +17,7 @@ import scala.collection._
   *
   * This is a Long Short-Term Memory Network. It is good for learning sequences.
   * The standard LSTM model is implemented. It comes with recurrent connections
-  * and a memory cell for each neuron with input, output and forget gates.
+  * and, for each neuron, a dedicated memory cell with input-, output- and forget-gates.
   * Multiple layers can be stacked horizontally, where the current layer gets
   * input from the lower layers at the same time step and from itself at the
   * previous time step.
@@ -119,7 +119,6 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     val a = errorFunc(xs, ys)
     weights(layer).update(weight, v + Δ)
     val b = errorFunc(xs, ys)
-    weights(layer).update(weight, v)
     (b - a) / (2 * Δ)
   }
 
@@ -145,27 +144,29 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     */
   @tailrec private def flow(in: Matrix, lastOuts: Matrices, newOuts: Matrices,
                    cursor: Int = 0, target: Int = layers.size - 1): (Matrix, Matrices) = {
-    if (target < 0) (in, newOuts)
-    else {
-      val (processed, no) = layers(cursor) match {
-        case h: HasActivator[Double] if cursor < target =>
-          val c = cursor - 1
-          val yOut = lastOuts(c)
-          val getWs = (wt: Int) => weights(target + ((c * 4) + wt))
-          val (wsNetIn, wsGateIn, wsGateOut, wsForget) = (getWs(0), getWs(1), getWs(2), getWs(3))
-          val netIn = (in + (yOut * wsNetIn)).map(h.activator)
-          val gateIn = (in + (yOut * wsGateIn)).map(Sigmoid)
-          val gateOut = (in + (yOut * wsGateOut)).map(Sigmoid)
-          val forget = (in + (yOut * wsForget)).map(Sigmoid)
-          val state = (netIn :* gateIn) + (forget :* memCells(c))
-          val netOut = state.map(h.activator) :* gateOut
-          state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
-          (netOut * weights(cursor), Seq(netOut))
-        case h: HasActivator[Double] => (in.map(h.activator), Nil)
-        case _ => (in * weights(cursor), Nil)
-      }
-      if (cursor < target) flow(processed, lastOuts, newOuts ++ no, cursor + 1) else (processed, newOuts)
+    val c = cursor - 1
+    val (processed, newOut) = layers(cursor) match {
+      case h: HasActivator[Double] if cursor < target =>
+        val yOut = lastOuts(c)
+        val getWs = (wt: Int) => weights(target + ((c * 7) + wt))
+        val (wsNetGateIn, wsNetGateOut, wsNetForget) = (getWs(0), getWs(1), getWs(2))
+        val (wsNetIn, wsGateIn, wsGateOut, wsForget) = (getWs(3), getWs(4), getWs(5), getWs(6))
+        val (in1, in2, in3, in4) = (in * weights(c), in * wsNetGateIn, in * wsNetGateOut, in * wsNetForget)
+        val netIn = (in1 + (yOut * wsNetIn)).map(h.activator)
+        val gateIn = (in2 + (yOut * wsGateIn)).map(Sigmoid)
+        val gateOut = (in3 + (yOut * wsGateOut)).map(Sigmoid)
+        val forget = (in4 + (yOut * wsForget)).map(Sigmoid)
+        val state = (netIn :* gateIn) + (forget :* memCells(c))
+        val netOut = state.map(h.activator) :* gateOut
+        state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
+        (netOut, Some(netOut))
+      case h: HasActivator[Double] =>
+        val netOut = (in * weights(c)).map(h.activator)
+        (netOut, None)
+      case _ =>
+        (in, None)
     }
+    if (cursor < target) flow(processed, lastOuts, newOuts ++ newOut, cursor + 1) else (processed, newOuts)
   }
 
 }

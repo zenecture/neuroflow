@@ -179,7 +179,6 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     val a = f.apply
     weights(layer).update(weight, v + Δ)
     val b = f.apply
-    weights(layer).update(weight, v)
     (b - a) / (2 * Δ)
   }
 
