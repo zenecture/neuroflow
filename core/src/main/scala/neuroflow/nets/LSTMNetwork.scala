@@ -17,12 +17,12 @@ import scala.collection._
   *
   * This is a Long Short-Term Memory Network. It is good for learning sequences.
   * The standard LSTM model is implemented. It comes with recurrent connections
-  * and, for each neuron, a dedicated memory cell with input-, output- and forget-gates.
+  * and a dedicated memory cell with input-, output- and forget-gates for each neuron.
   * Multiple layers can be stacked horizontally, where the current layer gets
   * input from the lower layers at the same time step and from itself at the
   * previous time step.
   *
-  *     (this is experimental and in progress, things may change, use at own risk)
+  *     (experimental and in progress, things may change, use at own risk)
   *
   * @author bogdanski
   * @since 07.07.16
@@ -71,14 +71,15 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val error = mean(errorFunc(xs, ys))
-    if (error > precision && iteration < maxIterations) {
-      if (settings.verbose) info(s"Taking step $iteration - Error: $error")
-      maybeGraph(error)
+    val error = errorFunc(xs, ys)
+    val errorMean = mean(error)
+    if (errorMean > precision && iteration < maxIterations) {
+      if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.3g - Error Vector $error")
+      maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(s"Took $iteration iterations of $maxIterations with error $error")
+      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.3g")
       reset() // finally reset one more time
     }
   }
