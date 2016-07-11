@@ -33,7 +33,7 @@ resolvers ++= Seq(
 )
 ```
 
-Seeing some code examples is a good way to get started. 
+Seeing code examples is a good way to get started. 
 You may have a look at the playground for some inspiration.
 
 If you want to use neural nets in your project, you can expect a journey full of experiments.
@@ -64,7 +64,9 @@ val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil)
 ```
 
 The architecture of the net is defined here. We use a sigmoid activation function `fn` for our hidden and output layers. 
-Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. If we would need a more complex net, we would simply stack layers and functions:
+Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. 
+
+If we would need a more complex net, we would simply stack layers and functions:
 
 ```scala
 val f = Sigmoid
@@ -73,11 +75,14 @@ val settings = Settings(verbose = true, learningRate = 0.01, precision = 0.001, 
 val net = Network(Input(50) :: Hidden(20, f) :: Hidden(10, g) :: Output(2, fn) :: HNil, settings)
 ```
 
-Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. If a network doesn't follow this rule, it won't compile.
+Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
+If a network doesn't follow this rule, it won't compile.
 
 # Training
 
-Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. By design, the type signature of `train` is `Seq[Seq[_]]`, because this promises the most general (Seq, List, Vector, ...) case in Scala.
+Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. 
+By design, the type signature of `train` is `Seq[Seq[_]]`, 
+because this promises the most general (Seq, List, Vector, ...) case in Scala.
 
 ```scala
 val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
@@ -100,7 +105,10 @@ This will give us a result vector (kind `Seq[_]`) with the dimension of our spec
 
 # IO
 
-To keep the efforts of a hard, long training phase, it is important to save and load a net. The computed weights are the precious part of the net, so in the component `neuroflow.application.plugin.IO` we will find functionality to build a `WeightProvider` from IO. Scala Pickling is used as the (de-)serialization framework.
+We want to save our net to reuse or share the efforts of a hard, long training phase. 
+The computed weights are the precious part of the net, so in the component `neuroflow.application.plugin.IO` 
+we will find functionality to build a `WeightProvider` from IO and to write them to file. 
+Scala Pickling is used as the (de-)serialization framework. Example:
 
 ```scala
 val file = "/path/to/net.json"
@@ -110,5 +118,6 @@ File.write(net, file)
 ```
 
 Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net.
-Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, simply use `Json.write` instead and save it on string-level.
-However, all important types extend `Serializable`, so feel free to work with the bytes on your own.
+Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, 
+simply use `Json.write` instead and save it on string-level. However, all important types extend `Serializable`, 
+so feel free to work with the bytes on your own.
