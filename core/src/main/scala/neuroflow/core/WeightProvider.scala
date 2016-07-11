@@ -25,7 +25,7 @@ trait BaseOps {
 
   /**
     * Fully connected means all `layers` are connected such that their weight matrices can
-    * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight value.
+    * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight values.
     */
   def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights =
     layers.zipWithIndex.flatMap {
@@ -43,10 +43,12 @@ trait BaseOps {
     */
   def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: () => Double): Weights =
     weights.zipWithIndex.flatMap {
-      case (_, index) =>
+      case (ws, index) =>
         if (index < (weights.size - 1)) {
           val ns = layers(index + 1).neurons
-          (1 to 4) map { w => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
+          val in = (1 to 3) map { w => DenseMatrix.create[Double](ws.rows, ws.cols, (1 to ws.rows * ws.cols).map(_ => seed.apply).toArray) }
+          val cells = (1 to 4) map { w => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
+          in ++ cells
         } else Nil
     }
 
