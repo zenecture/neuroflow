@@ -94,7 +94,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Adapts the weight with truncated back prop through time or finite differences.
+    * Adapts the weights with truncated back prop through time or finite differences.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = {
     weights.foreach { l =>
