@@ -82,7 +82,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)² over time.
+    * Evaluates the error function Σ1/2(out(x) - target)² over time.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     reset()
