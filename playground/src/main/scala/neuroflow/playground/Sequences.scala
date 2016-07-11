@@ -120,23 +120,39 @@ object Sequences {
 
   }
 
+  /*
+
+         Feeds the net with the input sequence sin(10x) from -1 to 0
+         followed by cos(3x) from 0 to 1. The first sinus wave gets class ->(1, -1),
+         the second cosinus wave gets class ->(-1, 1). The input is partitioned.
+         The task is to infer the correct class for both waves.
+
+
+   */
+
   def cosinesineClassification = {
 
     import neuroflow.nets.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
     val stepSize = 0.1
-    val a = Range.Double(-1.0, 0.0, stepSize).map(s => (->(sin(10 * s)), ->(1.0, -1.0)))
-    val b = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(-1.0, 1.0)))
-    val all = a ++ Range.Double(0.0, 1.0, stepSize).map(s => (->(0.0), ->(0.0, 0.0))) ++ b
+    val a = Range.Double(-1.0, 0.0, stepSize).map(x => (->(sin(10 * x)), ->(-1.0, 1.0)))
+    val b = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(3 * x)), ->(1.0, -1.0)))
+    val all = a ++ b
     val f = Tanh
-    val net = Network(Input(1) :: Hidden(2, f) :: Hidden(2, f) :: Output(2, f) :: HNil,
-      Settings(iterations = 2000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
+    val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Output(2, f) :: HNil,
+      Settings(iterations = 2000,
+        learningRate = 0.2,
+        partitions = Some(->(a.indexOf(a.last))),
+        approximation = Some(Approximation(1E-9))))
 
     net.train(all.map(_._1), all.map(_._2))
 
-    val res = net.evaluate(b.map(_._1))
-    b.map(_._1).zip(res).foreach { case (l, r) => println(s"${l.head}, $r") }
+    val resA = net.evaluateMean(a.map(_._1))
+    println("sin(10x) classified as: " + resA)
+
+    val resB = net.evaluateMean(b.map(_._1))
+    println("cos(3x) classified as: " + resB)
 
   }
 
