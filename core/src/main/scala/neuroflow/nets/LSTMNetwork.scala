@@ -44,8 +44,13 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   import neuroflow.core.Network._
 
   private val hiddenLayers = layers.drop(1).dropRight(1)
-  private val memCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)) // mutable
   private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
+  private val separators = settings.partitions.getOrElse(Nil)
+
+  // mutable state
+  private val memoryCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
+  private var globalInput: Option[Matrices] = None
+
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
@@ -63,6 +68,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     import settings._
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
     val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toList
+    settings.partitions.foreach(_ => globalInput = Some(in))
     run(in, out, learningRate, precision, 0, iterations)
   }
 
@@ -126,7 +132,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Resets internal state of this network.
     */
-  private def reset(): Unit = memCells.foreach(cell => cell.foreachPair { case ((r, c), v) => cell.update(r, c, 0.0) })
+  private def reset(): Unit = memoryCells.foreach(cell => cell.foreachPair { case ((r, c), v) => cell.update(r, c, 0.0) })
 
   /**
     * Unfolds this network through time and space.
@@ -134,11 +140,20 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   @tailrec private def unfoldingFlow(xs: Matrices, lastOuts: Matrices,
                                      newOuts: Matrices, res: Matrices): Matrices =
     xs match {
+      case hd :: tl if isSeparator(hd) =>
+        val (ri, _) = flow(hd, lastOuts, Nil)
+        reset()
+        unfoldingFlow(xs = tl, lastOuts = initialOut, newOuts = Nil, res = res :+ ri)
       case hd :: tl =>
         val (ri, newOut) = flow(hd, lastOuts, Nil)
         unfoldingFlow(xs = tl, lastOuts = newOut, newOuts = Nil, res = res :+ ri)
       case Nil => res
     }
+
+  /**
+    * Checks if given matrix `m` is the end of logical input partition.
+    */
+  private def isSeparator(m: Matrix): Boolean = globalInput.exists(xs => separators.contains(xs.indexOf(m)))
 
   /**
     * Computes this network for a single time step.
@@ -157,9 +172,9 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
         val gateIn = (in2 + (yOut * wsGateIn)).map(Sigmoid)
         val gateOut = (in3 + (yOut * wsGateOut)).map(Sigmoid)
         val forget = (in4 + (yOut * wsForget)).map(Sigmoid)
-        val state = (netIn :* gateIn) + (forget :* memCells(c))
+        val state = (netIn :* gateIn) + (forget :* memoryCells(c))
         val netOut = state.map(h.activator) :* gateOut
-        state.foreachPair { case ((row, col), i) => memCells(c).update(row, col, i) }
+        state.foreachPair { case ((row, col), i) => memoryCells(c).update(row, col, i) }
         (netOut, Some(netOut))
       case h: HasActivator[Double] =>
         val netOut = (in * weights(c)).map(h.activator)
