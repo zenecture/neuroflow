@@ -73,7 +73,7 @@ val settings = Settings(verbose = true, learningRate = 0.01, precision = 0.001, 
 val net = Network(Input(50) :: Hidden(20, f) :: Hidden(10, g) :: Output(2, fn) :: HNil, settings)
 ```
 
-Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. If a network doesn't follow this rule, it won't compile. 
+Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. If a network doesn't follow this rule, it won't compile.
 
 # Training
 
@@ -85,7 +85,9 @@ val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys)
 ```
 
-During training, the derivatives of the net with respect to the weights are constructed, so the optimal weights can be computed. This can take a short (or very long) time, depending on the challenge. The learning progress will appear on console so we can track it. Bear in mind that a net is intended to be an atomic instance, so it is blocking and has mutable state inside concerning the training. An immutable net is infeasible, because it needs huge stack and heap sizes during training. In practical applications, multiple net instances form an overall net architecture, and this usually is the place for any parallelism.
+The learning progress will appear on console so we can track it. Bear in mind that a net is intended to be an atomic instance, 
+so it is blocking and has mutable state inside. It is not thread safe. However, in practical applications, multiple net instances 
+give an overall net architecture. These are usually trained in parallel.
 
 # Evaluation
 
