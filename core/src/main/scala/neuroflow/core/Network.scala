@@ -139,7 +139,7 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
 
   /**
     * Takes the input vector sequence `xs` to compute the mean output vector.
-    * The mean of the output vector is averaged for convenient classification.
+    * The mean of the output vector is averaged.
     */
   def evaluateMean(xs: Seq[Vector]): Vector =
     ~> (evaluate(xs)) map(res => res.reduce { (r, v) => r.zip(v).map { case (a, b) => a + b } } map { _ / res.size })

@@ -15,8 +15,8 @@ import scala.math._
 object Sequences {
 
   def apply = {
-    cosine2sineFFN
-    cosine2sineRNN
+//    cosine2sineFFN
+//    cosine2sineRNN
     linearToStep
   }
 
@@ -70,13 +70,13 @@ object Sequences {
   def linearToStep = {
 
     import neuroflow.nets.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+    implicit val wp = RNN.WeightProvider(-2.0, 2.0)
 
     val stepSize = 0.01
     val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s),->(if (s < 0.8) 0.5 else 1.0)))
     val f = Sigmoid
-    val net = Network(Input(1) :: Hidden(5, f) :: Hidden(5, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 5000, learningRate = 0.2,
+    val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Hidden(3, f) :: Output(1, f) :: HNil,
+      Settings(iterations = 2000, learningRate = 0.2,
         approximation = Some(Approximation(1E-9)),
         errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
 
