@@ -87,7 +87,9 @@ trait IllusionBreaker { self: Network =>
 }
 
 
-trait Network extends Logs with ErrorFuncGrapher with Welcoming with Serializable {
+trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
+
+  checkSettings()
 
   /**
     * Settings of this neural network.
@@ -117,8 +119,6 @@ trait Network extends Logs with ErrorFuncGrapher with Welcoming with Serializabl
 
 trait FeedForwardNetwork extends Network with IllusionBreaker {
 
-  checkSettings()
-
   /**
     * Takes the input vector `x` to compute the output vector.
     */
@@ -128,8 +128,6 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
 
 
 trait RecurrentNetwork extends Network with IllusionBreaker {
-
-  checkSettings()
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
