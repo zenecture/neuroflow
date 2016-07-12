@@ -104,7 +104,7 @@ trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welco
   val layers: Seq[Layer]
 
   /**
-    * The weights packed as a sequence of matrices.
+    * The weights are a bunch of matrices.
     */
   val weights: Weights
 
@@ -126,6 +126,11 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
     */
   def evaluate(x: Vector): Vector
 
+  override def checkSettings(): Unit = {
+    if (settings.partitions.isDefined)
+      warn("FFNs don't support partitions. This setting object has no effect. You may remove it?")
+  }
+
 }
 
 
@@ -135,7 +140,6 @@ trait RecurrentNetwork extends Network with IllusionBreaker {
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
   def evaluate(xs: Seq[Vector]): Seq[Vector]
-
 
   /**
     * Takes the input vector sequence `xs` to compute the mean output vector.

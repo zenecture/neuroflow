@@ -53,6 +53,16 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
 
 
   /**
+    * Checks if the [[Settings]] are properly defined for this network.
+    * Throws a [[SettingsNotSupportedException]] if not. Default behavior is no op.
+    */
+  override def checkSettings(): Unit = {
+    super.checkSettings()
+    if (settings.specifics.isDefined)
+      warn("No specific settings supported. This setting object has no effect. You may remove it?")
+  }
+
+  /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
   def evaluate(xs: Seq[Vector]): Seq[Vector] = {

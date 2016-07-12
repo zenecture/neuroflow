@@ -39,9 +39,11 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
     */
-  override def checkSettings(): Unit =
+  override def checkSettings(): Unit = {
+    super.checkSettings()
     if (settings.regularization.isDefined)
       throw new SettingsNotSupportedException("No regularization other than built-in LBFGS supported.")
+  }
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
