@@ -3,7 +3,7 @@ package neuroflow.playground
 import neuroflow.application.plugin.Style._
 import neuroflow.core.Activator._
 import neuroflow.core._
-import shapeless.HNil
+import shapeless._
 
 import scala.math._
 
