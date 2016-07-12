@@ -123,8 +123,8 @@ object Sequences {
   /*
 
          Feeds the net with the input sequence sin(10x) from -1 to 0
-         followed by cos(3x) from 0 to 1. The first sinus wave gets class ->(1, -1),
-         the second cosinus wave gets class ->(-1, 1). The input is partitioned.
+         followed by cos(3x) from 0 to 1. The first sine wave gets class ->(1, -1),
+         the second cosine wave gets class ->(-1, 1). The input is partitioned.
          The task is to infer the correct class for both waves.
 
 
