@@ -82,10 +82,10 @@ object FFN extends BaseOps {
   object WeightProvider extends LowPrioWeightProviders {
 
     /**
-      * Gives a weight provider with random weights in range `i`.
+      * Gives a weight provider with random weights in range `r`.
       */
-    def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(i))
+    def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(r))
     }
 
     implicit val randomWeights: WeightProvider = apply(-1, 1)
@@ -100,12 +100,12 @@ object RNN extends BaseOps {
   object WeightProvider {
 
     /**
-      * Gives a weight provider with random weights in range `i`.
+      * Gives a weight provider with random weights in range `r`.
       */
-    def apply(i: (Double, Double)): WeightProvider = new WeightProvider {
+    def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
       def apply(layers: Seq[Layer]): Weights = {
-        val fc = fullyConnected(layers, random(i))
-        fc ++ recurrentEnrichment(layers, fc, random(i))
+        val fc = fullyConnected(layers, random(r))
+        fc ++ recurrentEnrichment(layers, fc, random(r))
       }
     }
 
