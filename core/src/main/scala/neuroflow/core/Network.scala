@@ -128,7 +128,7 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
-      warn("FFNs don't support partitions. This setting object has no effect. You may remove it?")
+      warn("FFNs don't support partitions. This setting has no effect. You may remove it?")
   }
 
 }
