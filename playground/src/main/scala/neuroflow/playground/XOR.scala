@@ -17,6 +17,11 @@ object XOR {
 
     /*
 
+       The XOR-function is not linearily separable, thus we need
+       something which naturally copes with non-linearities.
+
+       ANNs to the rescue!
+
        If you are new to neural nets and on the hunt for a
        rather informal blog post about the theory behind them:
          http://znctr.com/blog/artificial-neural-networks
