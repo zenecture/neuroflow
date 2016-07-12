@@ -41,11 +41,11 @@ trait EarlyStoppingLogic { self: FeedForwardNetwork =>
           im.sum / im.size.toDouble
       }
       val averaged = errors.sum / errors.size.toDouble
-      if (settings.verbose) info(f"Averaged test error: $averaged%.3g. Best test error so far: $best%.3g.")
+      if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
       if (averaged < best) {
         best = averaged; false
       } else if ((averaged / best) > r.factor) {
-        info(f"Early Stopping: ($averaged%.3g / $best%.3g) > ${r.factor}.")
+        info(f"Early Stopping: ($averaged%.6g / $best%.6g) > ${r.factor}.")
         true
       } else false
     }
