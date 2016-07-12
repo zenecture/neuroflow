@@ -70,10 +70,12 @@ object Sequences {
   }
 
   /*
+
       Simply learn to map from x -> { 0.5 | x < 0.8, 1.0 | >= 0.8 }
 
             it looks like this:  ________‾‾
-   */
+
+  */
 
   def linear2Step = {
 
@@ -97,7 +99,7 @@ object Sequences {
 
   /*
 
-        Simply learn to map from x -> (sin(10x), cos(10x))
+      Simply learn to map from x -> (sin(10x), cos(10x))
 
    */
 
@@ -120,13 +122,12 @@ object Sequences {
 
   }
 
-  /*
+   /*
 
-         Feeds the net with the input sequence sin(10x) from -1 to 0
-         followed by cos(3x) from 0 to 1. The first sine wave gets class ->(1, -1),
-         the second cosine wave gets class ->(-1, 1). The input is partitioned.
-         The task is to infer the correct class for both waves.
-
+       Feeds the net with the input sequence sin(10x) from -1 to 0
+       followed by cos(3x) from 0 to 1. The first sine wave gets class ->(1, -1),
+       the second cosine wave gets class ->(-1, 1). The input is partitioned.
+       The task is to infer the correct class for both waves.
 
    */
 
