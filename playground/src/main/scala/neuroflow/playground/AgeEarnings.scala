@@ -19,7 +19,7 @@ object AgeEarnings {
 
   /*
 
-     Here the goal is to compare Neural Net vs. Gaussian.
+     Here we compare Neural Net vs. Gaussian.
      Feel free to read this article for the full story:
         http://znctr.com/blog/gaussian-vs-neural-net
 
