@@ -37,11 +37,11 @@ object Network extends TypeAliases {
   */
 trait TypeAliases {
 
-  type Weights = Seq[DenseMatrix[Double]]
   type Vector = Seq[Double]
   type DVector = DenseVector[Double]
   type Matrix = DenseMatrix[Double]
   type Matrices = Seq[Matrix]
+  type Weights = Seq[Matrix]
 
 }
 
