@@ -6,10 +6,12 @@ package neuroflow.common
   */
 
 case class ~>[T](t: T) {
+
   def next[B](f: => B): ~>[B] = ~>(f)
   def io(f: T => Unit): ~>[T] = ~>(f(t)) flatMap (_ => this)
   def map[B](f: T => B): ~>[B] = flatMap(g => ~>(f(g)))
   def flatMap[B](f: T => ~>[B]): ~>[B] = f(t)
+
 }
 
 object ~> {
