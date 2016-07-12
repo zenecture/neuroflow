@@ -34,7 +34,7 @@ object Sequences {
     implicit val wp = FFN.WeightProvider(-0.2, 0.2)
 
     val stepSize = 0.1
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(sin(10 * s))))
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
     val f = Tanh
     val net = Network(Input(1) :: Hidden(10, f) :: Hidden(10, f) :: Hidden(10, f) :: Output(1, f) :: HNil,
       Settings(iterations = 2000, learningRate = 0.1))
@@ -57,7 +57,7 @@ object Sequences {
     implicit val wp = RNN.WeightProvider(-0.2, 0.2)
 
     val stepSize = 0.1
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(cos(10 * s)), ->(sin(10 * s))))
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
     val f = Tanh
     val net = Network(Input(1) :: Hidden(5, f) :: Output(1, f) :: HNil,
       Settings(iterations = 5000, learningRate = 0.2, approximation = Some(Approximation(1E-9))))
@@ -83,7 +83,7 @@ object Sequences {
     implicit val wp = RNN.WeightProvider(-5.0, 5.0)
 
     val stepSize = 0.01
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s),->(if (s < 0.8) 0.5 else 1.0)))
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x),->(if (x < 0.8) 0.5 else 1.0)))
     val f = Sigmoid
     val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Output(1, f) :: HNil,
       Settings(iterations = 5000, learningRate = 0.2,
@@ -109,7 +109,7 @@ object Sequences {
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
     val stepSize = 0.1
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(s => (->(s), ->(sin(10 * s), cos(10 * s))))
+    val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x), ->(sin(10 * x), cos(10 * x))))
     val f = Tanh
     val net = Network(Input(1) :: Hidden(7, f) :: Hidden(7, f) :: Output(2, f) :: HNil,
       Settings(iterations = 5000, learningRate = 0.5, approximation = Some(Approximation(1E-9))))
