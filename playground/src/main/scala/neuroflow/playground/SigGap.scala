@@ -12,13 +12,21 @@ import shapeless._
   */
 object SigGap {
 
+  /*
+
+      This is a shallow neural net.
+      The closed form solution is -a +a or +a -a for both weights,
+      so the goal is to find weights that are close to this exact shape.
+
+  */
+
   def apply = {
     val settings = Settings(learningRate = 0.1, precision = 1E-20, iterations = 100000)
     val net = Network(Input(2) :: Output(1, Sigmoid) :: HNil, settings)
     net.train(Seq(Seq(0.3, 0.3)), Seq(Seq(0.5)))
 
     println("Output: " + net.evaluate(Seq(0.3, 0.3)))
-    println("Parameters must roughly be of kind: -a, +a or +a, -a")
+    println("Parameters must roughly be of shape: -a, +a or +a, -a")
     println("Network was " + net)
   }
 
