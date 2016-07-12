@@ -38,8 +38,6 @@ object LanguageProcessing {
 
   def readSingle(file: String) = Seq(strip(scala.io.Source.fromFile(getResourceFile(file)).mkString))
 
-  def strip(s: String) = s.replaceAll("[^a-zA-Z ]+", "").toLowerCase
-
   def normalize(xs: Seq[String]): Seq[Seq[String]] = xs.map(_.split(" ").distinct.toSeq)
 
   def vectorize(xs: Seq[Seq[String]]) = xs.map(_.flatMap(dict.get)).map { v =>
