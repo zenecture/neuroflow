@@ -41,6 +41,7 @@ object Sinusoidal {
     val initial = Range.Double(0.0, 0.15, 0.05).zipWithIndex.map(p => (p._1, xs.head(p._2)))
     val result = predict(net, xs.head, 0.15, initial)
     result.foreach(r => println(s"${r._1}, ${r._2}"))
+
   }
 
   @tailrec def predict[T <: FeedForwardNetwork](net: T, last: Seq[Double], i: Double,
