@@ -75,12 +75,12 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     val error = errorFunc(xs, ys)
     val errorMean = mean(error)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.3g - Error Vector $error")
+      if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.3g")
+      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
     }
   }
 

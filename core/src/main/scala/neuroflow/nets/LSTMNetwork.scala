@@ -90,7 +90,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     val error = errorFunc(xs, ys)
     val errorMean = mean(error)
     if (errorMean > precision && iteration < maxIterations) {
-      if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.3g - Error Vector $error")
+      if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
