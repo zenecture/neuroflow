@@ -21,6 +21,7 @@ object SigGap {
   */
 
   def apply = {
+
     val settings = Settings(learningRate = 0.1, precision = 1E-20, iterations = 100000)
     val net = Network(Input(2) :: Output(1, Sigmoid) :: HNil, settings)
     net.train(Seq(Seq(0.3, 0.3)), Seq(Seq(0.5)))
@@ -28,6 +29,7 @@ object SigGap {
     println("Output: " + net.evaluate(Seq(0.3, 0.3)))
     println("Parameters must roughly be of shape: -a, +a or +a, -a")
     println("Network was " + net)
+
   }
 
 }
