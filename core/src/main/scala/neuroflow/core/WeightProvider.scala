@@ -28,28 +28,24 @@ trait BaseOps {
     * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight values.
     */
   def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights =
-    layers.zipWithIndex.flatMap {
+    layers.dropRight(1).zipWithIndex.flatMap {
       case (layer, index) =>
-        if (index < (layers.size - 1)) {
-          val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
-          val product = neuronsLeft * neuronsRight
-          val initialWeights = (1 to product).map(_ => seed.apply).toArray
-          Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
-        } else None
+        val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
+        val product = neuronsLeft * neuronsRight
+        val initialWeights = (1 to product).map(_ => seed.apply).toArray
+        Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
     }
 
   /**
     * Enriches the given `layers` and their `weights` with recurrent connections.
     */
   def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: () => Double): Weights =
-    weights.zipWithIndex.flatMap {
+    weights.dropRight(1).zipWithIndex.flatMap {
       case (ws, index) =>
-        if (index < (weights.size - 1)) {
-          val ns = layers(index + 1).neurons
-          val in = (1 to 3) map { w => DenseMatrix.create[Double](ws.rows, ws.cols, (1 to ws.rows * ws.cols).map(_ => seed.apply).toArray) }
-          val cells = (1 to 4) map { w => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
-          in ++ cells
-        } else Nil
+        val ns = layers(index + 1).neurons
+        val in = (1 to 3) map { w => DenseMatrix.create[Double](ws.rows, ws.cols, (1 to ws.rows * ws.cols).map(_ => seed.apply).toArray) }
+        val cells = (1 to 4) map { w => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
+        in ++ cells
     }
 
   /**
