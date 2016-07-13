@@ -59,7 +59,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   override def checkSettings(): Unit = {
     super.checkSettings()
     if (settings.specifics.isDefined)
-      warn("No specific settings supported. This setting object has no effect. You may remove it?")
+      warn("No specific settings supported. This setting object has no effect.")
   }
 
   /**

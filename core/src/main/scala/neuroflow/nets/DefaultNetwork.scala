@@ -42,7 +42,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   override def checkSettings(): Unit = {
     super.checkSettings()
     if (settings.specifics.isDefined)
-      warn("No specific settings supported. This setting object has no effect. You may remove it?")
+      warn("No specific settings supported. This setting object has no effect.")
     settings.regularization.foreach {
       case _: EarlyStopping =>
       case _ => throw new SettingsNotSupportedException("No regularization other than EarlyStopping is supported.")
