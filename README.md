@@ -105,19 +105,18 @@ This will give us a result vector (kind `Seq[_]`) with the dimension of our spec
 
 # IO
 
-We want to save our net to reuse or share the efforts of a hard, long training phase. 
-The computed weights are the precious part of the net, so in the component `neuroflow.application.plugin.IO` 
-we will find functionality to build a `WeightProvider` from IO and to write them to file. 
+In the component `neuroflow.application.plugin.IO` we will find functionality to save and load nets, especially weights.
 Scala Pickling is used as the (de-)serialization framework. Example:
 
 ```scala
-val file = "/path/to/net.json"
+val file = "/path/to/net.nf"
 implicit val wp = File.read(file)
 val net = Network(layers)
 File.write(net, file)
 ```
 
-Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net.
-Afterwards it will be saved to the same file with `File.write`. If the desired target is a database, 
-simply use `Json.write` instead and save it on string-level. However, all important types extend `Serializable`, 
-so feel free to work with the bytes on your own.
+Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net. 
+A net is always constructed like this. Instead of initializing it with random weights, 
+we just load them from file (or json). Afterwards it will be saved to the same file with `File.write`. 
+If the desired target is a database, simply use `Json.write` instead and save it on string-level. 
+However, all important types extend `Serializable`, so feel free to work with the bytes on your own.
