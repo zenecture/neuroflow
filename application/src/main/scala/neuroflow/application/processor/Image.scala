@@ -39,8 +39,6 @@ object Image {
     (0 until img.getHeight) flatMap { h =>
       (0 until img.getWidth) flatMap { w =>
         val c = new Color(img.getRGB(w, h))
-        // For better results we could use a probability of white and black pixels,
-        // so the input will be 0.0 on average, which would lead to faster training.
         (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.0 else 0.0) :: Nil
       }
     }
