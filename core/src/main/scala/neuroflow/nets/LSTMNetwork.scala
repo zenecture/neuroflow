@@ -1,5 +1,7 @@
 package neuroflow.nets
 
+import java.lang.System.identityHashCode
+
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
@@ -8,21 +10,26 @@ import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._
 
-import scala.Seq
 import scala.annotation.tailrec
 import scala.collection._
 
 
 /**
   *
-  * This is a Long Short-Term Memory Network. It is good for learning sequences.
-  * The standard LSTM model is implemented. It comes with recurrent connections
-  * and a dedicated memory cell with input-, output- and forget-gates for each neuron.
-  * Multiple layers can be stacked horizontally, where the current layer gets
-  * input from the lower layers at the same time step and from itself at the
-  * previous time step.
+  * This is a Long Short-Term Memory Network. The standard LSTM model is implemented.
+  * It comes with recurrent connections and a dedicated memory cell with input-, output-
+  * and forget-gates for each neuron. Multiple layers can be stacked horizontally,
+  * where the current layer gets input from the lower layers at the same time step
+  * and from itself at the previous time step.
   *
-  *     (experimental and in progress, things may change, use at own risk)
+  *   Remarks:
+  *
+  *      - Use the positive infinity vector ∞ for training tuples without a target.
+  *      The error will be zero for this particular time step. Example:
+  *         (Coltrane, ∞), (plays, ∞), (the, Blues)
+  *
+  *
+  *   This is work in progress. Things may change. Use at own risk.
   *
   * @author bogdanski
   * @since 07.07.16
@@ -45,11 +52,14 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
 
   private val hiddenLayers = layers.drop(1).dropRight(1)
   private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
-  private val separators = settings.partitions.getOrElse(Nil)
+  private val separators = settings.partitions.getOrElse(Set.empty)
+  private val zeroOutput = DenseMatrix.zeros[Double](1, layers.last.neurons)
 
   // mutable state
   private val memoryCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
-  private var globalInput: Option[Matrices] = None
+  private var xIndices = Map.empty[Int, Int]
+  private var yIndices = Map.empty[Int, Int]
+  private var noTargets = Set.empty[Int]
 
 
   /**
@@ -67,6 +77,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     */
   def evaluate(xs: Seq[Vector]): Seq[Vector] = {
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
+    xIndices = in.map(identityHashCode).zipWithIndex.toMap
     ~> (reset) next unfoldingFlow(in, initialOut, Nil, Nil) map (_.map(_.toArray.toVector))
   }
 
@@ -78,7 +89,9 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     import settings._
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
     val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toList
-    settings.partitions.foreach(_ => globalInput = Some(in))
+    noTargets = ys.zipWithIndex.filter { case (vec, idx) => vec.forall(_ == Double.PositiveInfinity) }.map(_._2).toSet
+    xIndices = in.map(identityHashCode).zipWithIndex.toMap
+    yIndices = out.map(identityHashCode).zipWithIndex.toMap
     run(in, out, learningRate, precision, 0, iterations)
   }
 
@@ -107,6 +120,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     reset()
     val errs = unfoldingFlow(xs, initialOut, Nil, Nil)
     errs.zip(ys).map {
+      case (_, t) if noTargets.contains(yIndices(identityHashCode(t))) => zeroOutput
       case (y, t) => 0.5 * pow(y - t, 2)
     }.reduce(_ + _)
   }
@@ -163,7 +177,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Checks if given matrix `m` is the end of logical input partition.
     */
-  private def isSeparator(m: Matrix): Boolean = globalInput.exists(xs => separators.contains(xs.indexOf(m)))
+  private def isSeparator(m: Matrix): Boolean = separators.contains(xIndices(identityHashCode(m)))
 
   /**
     * Computes this network for a single time step.

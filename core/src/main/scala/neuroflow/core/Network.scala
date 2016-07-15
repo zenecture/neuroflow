@@ -72,7 +72,7 @@ case class Settings(verbose: Boolean = true,
                     errorFuncOutput: Option[ErrorFuncOutput] = None,
                     regularization: Option[Regularization] = None,
                     approximation: Option[Approximation] = None,
-                    partitions: Option[Vector] = None,
+                    partitions: Option[Set[Int]] = None,
                     specifics: Option[Map[String, Double]] = None) extends Serializable
 
 
@@ -128,7 +128,7 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
-      warn("FFNs don't support partitions. This setting has no effect. You may remove it?")
+      warn("FFNs don't support partitions. This setting has no effect.")
   }
 
 }
