@@ -28,7 +28,7 @@ object LanguageProcessing {
 
    */
 
-  val netFile = "/Users/felix/github/unversioned/ct.nf"
+  val netFile = "/Users/felix/github/unversioned/langprocessing.nf"
   val maxSamples = 100
   val dict = word2vec(getResourceFile("file/newsgroup/all-vec.txt"))
 
