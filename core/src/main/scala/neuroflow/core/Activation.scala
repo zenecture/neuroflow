@@ -38,7 +38,7 @@ object Activator {
 
   object CustomSigmoid {
     def apply(f: Int, g: Int, b: Int) = new Activator[Double] {
-      val name = s"λ"
+      val name = s"σ"
       def apply(x: Double): Double = (f / (1 + exp(-x * g))) - b
       def derivative(x: Double): Double = f * exp(x) / pow(exp(x) + 1, 2)
     }
