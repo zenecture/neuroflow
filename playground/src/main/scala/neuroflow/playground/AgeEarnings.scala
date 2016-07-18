@@ -4,6 +4,7 @@ package neuroflow.playground
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
+import neuroflow.application.processor.Util._
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
@@ -28,7 +29,7 @@ object AgeEarnings {
 
   def apply = {
 
-    val src = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("file/income.txt")).getLines().map(_.split(",")).flatMap(k => {
+    val src = scala.io.Source.fromFile(getResourceFile("file/income.txt")).getLines.map(_.split(",")).flatMap(k => {
       (if (k.size > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
     }).toList
 
