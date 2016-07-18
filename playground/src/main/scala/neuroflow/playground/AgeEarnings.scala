@@ -1,14 +1,12 @@
 package neuroflow.playground
 
 
+import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.application.processor.Util._
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
-
-import scala.io.Source
 
 /**
   * @author bogdanski
