@@ -1,6 +1,6 @@
 package neuroflow.playground
 
-import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.Activator._
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
@@ -37,12 +37,12 @@ object Trending {
     val declineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 1.0 - i)) // Linear decline trend
     val squareTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i * i)) // Square trend
     val squareDeclineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (-1 * i * i) + 1.0)) // Square decline trend
-    val jammingTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.5*Math.sin(3*i))) // Jamming trend
-    val heroZeroTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.5*Math.cos(6*i) + 0.5)) // Hero, to Zero, to Hero
-    val oscillating = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (Math.sin(100*i) / 3) + 0.5)) // Oscillating
-    val oscillatingUp = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100*i) / 3))) // Oscillating Up Trend
-    val oscillatingDown = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, -i + (Math.sin(100*i) / 3) + 1)) // Oscillating Down Trend
-    val realWorld = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100*i) / 3) * Random.nextDouble)) // Real world data
+    val jammingTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.5 * Math.sin(3 * i))) // Jamming trend
+    val heroZeroTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.5 * Math.cos(6 * i) + 0.5)) // Hero, to Zero, to Hero
+    val oscillating = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (Math.sin(100 * i) / 3) + 0.5)) // Oscillating
+    val oscillatingUp = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100 * i) / 3))) // Oscillating Up Trend
+    val oscillatingDown = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, -i + (Math.sin(100 * i) / 3) + 1)) // Oscillating Down Trend
+    val realWorld = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100 * i) / 3) * Random.nextDouble)) // Real world data
     val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, Random.nextDouble)) // Random
 
 

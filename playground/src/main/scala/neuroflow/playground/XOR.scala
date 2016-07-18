@@ -53,6 +53,7 @@ object XOR {
 //        println(s"$x1, $x2, ${net.evaluate(Seq(x1, x2)).head}")
 //      }
 //    }
+
   }
 
 }
