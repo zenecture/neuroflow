@@ -144,7 +144,7 @@ object Sequences {
     val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Output(2, f) :: HNil,
       Settings(iterations = 2000,
         learningRate = 0.2,
-        partitions = Some(Set(a.indexOf(a.last))),
+        partitions = Some(Set(a.indices.last)),
         approximation = Some(Approximation(1E-9))))
 
     net.train(all.map(_._1), all.map(_._2))
