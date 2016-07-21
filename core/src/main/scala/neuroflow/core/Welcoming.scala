@@ -19,7 +19,7 @@ trait Welcoming { self: Network =>
       |   /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 0.301-SNAPSHOT
+      |         Version 0.304-SNAPSHOT
       |
       |         Network: ${this.getClass.getCanonicalName}
       |         Layout: ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
