@@ -72,7 +72,7 @@ If we would need a more complex net, we would simply stack layers and functions:
 val f = Sigmoid
 val g = Tanh
 val settings = Settings(verbose = true, learningRate = 0.01, precision = 0.001, maxIterations = 200)
-val net = Network(Input(50) :: Hidden(20, f) :: Hidden(10, g) :: Output(2, fn) :: HNil, settings)
+val net = Network(Input(50) :: Hidden(20, f) :: Hidden(10, g) :: Output(2, f) :: HNil, settings)
 ```
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
