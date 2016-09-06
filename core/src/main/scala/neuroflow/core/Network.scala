@@ -119,7 +119,7 @@ trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welco
 }
 
 
-trait FeedForwardNetwork extends Network with IllusionBreaker {
+trait FeedForwardNetwork extends Network {
 
   /**
     * Takes the input vector `x` to compute the output vector.
@@ -134,7 +134,7 @@ trait FeedForwardNetwork extends Network with IllusionBreaker {
 }
 
 
-trait RecurrentNetwork extends Network with IllusionBreaker {
+trait RecurrentNetwork extends Network {
 
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
