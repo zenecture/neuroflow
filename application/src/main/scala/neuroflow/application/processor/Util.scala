@@ -3,7 +3,9 @@ package neuroflow.application.processor
 import java.io.{BufferedInputStream, File, FileInputStream}
 
 import neuroflow.common.~>
-import neuroflow.core.Network
+
+import scala.collection.immutable.Stream
+import scala.util.Random
 
 /**
   * @author bogdanski
@@ -49,6 +51,17 @@ object Util {
     */
   implicit class Crossable[X](xs: Traversable[X]) {
     def cross[Y](ys: Traversable[Y]) = for (x <- xs; y <- ys) yield (x, y)
+  }
+
+  /**
+    * Builds a stream of random alpha chars. (Variation from scala.util.Random)
+    */
+  def alpha: Stream[Char] = {
+    def nextAlpha: Char = {
+      val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+      chars.charAt(Random.nextInt(chars.length))
+    }
+    Stream.continually(nextAlpha)
   }
 
 }
