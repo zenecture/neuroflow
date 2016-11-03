@@ -93,6 +93,8 @@ trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welco
 
   checkSettings()
 
+  val identifier: String
+
   /**
     * Settings of this neural network.
     */

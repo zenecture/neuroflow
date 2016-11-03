@@ -21,6 +21,7 @@ trait Welcoming { self: Network =>
       |
       |         Version 0.3
       |
+      |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
       |         Layout: ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
       |         Number of Weights: ${weights.map(_.size).sum}
