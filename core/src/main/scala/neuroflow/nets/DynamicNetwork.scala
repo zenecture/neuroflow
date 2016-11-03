@@ -5,8 +5,10 @@ import breeze.numerics._
 import breeze.stats._
 import neuroflow.core._
 import neuroflow.core.Network._
+
 import scala.annotation.tailrec
 import scala.collection.Seq
+import scala.util.Random
 
 /**
   *
@@ -31,7 +33,8 @@ object DynamicNetwork {
 }
 
 
-private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights)
+private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
+                                        identifier: String = Random.alphanumeric.take(3).mkString)
   extends FeedForwardNetwork with EarlyStoppingLogic {
 
   import neuroflow.core.Network._

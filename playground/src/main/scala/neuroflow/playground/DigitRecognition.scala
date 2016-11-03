@@ -2,6 +2,7 @@ package neuroflow.playground
 
 import neuroflow.application.processor.Image._
 import neuroflow.application.processor.Util._
+import neuroflow.common.~>
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
@@ -43,10 +44,9 @@ object DigitRecognition {
 
     val setsResult = sets map { set => set map { d => d flatMap { xs => nets map { _.evaluate(xs) } } reduce((a, b) => a.zip(b) map (l => l._1 + l._2)) map (end => end / nets.size) } }
 
-    ('a' to 'h') zip setsResult foreach { pair =>
-      val (char, res) = pair
-      println(s"set $char:")
-      (0 to 9) foreach { digit => println(s"$digit classified as " + res(digit).indexOf(res(digit).max)) }
+    ('a' to 'h') zip setsResult foreach {
+      case (char, res) =>
+        ~> (println(s"set $char:")) next (0 to 9) foreach { digit => println(s"$digit classified as " + res(digit).indexOf(res(digit).max)) }
     }
 
   }

@@ -9,6 +9,7 @@ import neuroflow.core._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
+import scala.util.Random
 
 
 /**
@@ -31,7 +32,8 @@ object LBFGSNetwork {
 }
 
 
-private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights) extends FeedForwardNetwork {
+private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
+                                      identifier: String = Random.alphanumeric.take(3).mkString) extends FeedForwardNetwork {
 
   import neuroflow.core.Network._
 
