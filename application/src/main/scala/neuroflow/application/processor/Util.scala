@@ -54,12 +54,23 @@ object Util {
   }
 
   /**
-    * Builds a stream of random alpha chars. (Variation from scala.util.Random)
+    * Builds a stream of random alpha chars.
+    * (Variation from scala.util.Random)
     */
-  def alpha: Stream[Char] = {
+  def alpha(chars: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"): Stream[Char] = {
     def nextAlpha: Char = {
-      val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
       chars.charAt(Random.nextInt(chars.length))
+    }
+    Stream.continually(nextAlpha)
+  }
+
+  /**
+    * Builds a stream of random alpha chars, excluding those in `n`.
+    */
+  def alphaNot(n: String, chars: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"): Stream[Char] = {
+    def nextAlpha: Char = {
+      val cs = chars.filterNot(c => n.toUpperCase.contains(c))
+      cs.charAt(Random.nextInt(cs.length))
     }
     Stream.continually(nextAlpha)
   }
