@@ -136,24 +136,34 @@ object Sequences {
     import neuroflow.nets.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
-    val stepSize = 0.1
-    val a = Range.Double(-1.0, 0.0, stepSize).map(x => (->(sin(10 * x)), ->(-1.0, 1.0)))
-    val b = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(3 * x)), ->(1.0, -1.0)))
+    val stepSize = 0.01
+    val a = Range.Double.inclusive(-1.0, 0.0, stepSize).map(x => (->(sin(10 * x)), ∞(2))).dropRight(1) :+ (->(sin(0.0)), ->(-1.0, 1.0))
+    val b = Range.Double.inclusive(0.0, 1.0, stepSize).map(x => (->(cos(3 * x)), ∞(2))).dropRight(1) :+ (->(cos(3 * 1.0)), ->(1.0, -1.0))
     val all = a ++ b
     val f = Tanh
-    val net = Network(Input(1) :: Hidden(3, f) :: Hidden(3, f) :: Output(2, f) :: HNil,
-      Settings(iterations = 2000,
+    val net = Network(Input(1) :: Hidden(3, f) :: Output(2, f) :: HNil,
+      Settings(iterations = 500 ,
         learningRate = 0.2,
         partitions = Some(Set(a.indices.last)),
         approximation = Some(Approximation(1E-9))))
 
     net.train(all.map(_._1), all.map(_._2))
 
-    val resA = net.evaluateMean(a.map(_._1))
+    val resA = net.evaluate(a.map(_._1)).last
     println("sin(10x) classified as: " + resA)
 
-    val resB = net.evaluateMean(b.map(_._1))
+    val resB = net.evaluate(b.map(_._1)).last
     println("cos(3x) classified as: " + resB)
+
+    /*
+
+    [main] INFO neuroflow.nets.LSTMNetwork - [23.02.2017 00:49:42:592] Taking step 498 - Mean Error 0,00175740 - Error Vector 0.0018376699960378448  0.001677134755030868
+    [main] INFO neuroflow.nets.LSTMNetwork - [23.02.2017 00:49:42:835] Taking step 499 - Mean Error 0,00175292 - Error Vector 0.0018329138945172479  0.0016729262855594948
+    [main] INFO neuroflow.nets.LSTMNetwork - [23.02.2017 00:49:43:092] Took 500 iterations of 500 with Mean Error = 0,00175
+    sin(10x) classified as: Vector(-0.9493479343178891, 0.9487560367367897)
+    cos(3x) classified as: Vector(0.9669737809893943, -0.9733254272618534)
+
+     */
 
   }
 
