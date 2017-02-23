@@ -14,7 +14,7 @@ import scala.util.Random
   *
   * Same as DefaultNetwork, but it uses the Armijo–Goldstein condition
   * to adapt the learning rate to an optimal value. This promises faster convergence,
-  * but comes with more computational overhead than gradient descent.
+  * but comes with more computational overhead than DefaultNetwork.
   *
   * Here, the learning parameter should be a large starting value, e.g. 10.
   *
