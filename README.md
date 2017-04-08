@@ -110,7 +110,7 @@ gnuplot> plot '~/NF/errorFunc.txt' with linespoints ls 1
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph.png" width=400 height=400 />
 
-If you want to be more flexible, e.g. piping the error to a real-time dashboard, 
+If you want to be more flexible, e.g. piping the error over the wire to a real-time dashboard, 
 you can provide a `closure` of type `Double => Unit` that gets asynchronously executed 
 with the respective error as input after each training epoch.
 
