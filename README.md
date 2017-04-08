@@ -91,7 +91,7 @@ net.train(xs, ys)
 
 The training progress will appear on console so we can track it. 
 If you want to visualize the error function graph during training,
-you can pipe the output to any `file` using the optional `ErrorFuncOutput` setting:
+you can pipe the `ErrorFuncOutput` to any `file` like this:
 
 ```scala
     Settings(
@@ -101,7 +101,7 @@ you can pipe the output to any `file` using the optional `ErrorFuncOutput` setti
     )
 ```
 
-Then, you can, e.g. using gnuplot, visualize the error:
+Let's use beloved gnuplot to come up with a plot of our error function over time:
 
 ```bash
 gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
