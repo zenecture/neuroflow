@@ -91,9 +91,9 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     * Evaluates the error function Σ1/2(prediction(x) - observation)².
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
-    xs.zip(ys).par.map { t =>
-      val (x, y) = t
-      0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
+    xs.zip(ys).par.map {
+      case (x, y) =>
+        0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
     }.reduce(_ + _)
   }
 
@@ -135,23 +135,23 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   private def errorFuncDerivative(xs: Matrices, ys: Matrices,
                               weightLayer: Int, weight: (Int, Int)): Matrix = {
-    xs.zip(ys).map { t =>
-      val (x, y) = t
-      val ws = weights.map(_.copy)
-      ws(weightLayer).update(weight, 1.0)
-      ws(weightLayer).foreachKey(k => if (k != weight) ws(weightLayer).update(k, 0.0))
-      val in = flow(x, 0, weightLayer - 1).map { i =>
-        layers(weightLayer) match {
-          case h: HasActivator[Double] => h.activator(i)
-          case _ => i
+    xs.zip(ys).map {
+      case (x, y) =>
+        val ws = weights.map(_.copy)
+        ws(weightLayer).update(weight, 1.0)
+        ws(weightLayer).foreachKey(k => if (k != weight) ws(weightLayer).update(k, 0.0))
+        val in = flow(x, 0, weightLayer - 1).map { i =>
+          layers(weightLayer) match {
+            case h: HasActivator[Double] => h.activator(i)
+            case _ => i
+          }
         }
-      }
-      val ds = layers.drop(weightLayer + 1).map {
-        case h: HasActivator[Double] =>
-          val i = layers.indexOf(h) - 1
-          flow(x, 0, i).map(h.activator.derivative)
-      }
-      (flow(x, 0, layers.size - 1) - y) :* chain(ds, ws, in, weightLayer, 0)
+        val ds = layers.drop(weightLayer + 1).map {
+          case h: HasActivator[Double] =>
+            val i = layers.indexOf(h) - 1
+            flow(x, 0, i).map(h.activator.derivative)
+        }
+        (flow(x, 0, layers.size - 1) - y) :* chain(ds, ws, in, weightLayer, 0)
     }.reduce(_ + _)
   }
 
