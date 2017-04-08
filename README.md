@@ -33,11 +33,8 @@ resolvers ++= Seq(
 )
 ```
 
-Seeing code examples is a good way to get started. 
-You may have a look at the playground for some inspiration.
-
-If you want to use neural nets in your project, 
-you can expect a journey full of fun and experiments.
+Seeing code examples is a good way to get started. You may have a look at the playground for some inspiration.
+If you want to use neural nets in your project, you can expect a journey full of fun and experiments.
 
 # Construction of a Net  
 
