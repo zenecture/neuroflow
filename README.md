@@ -36,9 +36,8 @@ resolvers ++= Seq(
 Seeing code examples is a good way to get started. 
 You may have a look at the playground for some inspiration.
 
-If you want to use neural nets in your project, you can expect a journey full of experiments.
-
-Never forget, each challenge is unique.
+If you want to use neural nets in your project, 
+you can expect a journey full of fun and experiments.
 
 # Construction of a Net  
 
@@ -90,8 +89,30 @@ val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys)
 ```
 
-The learning progress will appear on console so we can track it. 
-Bear in mind that a net may have mutable state inside and is not thread-safe. 
+The training progress will appear on console so we can track it. 
+If you want to visualize the error function graph during training,
+you can pipe the output to any `file` using the optional `ErrorFuncOutput` setting:
+
+```scala
+    Settings(
+      errorFuncOutput = Some(ErrorFuncOutput(
+        file = Some("~/NF/errorFunc.txt"), 
+        closure = Some(error => proceed(error))))
+    )
+```
+
+Then, you can, e.g. using gnuplot, visualize the error:
+
+```bash
+gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
+gnuplot> plot '~/NF/errorFunc.txt' with linespoints ls 1
+```
+
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph.png" width=400 height=400 />
+
+If you want to be more flexible, e.g. piping the error to a real-time dashboard, 
+you can provide a `closure` of type `Double => Unit` that gets asynchronously executed 
+with the respective error as input after each training epoch.
 
 # Evaluation
 
