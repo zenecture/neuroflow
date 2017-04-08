@@ -77,8 +77,8 @@ If a network doesn't follow this rule, it won't compile.
 # Training
 
 Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. 
-By design, the type signature of `train` is `Seq[Seq[_]]`, 
-because this promises the most general (Seq, List, Vector, ...) case in Scala.
+By design, the type signature of `train` is `Seq[Seq[_]]`, since this promises the most general case when working with external data. 
+For our little example, let's simply define the training data using the vector notation:
 
 ```scala
 val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
@@ -87,7 +87,7 @@ net.train(xs, ys)
 ```
 
 The training progress will appear on console so we can track it. 
-If you want to visualize the error function graph during training,
+If you want to visualize the error function graph during training, 
 you can pipe the `ErrorFuncOutput` to any `file` like this:
 
 ```scala
