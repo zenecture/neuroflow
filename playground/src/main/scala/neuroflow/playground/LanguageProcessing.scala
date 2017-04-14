@@ -1,7 +1,7 @@
 package neuroflow.playground
 
 import neuroflow.application.plugin.IO._
-import neuroflow.application.plugin.Style._
+import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator._
 import neuroflow.core._

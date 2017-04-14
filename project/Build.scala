@@ -10,7 +10,6 @@ object NeuroflowBuild extends Build {
     organization in ThisBuild := "com.zenecture",
     version := "0.400",
     scalaVersion := "2.11.8",
-    scalacOptions := Seq("-Xlog-implicits"),
     assemblyMergeStrategy in assembly := {
       case x => MergeStrategy defaultMergeStrategy x
     }

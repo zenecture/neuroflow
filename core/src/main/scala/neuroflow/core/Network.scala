@@ -62,7 +62,7 @@ trait Constructor[+T <: Network] {
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
-  * With `partitions` a training sequence for RNNs can be logically partitioned (0 index-based).
+  * With `partitions` a training sequence can be logically partitioned (0 index-based).
   * Some nets require specific parameters in the `specifics` mapping.
   */
 case class Settings(verbose: Boolean = true,

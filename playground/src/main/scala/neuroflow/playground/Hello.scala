@@ -1,7 +1,7 @@
 package neuroflow.playground
 
 import neuroflow.application.processor.Util._
-import neuroflow.application.plugin.Style._
+import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator.Tanh
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
