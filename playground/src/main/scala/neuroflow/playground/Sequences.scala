@@ -21,6 +21,7 @@ object Sequences {
     linear2cosinesine
     cosinesineClassification
     randomPointMapping
+    randomPointClassification
   }
 
   def cosine2sineFFN = {
@@ -126,8 +127,8 @@ object Sequences {
    /*
 
        Feeds the net with the input sequence sin(10x) from -1 to 0
-       followed by cos(3x) from 0 to 1. The first sine wave gets class ->(1, -1),
-       the second cosine wave gets class ->(-1, 1). The input is partitioned.
+       followed by cos(3x) from 0 to 1. The first sine wave gets class ->(-1, 1),
+       the second cosine wave gets class ->(1, -1). The input is partitioned.
        The task is to infer the correct class for both waves.
 
    */
@@ -171,7 +172,7 @@ object Sequences {
 
   /*
 
-      Learn to map between random sequence points ρ in 3-dimensional space.
+      Learn to map between sequences of random points ρ in 3-dimensional space.
 
   */
 
@@ -196,6 +197,61 @@ object Sequences {
 
     println(ys)
     println(res)
+
+  }
+
+
+  /*
+
+      Learn to classify sequences of { random k-dimensional points ρ } of length n in c-dimensional space.
+
+  */
+
+  def randomPointClassification = {
+
+    import neuroflow.nets.LSTMNetwork._
+    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+
+    val (c, n, k) = (5, 5, 3)
+
+    val all = (0 until c).flatMap { cc =>
+      (0 until n).map { _ => (ρ(k), ζ(c).updated(cc, 1.0)) }
+    }
+
+    val f = Tanh
+    val net = Network(Input(k) :: Hidden(10, f) :: Output(c, f) :: HNil,
+      Settings(iterations = 2500,
+        learningRate = 0.2,
+        partitions = Some(Π(c, n)),
+        errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/pointClass.txt"))),
+        approximation = Some(Approximation(1E-9))))
+
+    net.train(all.map(_._1), all.map(_._2))
+
+    all.map(_._1).grouped(c).zipWithIndex.foreach {
+      case (cc, i) =>
+        val r = net.evaluate(cc).last
+        println("Output: " + r)
+        println(s"=> Sequence $i classified as: " + r.indexOf(r.max))
+    }
+
+    /*
+
+    [main] INFO neuroflow.nets.LSTMNetwork - [14.04.2017 21:37:43:334] Taking step 2498 - Mean Error 0,0199973 - Error Vector 0.020348676062929685  0.015328818670401966  0.007982609467666121  ... (5 total)
+    [main] INFO neuroflow.nets.LSTMNetwork - [14.04.2017 21:37:43:800] Taking step 2499 - Mean Error 0,0199750 - Error Vector 0.019562583517121535  0.015703208667418915  0.0078807582526649  ... (5 total)
+    [main] INFO neuroflow.nets.LSTMNetwork - [14.04.2017 21:37:44:275] Took 2500 iterations of 2500 with Mean Error = 0,0200
+    Output: Vector(0.9983561787908275, 0.00549805210656058, -0.024722029600166257, 0.012735524753142598, -0.00959132263403632)
+    => Sequence 0 classified as: 0
+    Output: Vector(-0.0017782985398927835, 0.9938773198502886, -3.935141218154506E-4, -0.006980498594619799, -0.004807550594164794)
+    => Sequence 1 classified as: 1
+    Output: Vector(0.0023940193784388526, 0.0013108505102978343, 0.9992664895156691, 0.007636462978281285, -9.36923708285344E-4)
+    => Sequence 2 classified as: 2
+    Output: Vector(-0.0100093929191527, 0.007742858109792495, 5.854930380571284E-4, 0.9852257956323768, 0.0035237886209175113)
+    => Sequence 3 classified as: 3
+    Output: Vector(0.006617376032490632, 0.012248865250137905, 6.528306302873112E-4, 0.015044261312782317, 0.9992332431978462)
+    => Sequence 4 classified as: 4
+
+     */
 
   }
 

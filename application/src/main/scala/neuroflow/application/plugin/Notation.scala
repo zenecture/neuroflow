@@ -14,6 +14,9 @@ object Notation {
   def infinity(dimension: Int): Vector[Double] = (0 until dimension).map(_ => Double.PositiveInfinity).toVector
   def ∞(dimension: Int): Vector[Double] = infinity(dimension)
 
+  def zero(dimension: Int): Vector[Double] = (0 until dimension).map(_ => 0.0).toVector
+  def ζ(dimension: Int): Vector[Double] = zero(dimension)
+
   def random(dimension: Int): Vector[Double] = random(dimension, 0.0, 1.0)
   def random(dimension: Int, a: Double, b: Double): Vector[Double] = (0 until dimension).map(_ => ThreadLocalRandom.current.nextDouble(a, b)).toVector
   def ρ(dimension: Int): Vector[Double] = random(dimension)
