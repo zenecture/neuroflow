@@ -1,13 +1,8 @@
 package neuroflow.common
 
-import java.io.{File, FileOutputStream, PrintWriter}
-
 import breeze.util.LazyLogger
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 /**
   * @author bogdanski
@@ -39,4 +34,3 @@ trait Logs extends Loggable[Unit] {
   def info(message: String): Unit = logger.info(format(message))
 
 }
-
