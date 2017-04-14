@@ -19,14 +19,14 @@ trait ErrorFuncGrapher { self: Network =>
     */
   def maybeGraph(error: Double): Unit = Future {
     try {
-      self.settings.errorFuncOutput.map { efo =>
+      self.settings.errorFuncOutput.foreach { efo =>
         val handleOpt = efo.file
           .map(f => new PrintWriter(new FileOutputStream(new File(f), true)))
         handleOpt.foreach(_.println(error))
         handleOpt.foreach(_.close())
         efo.closure.foreach(_(error))
       }
-    } catch { case any: Exception => }
+    } catch { case _: Exception => }
   }
 
 }

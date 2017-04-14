@@ -1,5 +1,6 @@
 package neuroflow.playground
 
+import neuroflow.application.plugin.Style
 import neuroflow.application.plugin.Style._
 import neuroflow.core.Activator._
 import neuroflow.core._
@@ -20,6 +21,7 @@ object Sequences {
     linear2Step
     linear2cosinesine
     cosinesineClassification
+    randomPointMapping
   }
 
   def cosine2sineFFN = {
@@ -164,6 +166,37 @@ object Sequences {
     cos(3x) classified as: Vector(0.9669737809893943, -0.9733254272618534)
 
      */
+
+  }
+
+
+  /*
+
+      Learn to map between random sequences points in 3-dimensional space.
+
+  */
+
+  def randomPointMapping = {
+
+    import neuroflow.nets.LSTMNetwork._
+    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+
+    val xs = (1 to 9) map (_ => Style.random(3))
+    val ys = (1 to 9) map (_ => Style.random(3))
+
+    val net = Network(Input(3) :: Hidden(6, Tanh) :: Output(3, Tanh) :: HNil,
+      Settings(iterations = 2000,
+        learningRate = 0.5,
+        approximation = Some(Approximation(1E-9)),
+        errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/lstm.txt"))),
+        partitions = Some(Π(3, 3))))
+
+    net.train(xs, ys)
+
+    val res = net.evaluate(xs)
+
+    println(ys)
+    println(res)
 
   }
 
