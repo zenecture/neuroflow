@@ -1,6 +1,6 @@
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
-import neuroflow.application.plugin.Style.->
+import neuroflow.application.plugin.Notation.->
 import neuroflow.application.processor.Normalizer
 
 /**

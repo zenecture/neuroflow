@@ -1,7 +1,6 @@
 package neuroflow.playground
 
-import neuroflow.application.plugin.Style
-import neuroflow.application.plugin.Style._
+import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import shapeless._
@@ -172,7 +171,7 @@ object Sequences {
 
   /*
 
-      Learn to map between random sequences points in 3-dimensional space.
+      Learn to map between random sequence points ρ in 3-dimensional space.
 
   */
 
@@ -181,8 +180,8 @@ object Sequences {
     import neuroflow.nets.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
-    val xs = (1 to 9) map (_ => Style.random(3))
-    val ys = (1 to 9) map (_ => Style.random(3))
+    val xs = (1 to 9) map (_ => ρ(3))
+    val ys = (1 to 9) map (_ => ρ(3))
 
     val net = Network(Input(3) :: Hidden(6, Tanh) :: Output(3, Tanh) :: HNil,
       Settings(iterations = 2000,

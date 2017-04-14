@@ -43,7 +43,7 @@ If you want to use neural nets in your project, you can expect a journey full of
 Let's construct the net depicted above. First, we have to pick the desired behavior:
 
 ```scala
-import neuroflow.application.plugin.Style._
+import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._

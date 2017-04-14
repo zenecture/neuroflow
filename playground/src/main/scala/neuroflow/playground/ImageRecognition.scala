@@ -1,6 +1,6 @@
 package neuroflow.playground
 
-import neuroflow.application.plugin.Style._
+import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.application.processor.Image._
 import neuroflow.core.Activator.Sigmoid
