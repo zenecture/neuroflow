@@ -17,7 +17,7 @@ object XOR {
 
     /*
 
-       The XOR-function is not linearily separable, thus we need
+       The XOR-function is not linearly separable, thus we need
        something which naturally copes with non-linearities.
 
        ANNs to the rescue!
