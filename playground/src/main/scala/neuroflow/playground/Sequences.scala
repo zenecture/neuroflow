@@ -15,37 +15,12 @@ import scala.math._
 object Sequences {
 
   def apply = {
-    cosine2sineFFN
     cosine2sineRNN
     linear2Step
     linear2cosinesine
     cosinesineClassification
     randomPointMapping
     randomPointClassification
-  }
-
-  def cosine2sineFFN = {
-
-    /*
-        The FFN will not be able to learn the function cos(10x) -> sin(10x)
-        without using an input time window of higher kinded dimension (see Sinusoidal.scala).
-            ("No need to learn what to store")
-     */
-
-    import neuroflow.nets.DefaultNetwork._
-    implicit val wp = FFN.WeightProvider(-0.2, 0.2)
-
-    val stepSize = 0.1
-    val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
-    val f = Tanh
-    val net = Network(Input(1) :: Hidden(10, f) :: Hidden(10, f) :: Hidden(10, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 2000, learningRate = 0.1))
-
-    net.train(xsys.map(_._1), xsys.map(_._2))
-
-    val res = xsys.map(_._1).map(net.evaluate)
-    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
-
   }
 
   /*
