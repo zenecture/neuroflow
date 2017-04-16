@@ -44,13 +44,18 @@ object Util {
   /**
     * Strips given string `s` to only contain lower case letters.
     */
-  def strip(s: String) = s.replaceAll("[^a-zA-Z ]+", "").toLowerCase
+  def strip(s: String): String = s.replaceAll("[^a-zA-Z ]+", "").toLowerCase
+
+  /**
+    * Pretty prints given seq `v` with separator `sep` as a line record. (e.g. CSV)
+    */
+  def prettyPrint[A](v: Seq[A], sep: String = " "): String = v.foldLeft("")((l, r) => l + r + sep).dropRight(1)
 
   /**
     * Builds the cartesian of two traversables.
     */
   implicit class Crossable[X](xs: Traversable[X]) {
-    def cross[Y](ys: Traversable[Y]) = for (x <- xs; y <- ys) yield (x, y)
+    def cross[Y](ys: Traversable[Y]): Traversable[(X, Y)] = for (x <- xs; y <- ys) yield (x, y)
   }
 
   /**
