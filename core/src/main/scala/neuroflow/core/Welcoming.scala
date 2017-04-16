@@ -32,7 +32,7 @@ trait Welcoming { self: Network =>
 
   private def buildString(l: Layer) =
     l match {
-      case h: HasActivator[_] => s"${h.neurons} (${h.activator.name})"
+      case h: HasActivator[_] => s"${h.neurons} (${h.activator.symbol})"
       case i => l.neurons.toString
     }
 
