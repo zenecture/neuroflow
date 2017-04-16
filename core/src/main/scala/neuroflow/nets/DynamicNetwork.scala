@@ -35,7 +35,7 @@ object DynamicNetwork {
 
 private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                         identifier: String = Random.alphanumeric.take(3).mkString)
-  extends FeedForwardNetwork with EarlyStoppingLogic {
+  extends FeedForwardNetwork with SupervisedTraining with EarlyStoppingLogic {
 
   import neuroflow.core.Network._
 

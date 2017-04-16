@@ -110,13 +110,27 @@ trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welco
     */
   val weights: Weights
 
+  override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
+
+}
+
+trait SupervisedTraining {
+
   /**
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
   def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
 
-  override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
+}
+
+trait UnsupervisedTraining {
+
+  /**
+    * Takes a sequence of input vectors `xs` and trains this
+    * network using the unsupervised learning strategy.
+    */
+  def train(xs: Seq[Vector]): Unit
 
 }
 

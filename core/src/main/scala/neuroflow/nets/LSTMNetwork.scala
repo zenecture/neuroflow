@@ -48,7 +48,7 @@ object LSTMNetwork {
 
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                     identifier: String = Random.alphanumeric.take(3).mkString) extends RecurrentNetwork {
+                                     identifier: String = Random.alphanumeric.take(3).mkString) extends RecurrentNetwork with SupervisedTraining {
 
   import neuroflow.core.Network._
 

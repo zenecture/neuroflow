@@ -33,7 +33,7 @@ object LBFGSNetwork {
 
 
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                      identifier: String = Random.alphanumeric.take(3).mkString) extends FeedForwardNetwork {
+                                      identifier: String = Random.alphanumeric.take(3).mkString) extends FeedForwardNetwork with SupervisedTraining {
 
   import neuroflow.core.Network._
 
@@ -74,12 +74,13 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       * Evaluates the error function Σ1/2(prediction(x) - observation)².
       */
     def errorFunc(v: DVector): Double = {
-      val err = {
+      val err = mean {
         in.zip(out).par.map {
           case (xx, yy) => 0.5 * pow(flow(ws(v, 0), xx, 0, layers.size - 1) - yy, 2)
         }.reduce(_ + _)
       }
-      mean(err)
+      maybeGraph(err)
+      err
     }
 
     /**
@@ -122,7 +123,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   /**
     * Computes the network recursively from `cursor` until `target`.
     */
-  @tailrec private def flow(weights: Weights, in: Matrix, cursor: Int, target: Int): Matrix = {
+  @tailrec final protected def flow(weights: Weights, in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
     else {
       val processed = layers(cursor) match {
