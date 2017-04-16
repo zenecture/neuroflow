@@ -1,6 +1,7 @@
 package neuroflow.core
 
 import breeze.generic._
+import breeze.linalg.max
 import breeze.numerics._
 
 /**
@@ -26,9 +27,21 @@ trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializab
 }
 
 /**
-  * Common pre-build activator/squashing functions.
+  * Activator functions.
   */
 object Activator {
+
+  object ReLU extends Activator[Double] {
+    val name = "R"
+    def apply(x: Double): Double = max(0.0, x)
+    def derivative(x: Double): Double = if (x > 0.0) 1.0 else 0.0
+  }
+
+  object Softplus extends Activator[Double] {
+    val name = "Σ"
+    def apply(x: Double): Double = log(1 + exp(x))
+    def derivative(x: Double): Double = exp(x) / (exp(x) + 1)
+  }
 
   object Sigmoid extends Activator[Double] {
     val name = "σ"
