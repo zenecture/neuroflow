@@ -22,11 +22,7 @@ libraryDependencies ++= Seq(
   "com.zenecture" %% "neuroflow-core" % "0.500",
   "com.zenecture" %% "neuroflow-application" % "0.500"
 )
-```
 
-Usually the Sonatype repository resolvers are provided by default. However, sometimes the explicit definition is needed:
-
-```scala
 resolvers ++= Seq(
   "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
