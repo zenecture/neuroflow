@@ -113,7 +113,7 @@ val result = net.evaluate(->(0.0, 1.0))
 // result: Vector(0.9785958704533262)
 ```
 
-This will give us a result vector (kind `Seq[_]`) with the dimension of our specified output layer.
+This will give us a result vector with the dimension of our specified output layer.
 
 # IO
 
