@@ -13,7 +13,7 @@ import shapeless._
   * @since 12.06.16
   */
 
-object Hello {
+object AudioFileClassification {
 
   /*
 

@@ -71,7 +71,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     }
 
     /**
-      * Evaluates the error function Σ1/2(prediction(x) - observation)².
+      * Evaluates the error function Σ1/2(prediction(x) - observation)² in parallel.
       */
     def errorFunc(v: DVector): Double = {
       val err = mean {

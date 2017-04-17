@@ -1,6 +1,8 @@
 package neuroflow.playground
 
-import neuroflow.application.plugin.IO._
+import java.io.File
+
+import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator._
@@ -28,6 +30,7 @@ object LanguageProcessing {
 
    */
 
+
   val netFile = "/Users/felix/github/unversioned/langprocessing.nf"
   val maxSamples = 100
   val dict = word2vec(getResourceFile("file/newsgroup/all-vec.txt"))
@@ -45,6 +48,17 @@ object LanguageProcessing {
     val n = v.size.toDouble
     vs.map(_ / n)
   }
+
+  /**
+    * Parses a word2vec skip-gram `file` to give a map of word -> vector.
+    * Fore more information about word2vec: https://code.google.com/archive/p/word2vec/
+    * Use `dimension` to enforce that all vectors have the same dimension.
+    */
+  def word2vec(file: File, dimension: Option[Int] = None): Map[String, Vector[Double]] =
+    scala.io.Source.fromFile(file).getLines.map { l =>
+      val raw = l.split(" ")
+      (raw.head, raw.tail.map(_.toDouble).toVector)
+    }.toMap.filter(l => dimension.forall(l._2.size == _))
 
   def apply = {
 
@@ -65,14 +79,14 @@ object LanguageProcessing {
 
     net.train(allTrain.map(_._1), allTrain.map(_._2))
 
-    File.write(net, netFile)
+    IO.File.write(net, netFile)
 
   }
 
   def test = {
 
     val net = {
-      implicit val wp = File.read(netFile)
+      implicit val wp = IO.File.read(netFile)
       Network(Input(20) :: Hidden(40, Tanh) :: Hidden(40, Tanh) :: Output(2, Tanh) :: HNil, Settings())
     }
 

@@ -88,7 +88,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)².
+    * Evaluates the error function Σ1/2(prediction(x) - observation)² in parallel.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     xs.zip(ys).par.map {

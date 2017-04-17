@@ -18,5 +18,7 @@ object App extends App {
   LanguageProcessing.apply
   LanguageProcessing.test
   Sequences.apply
+  MovieSimilarity.apply
+  MovieSimilarity.find
 
 }
