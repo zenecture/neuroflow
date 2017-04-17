@@ -21,19 +21,15 @@ class IoTest extends Specification {
     It should:
       - Serialize a net                       $serialize
       - Deserialize a net                     $deserialize
-      - Write to file                         $writeToFile
-      - Read from file                        $readFromFile
 
   """
 
   val layers = Input(2) :: Hidden(3, Sigmoid) :: Output(2, Sigmoid) :: HNil
-  val settings = Settings(true, 0.01, 0.01, 200, None, None, None)
   val measure = {
     import neuroflow.core.FFN.WeightProvider.zeroWeights
-    Network(layers, settings)
+    Network(layers)
   }
-  val asJson = "{\n  \"$type\": \"scala.collection.Seq[breeze.linalg.DenseMatrix[scala.Double]]\",\n  \"elems\": [\n    {\n    \"$type\": \"breeze.linalg.DenseMatrix$mcD$sp\",\n    \"rows\": 2,\n    \"cols\": 3,\n    \"data\": [\n      0.0,\n      0.0,\n      0.0,\n      0.0,\n      0.0,\n      0.0\n    ],\n    \"offset\": 0,\n    \"majorStride\": 2,\n    \"isTranspose\": false\n  },\n    {\n    \"$type\": \"breeze.linalg.DenseMatrix$mcD$sp\",\n    \"rows\": 3,\n    \"cols\": 2,\n    \"data\": [\n      0.0,\n      0.0,\n      0.0,\n      0.0,\n      0.0,\n      0.0\n    ],\n    \"offset\": 0,\n    \"majorStride\": 3,\n    \"isTranspose\": false\n  }\n  ]\n}"
-  val file = "/Users/felix/github/unversioned/savednets/net.json"
+  val asJson = "[[0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0]]"
 
   def serialize = {
     val serialized = Json.write(measure)
@@ -42,19 +38,8 @@ class IoTest extends Specification {
 
   def deserialize = {
     implicit val wp = Json.read(asJson)
-    val deserialized = Network(layers, settings)
-    deserialized.weights === measure.weights
-  }
-
-  def writeToFile = {
-    File.write(measure, file)
-    success
-  }
-
-  def readFromFile = {
-    implicit val wp = File.read(file)
-    val net = Network(layers, settings)
-    net.weights === measure.weights
+    val deserialized = Network(layers)
+    deserialized.weights.toArray.map(_.toArray) === measure.weights.toArray.map(_.toArray)
   }
 
 }

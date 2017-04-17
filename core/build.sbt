@@ -1,9 +1,14 @@
+val circeVersion = "0.7.0"
+
 libraryDependencies  ++= Seq(
   "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly(),
-  "org.scalanlp" %% "breeze" % "0.12",
+  "org.scalanlp" %% "breeze" % "0.13",
   "joda-time" % "joda-time" % "2.8.2",
-  "org.specs2" %% "specs2-core" % "3.6.4" % "test",
-  "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+  "org.specs2" %% "specs2-core" % "3.8.9" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+  "io.circe" %% "circe-core" % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-parser" % circeVersion
 )
 
 resolvers ++= Seq(
