@@ -6,10 +6,23 @@ package neuroflow.application.processor
   */
 object Normalizer {
 
+  object MaxUnit {
+    /**
+      * Normalizes `ys` such that `ys.max == 1.0`
+      */
+    def apply(ys: Seq[Double]): Seq[Double] = ys.map(_ / ys.max)
+  }
 
-  /**
-    * Normalizes `ys` such that `ys.max == 1.0`
-    */
-  def apply(ys: Seq[Double]) = ys.map(_ / ys.max)
+
+
+  object UnitVector {
+    /**
+      * Normalizes `ys` such that the vector components are <= 1.
+      */
+    def apply(ys: Seq[Double]): Seq[Double] = {
+      val length = math.sqrt(ys.map(i => i * i).sum)
+      ys.map(_ / length)
+    }
+  }
 
 }

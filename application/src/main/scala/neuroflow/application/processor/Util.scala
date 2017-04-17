@@ -31,20 +31,24 @@ object Util {
     (s => (s, Stream.continually(s.read).takeWhile(_ != -1).map(_.toByte).toList)) io (_._1.close) map(_._2)
 
   /**
-    * Parses a word2vec skip-gram `file` to give a map of word -> vector.
-    * Fore more information about word2vec: https://code.google.com/archive/p/word2vec/
-    * Use `dimension` to enforce that all vectors have the same dimension.
-    */
-  def word2vec(file: File, dimension: Option[Int] = None): Map[String, Vector[Double]] =
-    scala.io.Source.fromFile(file).getLines.map { l =>
-      val raw = l.split(" ")
-      (raw.head, raw.tail.map(_.toDouble).toVector)
-    }.toMap.filter(l => dimension.forall(l._2.size == _))
-
-  /**
     * Strips given string `s` to only contain lower case letters.
     */
   def strip(s: String): String = s.replaceAll("[^a-zA-Z ]+", "").toLowerCase
+
+  /**
+    * Each element `x` of `xs` will be mapped to `xs` excluding this `x`.
+    * Example:
+    * (1,2,2,3) =>
+    *   1 -> (2,2,3)
+    *   2 -> (1,2,3)
+    *   2 -> (1,2,3)
+    *   3 -> (1,2,2)
+    */
+  def shuffle[T](xs: Seq[T]): Seq[(T, Seq[T])] =
+    if(xs.size > 1) {
+      val xz = xs.zipWithIndex
+      xz.map { case (x, i) => x -> xz.filter(_._2 != i).map(_._1) }
+    } else xs.map(x => x -> Seq(x))
 
   /**
     * Pretty prints given seq `v` with separator `sep` as a line record. (e.g. CSV)
