@@ -123,17 +123,16 @@ This will give us a result vector (kind `Seq[_]`) with the dimension of our spec
 
 # IO
 
-In the component `neuroflow.application.plugin.IO` there is functionality to save and load the weights of a net.
-The weights are stored as JSON strings. Look at this:
+Using `neuroflow.application.plugin.IO` we can store the weights represented as JSON strings. Look at this:
 
 ```scala
 val file = "/path/to/net.nf"
-implicit val wp = File.read(file)
+implicit val wp = IO.File.read(file)
 val net = Network(layers)
-File.write(net, file)
+IO.File.write(net, file)
 ```
 
-Here, `File.read` will yield an implicit `WeightProvider` from file to construct a net.
-Afterwards, the weights will be saved to the same file with `File.write`. 
-If the desired target is a database, simply use `Json.write` instead and save it as a raw JSON string. 
+Here, `IO.File.read` will yield an implicit `WeightProvider` from file to construct a net.
+Afterwards, the weights will be saved to the same file with `IO.File.write`. 
+If the desired target is a database, simply use `IO.Json.write` instead and save it as a raw JSON string. 
 However, all important types extend `Serializable`, so feel free to work with the bytes on your own.
