@@ -7,7 +7,7 @@ package neuroflow.playground
 
 object App extends App {
 
-  print("Run example: ")
+  print("Run example (1-12): ")
 
   scala.io.StdIn.readInt() match {
     case  1 => XOR.apply
