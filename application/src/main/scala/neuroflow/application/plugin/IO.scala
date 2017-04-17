@@ -2,13 +2,12 @@ package neuroflow.application.plugin
 
 import java.io.{File, PrintWriter}
 
+import breeze.linalg.DenseMatrix
 import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
 import neuroflow.core.{Layer, Network, WeightProvider}
 
 import scala.io.Source
-import scala.pickling.Defaults._
-import scala.pickling.json._
 
 /**
   * @author bogdanski
@@ -17,17 +16,24 @@ import scala.pickling.json._
 object IO extends Logs {
 
   object Json {
+
+    import io.circe.parser._
+    import io.circe.syntax._
+
     /**
       * Deserializes weights as `json` to construct a `WeightProvider`
       */
     def read(json: String): WeightProvider = new WeightProvider {
-      def apply(v1: Seq[Layer]): Weights = JSONPickle(json).unpickle[Weights]
+      def apply(v1: Seq[Layer]): Weights = decode[Array[Array[Double]]](json) match {
+        case Left(t) => throw t
+        case Right(ws) => ws.map(DenseMatrix(_))
+      }
     }
 
     /**
       * Serializes weights of `network` to json string
       */
-    def write(network: Network): String = network.weights.pickle.value
+    def write(network: Network): String = network.weights.toArray.map(_.toArray).asJson.noSpaces
   }
 
 

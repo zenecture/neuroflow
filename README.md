@@ -15,12 +15,12 @@ This project consists of three modules:
     
 # Getting Started
 
-To use Neuroflow within your project, add these dependencies (Scala Version 2.11.x):
+To use Neuroflow within your project, add these dependencies (Scala Version 2.11.8, 2.12.1):
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" % "neuroflow-core_2.11" % "0.500",
-  "com.zenecture" % "neuroflow-application_2.11" % "0.500"
+  "com.zenecture" %% "neuroflow-core" % "0.500",
+  "com.zenecture" %% "neuroflow-application" % "0.500"
 )
 ```
 
