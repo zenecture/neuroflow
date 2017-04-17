@@ -7,18 +7,25 @@ package neuroflow.playground
 
 object App extends App {
 
-  XOR.apply
-  SigGap.apply
-  Trending.apply
-  AgeEarnings.apply
-  ImageRecognition.apply
-  DigitRecognition.apply
-  Sinusoidal.apply
-  Hello.apply
-  LanguageProcessing.apply
-  LanguageProcessing.test
-  Sequences.apply
-  MovieSimilarity.apply
-  MovieSimilarity.find
+  print("Run example: ")
+
+  scala.io.StdIn.readInt() match {
+    case  1 => XOR.apply
+    case  2 => SigGap.apply
+    case  3 => Trending.apply
+    case  4 => AgeEarnings.apply
+    case  5 => ImageRecognition.apply
+    case  6 => DigitRecognition.apply
+    case  7 => Sinusoidal.apply
+    case  8 => AudioFileClassification.apply
+    case  9 => LanguageProcessing.apply
+               LanguageProcessing.test
+    case 10 => Sequences.apply
+    case 11 => MovieSimilarity.apply
+               MovieSimilarity.find
+    case 12 => ParityCluster.apply
+
+    case  _ => sys.exit()
+  }
 
 }
