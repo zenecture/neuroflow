@@ -23,10 +23,7 @@ libraryDependencies ++= Seq(
   "com.zenecture" %% "neuroflow-application" % "0.500"
 )
 
-resolvers ++= Seq(
-  "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
-)
+resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
 ```
 
 Seeing code examples is a good way to get started. You may have a look at the playground for some inspiration.
