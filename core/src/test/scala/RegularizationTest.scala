@@ -25,14 +25,14 @@ class RegularizationTest extends Specification {
 
   def earlyStopping = {
 
-    val (xs, ys) = (Seq(Seq(1.0), Seq(2.0), Seq(3.0)), Seq(Seq(3.2), Seq(5.8), Seq(9.2)))
+    val (xs, ys) = (Vector(Vector(1.0), Vector(2.0), Vector(3.0)), Vector(Vector(3.2), Vector(5.8), Vector(9.2)))
 
     val net = Network(Input(1) :: Hidden(3, Linear) :: Output(1, Linear) :: HNil,
       Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
 
-    net.evaluate(Seq(1.0)) must be equalTo Seq(3.0)
-    net.evaluate(Seq(2.0)) must be equalTo Seq(6.0)
-    net.evaluate(Seq(3.0)) must be equalTo Seq(9.0)
+    net.evaluate(Vector(1.0)) must be equalTo Vector(3.0)
+    net.evaluate(Vector(2.0)) must be equalTo Vector(6.0)
+    net.evaluate(Vector(3.0)) must be equalTo Vector(9.0)
 
     net.shouldStopEarly must be equalTo false
     net.shouldStopEarly must be equalTo true

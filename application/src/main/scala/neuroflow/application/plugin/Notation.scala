@@ -24,4 +24,10 @@ object Notation {
   def partition(step: Int, n: Int): Set[Int] = Range.Int.inclusive(step - 1, step * n, step).toSet
   def Π(step: Int, n: Int): Set[Int] = partition(step, n)
 
+  object Implicits {
+
+    implicit def toVector(seq: Seq[Double]): Vector[Double] = seq.toVector
+
+  }
+
 }

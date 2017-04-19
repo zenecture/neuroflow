@@ -7,13 +7,13 @@ package neuroflow.application.processor
 object Extensions {
 
 
-  implicit class SeqVectorOps(l: Seq[Double]) {
-    def +(r: Seq[Double]): Vector[Double] = (l zip r).map(l => l._1 + l._2).toVector
+  implicit class VectorOps(l: Vector[Double]) {
+    def +(r: Vector[Double]): Vector[Double] = (l zip r).map(l => l._1 + l._2)
   }
 
   object cosineSimilarity {
     import breeze.linalg._
-    def apply(v: Seq[Double], v2: Seq[Double]): Double =
+    def apply(v: scala.Vector[Double], v2: scala.Vector[Double]): Double =
       Breeze.cosineSimilarity(DenseVector(v.toArray), DenseVector(v2.toArray))
   }
 

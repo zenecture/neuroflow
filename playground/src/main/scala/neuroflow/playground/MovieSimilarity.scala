@@ -46,7 +46,7 @@ object MovieSimilarity {
   def apply = {
 
     import neuroflow.core.FFN.WeightProvider._
-    import Extensions.SeqVectorOps
+    import Extensions.VectorOps
 
     val topByUser = observations.take(observationLimit).filter(_.rating == 5).groupBy(_.user).map {
       case (user, ratings) =>

@@ -10,7 +10,7 @@ object Normalizer {
     /**
       * Normalizes `ys` such that `ys.max == 1.0`
       */
-    def apply(ys: Seq[Double]): Seq[Double] = ys.map(_ / ys.max)
+    def apply(ys: Vector[Double]): Vector[Double] = ys.map(_ / ys.max)
   }
 
 
@@ -19,7 +19,7 @@ object Normalizer {
     /**
       * Normalizes `ys` such that the vector components are <= 1.
       */
-    def apply(ys: Seq[Double]): Seq[Double] = {
+    def apply(ys: Vector[Double]): Vector[Double] = {
       val length = math.sqrt(ys.map(i => i * i).sum)
       ys.map(_ / length)
     }

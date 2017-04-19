@@ -8,6 +8,8 @@ import neuroflow.core._
 import neuroflow.nets.LBFGSNetwork._
 import shapeless._
 
+import scala.collection.immutable.Seq
+
 /**
   * @author bogdanski
   * @since 12.06.16
@@ -25,8 +27,8 @@ object AudioFileClassification {
    */
 
   def prepare(s: String) = {
-    val wav = getBytes(getResourceFile(s)).map(_.toDouble).drop(44) // Drop WAV head data
-    wav.map(_ / wav.max).grouped(2*5*5*5).toList // 2*5*5*5*47 = 11750
+    val wav = getBytes(getResourceFile(s)).map(_.toDouble).toVector.drop(44) // Drop WAV head data
+    wav.map(_ / wav.max).grouped(2*5*5*5).toVector // 2*5*5*5*47 = 11750
   }
 
   def apply = {

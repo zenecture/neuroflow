@@ -37,17 +37,17 @@ object LanguageProcessing {
 
   def readAll(dir: String, max: Int = maxSamples, offset: Int = 0) =
     getResourceFiles(dir).drop(offset).take(max).map(scala.io.Source.fromFile)
-      .flatMap(bs => try { Some(strip(bs.mkString)) } catch { case _ => None })
+      .flatMap(bs => try { Some(strip(bs.mkString)) } catch { case _: Throwable => None })
 
-  def readSingle(file: String) = Seq(strip(scala.io.Source.fromFile(getResourceFile(file)).mkString))
+  def readSingle(file: String) = ->(strip(scala.io.Source.fromFile(getResourceFile(file)).mkString))
 
-  def normalize(xs: Seq[String]): Seq[Seq[String]] = xs.map(_.split(" ").distinct.toSeq)
+  def normalize(xs: Seq[String]): Vector[Vector[String]] = xs.map(_.split(" ").distinct.toVector).toVector
 
-  def vectorize(xs: Seq[Seq[String]]) = xs.map(_.flatMap(dict.get)).map { v =>
+  def vectorize(xs: Seq[Seq[String]]): Vector[Vector[Double]] = xs.map(_.flatMap(dict.get)).map { v =>
     val vs = v.reduce((l, r) => l.zip(r).map(l => l._1 + l._2))
     val n = v.size.toDouble
     vs.map(_ / n)
-  }
+  }.toVector
 
   /**
     * Parses a word2vec skip-gram `file` to give a map of word -> vector.
@@ -98,7 +98,7 @@ object LanguageProcessing {
     val testMed = vectorize(med)
     val testFree = vectorize(free)
 
-    def eval(id: String, maxIndex: Int, xs: Seq[Seq[Double]]) = {
+    def eval(id: String, maxIndex: Int, xs: Vector[Vector[Double]]) = {
       val (ok, fail) = xs.map(net.evaluate).map(k => k.indexOf(k.max) == maxIndex).partition(l => l)
       println(s"Correctly classified $id: ${ok.size.toDouble / (ok.size.toDouble + fail.size.toDouble) * 100.0} % !")
     }

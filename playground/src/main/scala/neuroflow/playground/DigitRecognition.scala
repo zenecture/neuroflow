@@ -6,8 +6,12 @@ import neuroflow.common.~>
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
+import neuroflow.application.plugin.Notation._
+import neuroflow.application.plugin.Notation.Implicits.toVector
 import neuroflow.nets.DynamicNetwork._
 import shapeless._
+
+import scala.collection.immutable.Seq
 
 /**
   * @author bogdanski
@@ -25,18 +29,18 @@ object DigitRecognition {
 
   def getDigitSet(path: String) = {
     val selector: Int => Boolean = _ < 255
-    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).grouped(100).toList)
+    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).grouped(100).toVector)
   }
 
   def apply = {
 
-    val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/"))
+    val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/").toVector)
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid
       val settings = Settings(verbose = true, learningRate = 100.0, precision = 0.001, iterations = 50,
         regularization = None, approximation = Some(Approximation(0.00001)), specifics = Some(Map("τ" -> 0.25, "c" -> 0.01)))
-      val xs = sets dropRight 1 flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
-      val ys = sets dropRight 1 flatMap { m => (0 to 9) map { digit => Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).updated(digit, 1.0) } }
+      val xs = sets.dropRight(1).flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
+      val ys = sets dropRight 1 flatMap { m => (0 to 9) map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).updated(digit, 1.0) } }
       val net = Network(Input(xs.head.size) :: Hidden(50, fn) :: Output(10, fn) :: HNil, settings)
       net.train(xs, ys)
       net

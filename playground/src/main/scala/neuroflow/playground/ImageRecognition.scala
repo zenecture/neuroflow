@@ -6,6 +6,7 @@ import neuroflow.application.processor.Image._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
+import neuroflow.application.plugin.Notation.Implicits.toVector
 import neuroflow.nets.LBFGSNetwork._
 import shapeless._
 
@@ -20,14 +21,14 @@ object ImageRecognition {
     val groupSize = 1200 // max = 20*20*3 = 1200
 
     // Training
-    val plus = extractRgb(getResourceFile("img/plus.png")).grouped(groupSize).toList
-    val plusRotated = extractRgb(getResourceFile("img/plus_rotated.png")).grouped(groupSize).toList
-    val heart = extractRgb(getResourceFile("img/heart.png")).grouped(groupSize).toList
-    val random = extractRgb(getResourceFile("img/random.png")).grouped(groupSize).toList
+    val plus = extractRgb(getResourceFile("img/plus.png")).grouped(groupSize).toVector
+    val plusRotated = extractRgb(getResourceFile("img/plus_rotated.png")).grouped(groupSize).toVector
+    val heart = extractRgb(getResourceFile("img/heart.png")).grouped(groupSize).toVector
+    val random = extractRgb(getResourceFile("img/random.png")).grouped(groupSize).toVector
 
     // Testing
-    val heartDistorted = extractRgb(getResourceFile("img/heart_distorted.png")).grouped(groupSize).toList
-    val heartRotated = extractRgb(getResourceFile("img/heart_rotated.png")).grouped(groupSize).toList
+    val heartDistorted = extractRgb(getResourceFile("img/heart_distorted.png")).grouped(groupSize).toVector
+    val heartRotated = extractRgb(getResourceFile("img/heart_rotated.png")).grouped(groupSize).toVector
 
     println(s"Training ${plus.size + heart.size} samples...")
 
