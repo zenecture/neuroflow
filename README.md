@@ -44,7 +44,7 @@ import neuroflow.nets.DefaultNetwork._
 import shapeless._
 ```
 
-This will give us a fully connected ANN, initialized with random weights, standard gradient descent / backprop training and supervised training.
+This will give us a fully connected ANN, which is initialized with random weights in supervised training mode.
 
 ```scala
 val fn = Sigmoid
