@@ -33,7 +33,7 @@ trait BaseOps {
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
         val product = neuronsLeft * neuronsRight
         val initialWeights = (1 to product).map(_ => seed.apply).toArray
-        Some(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
+        Seq(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
     }
 
   /**
