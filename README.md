@@ -51,16 +51,14 @@ val fn = Sigmoid
 val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil)
 ```
 
-The architecture of the net is defined here. We use a sigmoid activation function `fn` for our hidden and output layers. 
-Also, some rates and rules need to be defined, like precision or maximum iterations through a `Settings` instance. 
-
-If we would need a more complex net, we would simply stack layers and functions:
+This is the most basic net. The architecture of the net is a list. We use a sigmoid activation function `fn` for our hidden and output layers. 
+A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
-val f = Sigmoid
-val g = Tanh
-val settings = Settings(verbose = true, learningRate = 0.01, precision = 0.001, maxIterations = 200)
-val net = Network(Input(50) :: Hidden(20, f) :: Hidden(10, g) :: Output(2, f) :: HNil, settings)
+val s = Sigmoid
+val x = Linear
+val settings = Settings(learningRate = 0.01, precision = 1E-5, iterations = 200)
+val net = Network(Input(50) :: Hidden(20, s) :: Cluster(10, x) :: Hidden(20, s) :: Output(50, s) :: HNil, settings)
 ```
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
