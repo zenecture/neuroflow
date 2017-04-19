@@ -33,11 +33,11 @@ object Image {
     * Loads image from `file` or `path` and returns flattened sequence of pixels,
     * activated based on `selector` result
     */
-  def extractBinary(path: String, selector: Int => Boolean): Seq[Double] = extractBinary(new File(path), selector)
-  def extractBinary(file: File, selector: Int => Boolean): Seq[Double] = {
+  def extractBinary(path: String, selector: Int => Boolean): Vector[Double] = extractBinary(new File(path), selector)
+  def extractBinary(file: File, selector: Int => Boolean): Vector[Double] = {
     val img = ImageIO.read(file)
-    (0 until img.getHeight) flatMap { h =>
-      (0 until img.getWidth) flatMap { w =>
+    (0 until img.getHeight).toVector.flatMap { h =>
+      (0 until img.getWidth).toVector.flatMap { w =>
         val c = new Color(img.getRGB(w, h))
         (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.0 else 0.0) :: Nil
       }

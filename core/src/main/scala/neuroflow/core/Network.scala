@@ -38,7 +38,7 @@ object Network extends TypeAliases {
   */
 trait TypeAliases {
 
-  type Vector = Seq[Double]
+  type Vector = scala.Vector[Double]
   type DVector = DenseVector[Double]
   type Matrix = DenseMatrix[Double]
   type Matrices = Seq[Matrix]

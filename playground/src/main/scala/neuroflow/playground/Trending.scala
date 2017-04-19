@@ -1,5 +1,6 @@
 package neuroflow.playground
 
+import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
@@ -24,32 +25,35 @@ object Trending {
    */
 
   def apply = {
+    import neuroflow.application.plugin.Notation
 
     def noise = if (Random.nextDouble > 0.5) 0.0625 else -0.0625
 
     // Training
-    val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i))
-    val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.3))
+    val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, i))
+    val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 0.3))
 
     // Testing
-    val trendTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (1 + Random.nextDouble) * i)) // Linear trend with noise on slope
-    val flatTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.3 + noise)) // Flat with additive noise
-    val declineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 1.0 - i)) // Linear decline trend
-    val squareTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i * i)) // Square trend
-    val squareDeclineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (-1 * i * i) + 1.0)) // Square decline trend
-    val jammingTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.5 * Math.sin(3 * i))) // Jamming trend
-    val heroZeroTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.5 * Math.cos(6 * i) + 0.5)) // Hero, to Zero, to Hero
-    val oscillating = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (Math.sin(100 * i) / 3) + 0.5)) // Oscillating
-    val oscillatingUp = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100 * i) / 3))) // Oscillating Up Trend
-    val oscillatingDown = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, -i + (Math.sin(100 * i) / 3) + 1)) // Oscillating Down Trend
-    val realWorld = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100 * i) / 3) * Random.nextDouble)) // Real world data
-    val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, Random.nextDouble)) // Random
-
+    val trendTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, (1 + Random.nextDouble) * i)) // Linear trend with noise on slope
+    val flatTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 0.3 + noise)) // Flat with additive noise
+    val declineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 1.0 - i)) // Linear decline trend
+    val squareTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, i * i)) // Square trend
+    val squareDeclineTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, (-1 * i * i) + 1.0)) // Square decline trend
+    val jammingTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 0.5 * Math.sin(3 * i))) // Jamming trend
+    val heroZeroTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 0.5 * Math.cos(6 * i) + 0.5)) // Hero, to Zero, to Hero
+    val oscillating = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, (Math.sin(100 * i) / 3) + 0.5)) // Oscillating
+    val oscillatingUp = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, i + (Math.sin(100 * i) / 3))) // Oscillating Up Trend
+    val oscillatingDown = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, -i + (Math.sin(100 * i) / 3) + 1)) // Oscillating Down Trend
+    val realWorld = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, i + (Math.sin(100 * i) / 3) * Random.nextDouble)) // Real world data
+    val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, Random.nextDouble)) // Random
 
     val fn = Sigmoid
     val settings = Settings(learningRate = 20.0, precision = 1E-4, iterations = 10000)
     val net = Network(Input(trend.size) :: Hidden(25, fn) :: Output(1, fn) :: HNil, settings)
-    net.train(Seq(trend, flat), Seq(Seq(1.0), Seq(0.0)))
+
+    import Notation.Implicits.toVector
+
+    net.train(->(trend, flat), ->(->(1.0), ->(0.0)))
 
     println(s"Weights: ${net.weights.map(_.size).sum}")
 

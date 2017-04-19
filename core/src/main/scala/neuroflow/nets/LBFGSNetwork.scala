@@ -47,6 +47,13 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       throw new SettingsNotSupportedException("No regularization other than built-in LBFGS supported.")
   }
 
+  val fastLayers = layers.toArray
+  val fastLayerSize1 = layers.size - 1
+  val fastLayerSize2 = layers.size - 2
+
+  val fastWeights = weights.toArray
+  val fastWeightSize1 = weights.size - 1
+
   /**
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
@@ -55,19 +62,21 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
 
     import settings._
 
-    val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
-    val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toParArray
+    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toParArray
+    val neuronProduct = (0 until fastLayerSize1).map(i => (i, i + 1) -> fastLayers(i).neurons * fastLayers(i + 1).neurons).toMap
 
     /**
       * Maps from V to W_i.
       */
-    def ws(v: DVector, i: Int): Weights = {
-      val (neuronsLeft, neuronsRight) = (layers(i).neurons, layers(i + 1).neurons)
-      val product = neuronsLeft * neuronsRight
+    @tailrec def ws(pw: Seq[Matrix], v: DVector, i: Int): Seq[Matrix] = {
+      val (neuronsLeft, neuronsRight) = (fastLayers(i).neurons, fastLayers(i + 1).neurons)
+      val product = neuronProduct(i, i + 1)
       val weightValues = v.slice(0, product).toArray
-      val partialWeights = Seq(DenseMatrix.create[Double](neuronsLeft, neuronsRight, weightValues))
-      if (i < layers.size - 2) partialWeights ++ ws(v.slice(product, v.length), i + 1)
-      else partialWeights
+      val partialWeights = DenseMatrix.create[Double](neuronsLeft, neuronsRight, weightValues)
+      if (i < fastLayerSize2)
+        ws(pw :+ partialWeights, v.slice(product, v.length), i + 1)
+      else pw :+ partialWeights
     }
 
     /**
@@ -75,8 +84,8 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       */
     def errorFunc(v: DVector): Double = {
       val err = mean {
-        in.zip(out).par.map {
-          case (xx, yy) => 0.5 * pow(flow(ws(v, 0), xx, 0, layers.size - 1) - yy, 2)
+        in.zip(out).map {
+          case (xx, yy) => 0.5 * pow(flow(ws(Nil, v, 0), xx, 0, fastLayerSize1) - yy, 2)
         }.reduce(_ + _)
       }
       maybeGraph(err)
@@ -92,7 +101,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       * Updates W_i using V.
       */
     def update(v: DVector): Unit = {
-      (ws(v, 0) zip weights) foreach {
+      (ws(Nil, v, 0) zip weights) foreach {
         case (n, o) => n.foreachPair {
           case ((r, c), nv) => o.update(r, c, nv)
         }
@@ -117,7 +126,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     */
   def evaluate(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    flow(weights, input, 0, layers.size - 1).toArray.toVector
+    flow(fastWeights, input, 0, layers.size - 1).toArray.toVector
   }
 
   /**
@@ -126,9 +135,9 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   @tailrec final protected def flow(weights: Weights, in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
     else {
-      val processed = layers(cursor) match {
+      val processed = fastLayers(cursor) match {
         case h: HasActivator[Double] =>
-          if (cursor <= (weights.size - 1)) in.map(h.activator) * weights(cursor)
+          if (cursor <= fastWeightSize1) in.map(h.activator) * weights(cursor)
           else in.map(h.activator)
         case _ => in * weights(cursor)
       }

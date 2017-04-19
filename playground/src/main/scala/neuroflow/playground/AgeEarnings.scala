@@ -1,6 +1,7 @@
 package neuroflow.playground
 
 
+import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
@@ -33,12 +34,12 @@ object AgeEarnings {
 
     val train = src.take(2000)
     //val test = src.drop(1000)
-    val sets = Settings(verbose = true, learningRate = 0.05, precision = 0.001, iterations = 5000,
+    val sets = Settings(learningRate = 0.05, precision = 0.001, iterations = 5000,
       regularization = None, approximation = None, specifics = None)
     val network = Network(Input(1) :: Hidden(20, Sigmoid) :: Output(1, Sigmoid) :: HNil, sets)
     val maxAge = train.map(_._1).sorted.reverse.head
-    val xs = train.map(a => Seq(a._1 / maxAge))
-    val ys = train.map(a => Seq(a._2))
+    val xs = train.map(a => ->(a._1 / maxAge))
+    val ys = train.map(a => ->(a._2))
     network.train(xs, ys)
 
     val allOver = src.filter(_._2 == 1.0)
@@ -48,7 +49,7 @@ object AgeEarnings {
     println(s"Mean of all $mean")
     println(s"Ratio $ratio")
 
-    val result = Range.Double(0.0, 1.1, 0.01).map(k => (k * maxAge, network.evaluate(Seq(k))))
+    val result = Range.Double(0.0, 1.1, 0.01).map(k => (k * maxAge, network.evaluate(->(k))))
     val sum = result.map(_._2.head).sum
     println("Age, earning >50K")
     result.foreach { r => println(s"${r._1}, ${r._2.head * (1 / sum)}")}
