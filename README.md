@@ -44,8 +44,7 @@ import neuroflow.nets.DefaultNetwork._
 import shapeless._
 ```
 
-This will give us a fully connected ANN, with random weights and standard gradient descent / backprop training.
-
+This will give us a fully connected ANN, initialized with random weights, standard gradient descent / backprop training and supervised training.
 
 ```scala
 val fn = Sigmoid
@@ -69,14 +68,13 @@ If a network doesn't follow this rule, it won't compile.
 
 # Training
 
-Let's train our net with the `train` method. It expects the inputs `xs` and their desired outputs `ys`. 
-By design, the type signature of `train` is `Seq[Seq[_]]`, since this promises the most general case when working with external data. 
-For our little example, let's simply define the training data using the vector notation:
+Let's train our net with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
+For our little example, let's quickly define the training data using the vector notation:
 
 ```scala
 val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
 val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-net.train(xs, ys)
+net.train(xs, ys) // it's the XOR-Function :-)
 ```
 
 The training progress will appear on console so we can track it. 
