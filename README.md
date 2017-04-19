@@ -15,7 +15,7 @@ This project consists of three modules:
     
 # Getting Started
 
-To use Neuroflow within your project, add these dependencies (Scala Version 2.11.8, 2.12.1):
+To use NeuroFlow within your project, add these dependencies (Scala Version 2.11.8, 2.12.1):
 
 ```scala
 libraryDependencies ++= Seq(
