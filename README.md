@@ -47,18 +47,18 @@ import shapeless._
 This will give us a fully connected ANN, which is initialized with random weights and supervised training mode.
 
 ```scala
-val fn = Sigmoid
-val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil)
+val f = Sigmoid
+val net = Network(Input(2) :: Hidden(3, f) :: Output(1, f) :: HNil)
 ```
 
 This is the most basic net. The architecture of the net is a list. We use a sigmoid activation function `fn` for our hidden and output layers. 
 A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
-val s = Sigmoid
-val x = Linear
-val settings = Settings(learningRate = 0.01, precision = 1E-5, iterations = 200)
-val net = Network(Input(50) :: Hidden(20, s) :: Cluster(10, x) :: Hidden(20, s) :: Output(50, s) :: HNil, settings)
+import neuroflow.core.LBFGSNetwork._
+val (f, g) = (Sigmoid, Linear)
+val settings = Settings(precision = 1E-5, iterations = 200)
+val net = Network(Input(50) :: Hidden(20, f) :: Cluster(10, g) :: Hidden(20, f) :: Output(50, f) :: HNil, settings)
 ```
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 

@@ -23,15 +23,6 @@ import scala.util.Random
   * where the current layer gets input from the lower layers at the same time step
   * and from itself at the previous time step.
   *
-  *   Remarks:
-  *
-  *      - Use the positive infinity vector ∞ for training tuples without a target.
-  *      The error will be zero for this particular time step. Example:
-  *         (Coltrane, ∞), (plays, ∞), (the, Blues)
-  *
-  *
-  *   This is work in progress. Things may change. Use at own risk.
-  *
   * @author bogdanski
   * @since 07.07.16
   *

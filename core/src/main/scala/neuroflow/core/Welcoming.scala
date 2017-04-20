@@ -19,7 +19,7 @@ trait Welcoming { self: Network =>
       |   /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 0.5
+      |         Version 0.6
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
@@ -33,7 +33,7 @@ trait Welcoming { self: Network =>
   private def buildString(l: Layer) =
     l match {
       case h: HasActivator[_] => s"${h.neurons} (${h.activator.symbol})"
-      case i => l.neurons.toString
+      case _ => l.neurons.toString
     }
 
   print(welcome)
