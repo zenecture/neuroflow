@@ -26,9 +26,9 @@ import scala.io.Source
 
 object PokeMonCluster {
 
-  //#,Name,Type 1,Type 2,Total,HP,Attack,Defense,Sp. Atk,Sp. Def,Speed,Generation,Legendary
   case class Pokemon(name: String, type1: Int, type2: Int, total: Double,
-                     hp: Double, attack: Double, defense: Double, spAtk: Double, spDef: Double, speed: Double, gen: Int, legendary: Double)
+                     hp: Double, attack: Double, defense: Double, spAtk: Double, spDef: Double,
+                     speed: Double, gen: Int, legendary: Double)
 
   def apply = {
 
