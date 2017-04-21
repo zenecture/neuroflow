@@ -37,6 +37,13 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
 
   import neuroflow.core.Network._
 
+  private val fastLayers = layers.toArray
+  private val fastLayerSize1 = layers.size - 1
+  private val fastLayerSize2 = layers.size - 2
+
+  private val fastWeights = weights.toArray
+  private val fastWeightSize1 = weights.size - 1
+
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -46,13 +53,6 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     if (settings.regularization.isDefined)
       throw new SettingsNotSupportedException("No regularization other than built-in LBFGS supported.")
   }
-
-  val fastLayers = layers.toArray
-  val fastLayerSize1 = layers.size - 1
-  val fastLayerSize2 = layers.size - 2
-
-  val fastWeights = weights.toArray
-  val fastWeightSize1 = weights.size - 1
 
   /**
     * Takes a sequence of input vectors `xs` and trains this

@@ -39,6 +39,9 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
 
   import neuroflow.core.Network._
 
+  private val fastLayersSize1 = layers.size - 1
+  private val fastWeightsSize1 = weights.size - 1
+
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -57,8 +60,8 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
     import settings._
-    val in = xs map (x => DenseMatrix.create[Double](1, x.size, x.toArray))
-    val out = ys map (y => DenseMatrix.create[Double](1, y.size, y.toArray))
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toVector
+    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toVector
     run(in, out, learningRate, precision, 0, iterations)
   }
 
@@ -67,7 +70,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   def evaluate(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    flow(input, 0, layers.size - 1).toArray.toVector
+    flow(input, 0, fastLayersSize1).toArray.toVector
   }
 
   /**
@@ -93,7 +96,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     xs.zip(ys).par.map {
       case (x, y) =>
-        0.5 * pow(flow(x, 0, layers.size - 1) - y, 2)
+        0.5 * pow(flow(x, 0, fastLayersSize1) - y, 2)
     }.reduce(_ + _)
   }
 
@@ -122,7 +125,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     else {
       val processed = layers(cursor) match {
         case h: HasActivator[Double] =>
-          if (cursor <= (weights.size - 1)) in.map(h.activator) * weights(cursor)
+          if (cursor <= fastWeightsSize1) in.map(h.activator) * weights(cursor)
           else in.map(h.activator)
         case _ => in * weights(cursor)
       }
@@ -151,7 +154,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
             val i = layers.indexOf(h) - 1
             flow(x, 0, i).map(h.activator.derivative)
         }
-        (flow(x, 0, layers.size - 1) - y) :* chain(ds, ws, in, weightLayer, 0)
+        (flow(x, 0, fastLayersSize1) - y) *:* chain(ds, ws, in, weightLayer, 0)
     }.reduce(_ + _)
   }
 
@@ -160,8 +163,8 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   @tailrec private def chain(ds: Matrices, ws: Matrices, in: Matrix,
                              cursor: Int, cursorDs: Int): Matrix = {
-    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) :* (in * ws(cursor)), cursor + 1, cursorDs + 1)
-    else ds(cursorDs) :* (in * ws(cursor))
+    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) *:* (in * ws(cursor)), cursor + 1, cursorDs + 1)
+    else ds(cursorDs) *:* (in * ws(cursor))
   }
 
   /**
