@@ -11,6 +11,11 @@ object Notation {
   def ->[A](elems: A*): Vector[A] = elems.toVector
   def -->[A](elems: A*): Vector[A] = elems.toVector
 
+  object Force {
+    def ->(elems: Double*): Vector[Double] = elems.toVector
+    def -->(elems: Double*): Vector[Double] = elems.toVector
+  }
+
   def infinity(dimension: Int): Vector[Double] = (0 until dimension).map(_ => Double.PositiveInfinity).toVector
   def ∞(dimension: Int): Vector[Double] = infinity(dimension)
 
