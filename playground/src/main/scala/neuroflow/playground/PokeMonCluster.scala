@@ -57,7 +57,7 @@ object PokeMonCluster {
 
     val xs = pokemons.map(p => p -> toVector(p))
     val dim = xs.head._2.size
-    val net = Network(Input(dim) :: Cluster(3, Linear) :: Output(dim, Sigmoid) :: HNil, Settings(iterations = 50))
+    val net = Network(Input(dim) :: Cluster(3, Sigmoid) :: Output(dim, Sigmoid) :: HNil, Settings(iterations = 200))
 
     net.train(xs.map(_._2))
 
@@ -74,7 +74,8 @@ object PokeMonCluster {
 
 /*
 
-    For result see:
-      resources/PokeCluster.png
+    For results see:
+      resources/PokeCluster.png     (Linear Cluster Layer)
+      resources/PokeClusterSig.png  (Sigmoid Cluster Layer)
 
  */
