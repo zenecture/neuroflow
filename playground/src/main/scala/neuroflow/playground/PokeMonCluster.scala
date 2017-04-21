@@ -65,7 +65,7 @@ object PokeMonCluster {
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
-      cluster.foreach(v => writer.println(prettyPrint(v._1) + " " + v._2.name))
+      cluster.foreach(v => writer.println(prettyPrint(v._1, ";") + ";" + v._2.name))
     }.io(_.close)
 
   }
