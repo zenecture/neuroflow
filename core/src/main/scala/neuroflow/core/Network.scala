@@ -94,6 +94,8 @@ trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welco
 
   checkSettings()
 
+  sayHi()
+
   val identifier: String
 
   /**

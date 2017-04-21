@@ -29,7 +29,9 @@ private[nets] case class AutoEncoder(layers: Seq[Layer],
 
   import neuroflow.core.Network._
 
-  private val net = new LBFGSCluster(layers, settings, weights, identifier)
+  private val net = new LBFGSCluster(layers, settings, weights, identifier) {
+    override def sayHi(): Unit = ()
+  }
 
   /**
     * Takes the input vector `x` to compute the output vector.

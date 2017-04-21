@@ -7,7 +7,7 @@ package neuroflow.core
 
 trait Welcoming { self: Network =>
 
-  val welcome =
+  private val welcome =
     s"""
       |
       |
@@ -30,12 +30,12 @@ trait Welcoming { self: Network =>
       |
     """.stripMargin
 
-  private def buildString(l: Layer) =
+  private def buildString(l: Layer): String =
     l match {
       case h: HasActivator[_] => s"${h.neurons} (${h.activator.symbol})"
       case _ => l.neurons.toString
     }
 
-  print(welcome)
+  def sayHi(): Unit = print(welcome)
 
 }
