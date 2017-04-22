@@ -60,6 +60,7 @@ trait Constructor[+T <: Network] {
   * The `verbose` flag indicates logging behavior.
   * The `learningRate` determines the amplification of the gradients.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
+  * If `prettyPrint` is true, the layout will be rendered graphically.
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
@@ -70,6 +71,7 @@ case class Settings(verbose: Boolean = true,
                     learningRate: Double = 0.1,
                     precision: Double = 1E-5,
                     iterations: Int = 100,
+                    prettyPrint: Boolean = false,
                     errorFuncOutput: Option[ErrorFuncOutput] = None,
                     regularization: Option[Regularization] = None,
                     approximation: Option[Approximation] = None,

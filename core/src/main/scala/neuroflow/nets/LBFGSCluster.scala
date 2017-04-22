@@ -45,6 +45,6 @@ private[nets] class LBFGSCluster(override val layers: Seq[Layer],
       info("Couldn't find Cluster Layer. Using Output Layer.")
       flow(weights, input, 0, layers.size - 1).toArray.toVector
     }
-
   }
+
 }

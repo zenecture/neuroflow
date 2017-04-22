@@ -37,7 +37,15 @@ object Activator {
     def derivative(x: Double): Double = if (x > 0.0) 1.0 else 0.0
   }
 
-  object Softplus extends Activator[Double] {
+  object LeakyReLU {
+    def apply(f: Double) = new Activator[Double] {
+      val symbol = s"R<$f>"
+      def apply(x: Double): Double = max(0.0, x)
+      def derivative(x: Double): Double = if (x > 0.0) 1.0 else f * x
+    }
+  }
+
+  object SoftPlus extends Activator[Double] {
     val symbol = "Σ"
     def apply(x: Double): Double = log(1 + exp(x))
     def derivative(x: Double): Double = exp(x) / (exp(x) + 1)
@@ -50,8 +58,8 @@ object Activator {
   }
 
   object CustomSigmoid {
-    def apply(f: Int, g: Int, b: Int) = new Activator[Double] {
-      val symbol = s"σ"
+    def apply(f: Double, g: Double, b: Double) = new Activator[Double] {
+      val symbol = s"σ<$f, $g, $b>"
       def apply(x: Double): Double = (f / (1 + exp(-x * g))) - b
       def derivative(x: Double): Double = f * exp(x) / pow(exp(x) + 1, 2)
     }
