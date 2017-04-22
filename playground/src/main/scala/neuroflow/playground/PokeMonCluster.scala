@@ -90,4 +90,72 @@ object PokeMonCluster {
       resources/PokeClusterSig.png  (Sigmoid Cluster Layer)
       resources/PokeClusterDeep.png (Linear/ReLU Layers, reduced feature space: type1, total, hp, attack, defense)
 
+
+    [info] Running neuroflow.playground.App
+    Run example (1-13):
+
+
+
+                 _   __                      ________
+                / | / /__  __  ___________  / ____/ /___ _      __
+               /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+              / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+             /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+
+
+             Version 0.601
+
+             Identifier: lHw
+             Network: neuroflow.nets.AutoEncoder
+             Layout: [23, 3 (x), 11 (R), 23 (R)]
+             Number of Weights: 355
+
+
+
+
+             O                             O
+             O                             O
+             O                             O
+             O                             O
+             O                             O
+             O                             O
+             O                   O         O
+             O                   O         O
+             O                   O         O
+             O                   O         O
+             O         O         O         O
+             O         O         O         O
+             O         O         O         O
+             O                   O         O
+             O                   O         O
+             O                   O         O
+             O                   O         O
+             O                             O
+             O                             O
+             O                             O
+             O                             O
+             O                             O
+             O                             O
+
+
+
+    Apr 22, 2017 5:27:11 PM com.github.fommil.jni.JniLoader liberalLoad
+    INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader8500436160996467391netlib-native_system-osx-x86_64.jnilib
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 0,004680
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 54,2450 (rel: 0,627) 58,8828
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 40,1199 (rel: 0,260) 34,3295
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 28,9957 (rel: 0,277) 11,6635
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 27,1558 (rel: 0,0635) 6,80454
+    ...
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 7,08702 (rel: 0,000473) 0,553453
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 7,08400 (rel: 0,000425) 0,502604
+    [run-main-0] INFO neuroflow.nets.NFLBFGS - Converged because max iterations reached
+    [success] Total time: 132 s, completed 22.04.2017 17:29:16
+
+
  */
