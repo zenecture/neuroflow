@@ -110,7 +110,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
         val layer = weights.indexOf(l)
         val grad =
           if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k)
-          else deriveErrorFunc(xs, ys, layer, k)
+          else errorFuncDerivative(xs, ys, layer, k)
         l.update(k, v - stepSize * mean(grad))
       }
     }
@@ -135,7 +135,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Computes the error function derivative with respect to `weight` in `weightLayer`.
     */
-  private def deriveErrorFunc(xs: Matrices, ys: Matrices,
+  private def errorFuncDerivative(xs: Matrices, ys: Matrices,
                               weightLayer: Int, weight: (Int, Int)): Matrix = {
     xs.zip(ys).map {
       case (x, y) =>

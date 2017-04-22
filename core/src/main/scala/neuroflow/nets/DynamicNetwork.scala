@@ -180,7 +180,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   private def finiteCentralDiff(xs: Matrices, ys: Matrices,
                                 layer: Int, weight: (Int, Int), order: Int): Matrix = {
-    val Δ = settings.approximation.getOrElse(Approximation(0.000001)).Δ
+    val Δ = settings.approximation.getOrElse(Approximation(1E-5)).Δ
     val f = () => if (order == 1) errorFunc(xs, ys) else approximateErrorFuncDerivative(xs, ys, layer, weight)
     val v = weights(layer)(weight)
     weights(layer).update(weight, v - Δ)

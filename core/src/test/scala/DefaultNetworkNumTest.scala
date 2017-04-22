@@ -45,7 +45,7 @@ class DefaultNetworkNumTest extends Specification {
     val weight = (0, 0)
 
     val instance = m.reflect(net)
-    val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
+    val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
     val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
 
     val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
@@ -70,7 +70,7 @@ class DefaultNetworkNumTest extends Specification {
     val results = layers zip weights map { lw =>
       val (layer, weight) = lw
       val instance = m.reflect(net)
-      val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
+      val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
       val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
       val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
@@ -98,7 +98,7 @@ class DefaultNetworkNumTest extends Specification {
     val results = weights map { lw =>
       val (layer, weight) = lw
       val instance = m.reflect(net)
-      val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("deriveErrorFunc")).asMethod)
+      val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
       val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
       val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
