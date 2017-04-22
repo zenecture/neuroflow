@@ -12,14 +12,14 @@ trait Welcoming { self: Network =>
       |
       |
       |
-      |       _   __                      ________
-      |      / | / /__  __  ___________  / ____/ /___ _      __
-      |     /  |/ / _ \\/ / / / ___/ __ \\/ /_  / / __ \\ | /| / /
-      |    / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
-      |   /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
+      |             _   __                      ________
+      |            / | / /__  __  ___________  / ____/ /___ _      __
+      |           /  |/ / _ \\/ / / / ___/ __ \\/ /_  / / __ \\ | /| / /
+      |          / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+      |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 0.6
+      |         Version 0.601
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
@@ -36,6 +36,28 @@ trait Welcoming { self: Network =>
       case _ => l.neurons.toString
     }
 
-  def sayHi(): Unit = print(welcome)
+  private def prettyPrint(): Unit = {
+    val max = layers.map(_.neurons).max
+    val center = (max - 1) / 2
+    val cols = layers.map(l => l.neurons - 1).map { l =>
+      val col = (0 until max) map { _ => " " }
+      col.zipWithIndex.map {
+        case (_, i) if i <= center && i >= center - (l / 2) => "O"
+        case (_, i) if i >= center && i <= center + (l / 2) => "O"
+        case (c, _) => c
+      }
+    }
+
+    cols.reduce((l, r) => l.zip(r).map { case (a, b) => a + "         " + b }).foreach(l => println("         " + l))
+
+    println()
+    println()
+    println()
+  }
+
+  def sayHi(): Unit = {
+    println(welcome)
+    if (settings.prettyPrint) prettyPrint()
+  }
 
 }

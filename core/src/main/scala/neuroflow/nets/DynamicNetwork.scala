@@ -120,7 +120,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Computes the network recursively from `cursor` until `target`.
     */
-  @tailrec private def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
+  @tailrec final protected def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
     else {
       val processed = layers(cursor) match {

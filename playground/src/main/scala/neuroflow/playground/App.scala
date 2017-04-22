@@ -9,7 +9,7 @@ object App extends App {
 
   print("Run example (1-13): ")
 
-  scala.io.StdIn.readInt() match {
+  13 match {
     case  1 => XOR.apply
     case  2 => SigGap.apply
     case  3 => Trending.apply

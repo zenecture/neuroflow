@@ -50,14 +50,24 @@ object PokeMonCluster {
 
     def toVector(p: Pokemon): Vector[Double] = p match {
       case Pokemon(_, t1, t2, tot, hp, att, defe, spAtk, spDef, speed, gen, leg) =>
-        ζ(types.size).updated(t1, 1.0) ++ ζ(types.size).updated(t2, 1.0) ++ ->(tot / maximums._1) ++
-          ->(hp / maximums._2) ++ ->(att / maximums._3) ++ ->(defe / maximums._4) ++
-          ->(spAtk / maximums._5) ++ ->(spDef / maximums._6) ++ ->(speed / maximums._7) ++ ζ(gens.size).updated(gen, 1.0) ++ ->(leg)
+        ζ(types.size).updated(t1, 1.0) ++ /* ζ(types.size).updated(t2, 1.0) ++ */ ->(tot / maximums._1) ++
+          ->(hp / maximums._2) ++ ->(att / maximums._3) ++ ->(defe / maximums._4)
+          /* ++ ->(spAtk / maximums._5) ++ ->(spDef / maximums._6) ++ ->(speed / maximums._7)
+             ++ ζ(gens.size).updated(gen, 1.0) ++ ->(leg) */
     }
 
     val xs = pokemons.map(p => p -> toVector(p))
     val dim = xs.head._2.size
-    val net = Network(Input(dim) :: Cluster(3, Sigmoid) :: Output(dim, Sigmoid) :: HNil, Settings(iterations = 200))
+
+    val net =
+      Network(
+        Input(dim) ::
+        Cluster(3, Linear) ::
+        Hidden(dim / 2, ReLU) ::
+        Output(dim, ReLU) :: HNil,
+        Settings(iterations = 200, prettyPrint = true)
+      )
+
 
     net.train(xs.map(_._2))
 
@@ -65,7 +75,8 @@ object PokeMonCluster {
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
-      cluster.foreach(v => writer.println(prettyPrint(v._1, ";") + ";" + v._2.name))
+      cluster.foreach(v => writer.println(prettyPrint(v._1, ";") + ";" + s"${v._2.name} (${v._2.type1}, " +
+        s"${v._2.total}, ${v._2.hp}, ${v._2.attack}, ${v._2.defense})"))
     }.io(_.close)
 
   }
@@ -74,8 +85,9 @@ object PokeMonCluster {
 
 /*
 
-    For results see:
+    For several results see:
       resources/PokeCluster.png     (Linear Cluster Layer)
       resources/PokeClusterSig.png  (Sigmoid Cluster Layer)
+      resources/PokeClusterDeep.png (Linear/ReLU Layers, reduced feature space: type1, total, hp, attack, defense)
 
  */
