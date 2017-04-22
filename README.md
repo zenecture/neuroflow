@@ -1,4 +1,4 @@
-<center><img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 /></center>
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
 
 NeuroFlow is a library to construct, sketch, train and evaluate Artificial Neural Networks (FFN, RNN).
 It is written in Scala, matrix operations are performed with <a href="https://github.com/scalanlp/breeze">Breeze</a> and <a href="https://github.com/fommil/netlib-java">NetLib</a>.
@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.11
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.600",
-  "com.zenecture" %% "neuroflow-application" % "0.600"
+  "com.zenecture" %% "neuroflow-core" % "0.601",
+  "com.zenecture" %% "neuroflow-application" % "0.601"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
