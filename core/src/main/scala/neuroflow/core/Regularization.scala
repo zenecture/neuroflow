@@ -1,6 +1,9 @@
 package neuroflow.core
 
-import neuroflow.core.Network.Vector
+import neuroflow.core.EarlyStoppingLogic.CanAverage
+import neuroflow.core.Network._
+
+import scala.concurrent.Future
 
 
 /**
@@ -22,33 +25,66 @@ trait Regularization extends Serializable
   */
 case class EarlyStopping(xs: Seq[Vector], ys: Seq[Vector], factor: Double) extends Regularization
 
+/**
+  * The KeepBest regularization strategy takes weights, which led to the least error during training.
+  * In particular, this is useful for RNNs, as the error can oscillate heavily during training.
+  */
+case object KeepBest extends Regularization
 
-// TODO: Make this trait generic for all nets and use type classes for concrete error diff impls.
-trait EarlyStoppingLogic { self: FeedForwardNetwork =>
 
-  var best = Double.PositiveInfinity
+trait EarlyStoppingLogic { self: Network =>
+
+  private var best = Double.PositiveInfinity
   import settings._
 
-  def shouldStopEarly: Boolean = {
-    if (regularization.isEmpty) false
-    else {
-      val r = regularization.map { case es: EarlyStopping => es }.get
-      val errors = r.xs.map(evaluate).zip(r.ys).map {
-        case (a, b) =>
-          val im = a.zip(b).map {
-            case (x, y) => (x - y).abs
-          }
-          im.sum / im.size.toDouble
-      }
-      val averaged = errors.sum / errors.size.toDouble
+  def shouldStopEarly[N <: Network](net: N)(implicit k: CanAverage[N]): Boolean = regularization match {
+    case Some(EarlyStopping(xs, ys, f)) =>
+      val averaged = k.averagedError(xs, ys)
       if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
       if (averaged < best) {
-        best = averaged; false
-      } else if ((averaged / best) > r.factor) {
-        info(f"Early Stopping: ($averaged%.6g / $best%.6g) > ${r.factor}.")
+        best = averaged
+        false
+      } else if ((averaged / best) > f) {
+        info(f"Early Stopping: ($averaged%.6g / $best%.6g) > $f.")
         true
       } else false
+    case _ => false
+  }
+
+}
+
+object EarlyStoppingLogic {
+
+  /** Type-Class for concrete net impl of error averaging. */
+  trait CanAverage[N <: Network] {
+    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double
+  }
+
+}
+
+trait KeepBestLogic { self: Network =>
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  private var bestErr = Double.PositiveInfinity
+  private var bestWs: Weights = self.weights
+
+  def update(error: Double, ws: Weights): Unit = {
+    if (error < bestErr) Future {
+      bestErr = error
+      bestWs = ws.map(_.copy)
     }
+  }
+
+  def take(): Unit = self.settings.regularization match {
+    case Some(KeepBest) =>
+      info(f"Applying KeepBest strategy. Best test error so far: $bestErr%.6g.")
+      bestWs.foreach { l =>
+        l.foreachPair { (k, v) =>
+          self.weights(bestWs.indexOf(l)).update(k, v)
+        }
+      }
+    case _ =>
   }
 
 }
