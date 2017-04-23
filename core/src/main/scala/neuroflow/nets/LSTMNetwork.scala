@@ -192,8 +192,8 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
         val gateIn = (in2 + (yOut * wsGateIn)).map(Sigmoid)
         val gateOut = (in3 + (yOut * wsGateOut)).map(Sigmoid)
         val forget = (in4 + (yOut * wsForget)).map(Sigmoid)
-        val state = (netIn :* gateIn) + (forget :* memoryCells(c))
-        val netOut = state.map(h.activator) :* gateOut
+        val state = (netIn *:* gateIn) + (forget *:* memoryCells(c))
+        val netOut = state.map(h.activator) *:* gateOut
         state.foreachPair { case ((row, col), i) => memoryCells(c).update(row, col, i) }
         (netOut, Some(netOut))
       case h: HasActivator[Double] =>
