@@ -67,11 +67,11 @@ import neuroflow.core.LBFGSCluster._
 val (f, g) = (Sigmoid, Linear)
 val settings = Settings(precision = 1E-5, iterations = 200)
 val complexNet = Network(
-  Input(50) :: 
-  Hidden(20, f) :: 
-  Cluster(10, g) :: 
-  Hidden(20, f) :: 
-  Output(50, f) :: HNil, 
+  Input    (50)    :: 
+  Hidden   (20, f) :: 
+  Cluster  (10, g) :: 
+  Hidden   (20, f) :: 
+  Output   (50, f) :: HNil, 
   settings
 )
 ```
