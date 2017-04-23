@@ -63,7 +63,7 @@ The architecture of the net is expressed as a list. We use a sigmoid activation 
 A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
-import neuroflow.core.LBFGSNetwork._
+import neuroflow.core.LBFGSCluster._
 val (f, g) = (Sigmoid, Linear)
 val settings = Settings(precision = 1E-5, iterations = 200)
 val complexNet = Network(
