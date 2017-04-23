@@ -3,6 +3,7 @@ package neuroflow.nets
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
+import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.Network._
 import neuroflow.core._
 
@@ -33,9 +34,23 @@ object DefaultNetwork {
 
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                         identifier: String = Random.alphanumeric.take(3).mkString)
-  extends FeedForwardNetwork with SupervisedTraining with EarlyStoppingLogic {
+  extends FeedForwardNetwork with SupervisedTraining with EarlyStoppingLogic with KeepBestLogic {
 
   import neuroflow.core.Network._
+
+  private implicit object KBL extends CanAverage[DefaultNetwork] {
+    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
+      val errors = xs.map(evaluate).zip(ys).map {
+        case (a, b) =>
+          val im = a.zip(b).map {
+            case (x, y) => (x - y).abs
+          }
+          im.sum / im.size.toDouble
+      }
+      val averaged = errors.sum / errors.size.toDouble
+      averaged
+    }
+  }
 
   private val fastLayersSize1 = layers.size - 1
   private val fastWeightsSize1 = weights.size - 1
@@ -80,13 +95,15 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
                            iteration: Int, maxIterations: Int): Unit = {
     val error = errorFunc(xs, ys)
     val errorMean = mean(error)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
+    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly(this)) {
       if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
+      update(errorMean, weights)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
+      take()
     }
   }
 
