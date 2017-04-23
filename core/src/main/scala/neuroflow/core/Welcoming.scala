@@ -38,13 +38,13 @@ trait Welcoming { self: Network =>
 
   private def prettyPrint(): Unit = {
     val max = layers.map(_.neurons).max
-    val center = (max - 1) / 2
-    val cols = layers.map(l => l.neurons - 1).map { l =>
+    val center = math.ceil((max.toDouble - 1.0) / 2.0)
+    val cols = layers.map(l => (l.neurons - 1).toDouble).map { l =>
       val col = (0 until max) map { _ => " " }
       col.zipWithIndex.map {
-        case (_, i) if i <= center && i >= center - (l / 2) => "O"
-        case (_, i) if i >= center && i <= center + (l / 2) => "O"
-        case (c, _) => c
+        case (c, i) if i <= center && i >= (center - math.ceil(l / 2.0))    => "O"
+        case (c, i) if i >= center && i <= (center + math.floor(l / 2.0))   => "O"
+        case (c, i)                                                         =>  c
       }
     }
 
