@@ -34,7 +34,7 @@ It's hard to hammer a nail using a screw driver, so we have different net types.
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/nettypes.png" width=700 height=250 />
 
 * FFN: A feed forward network. It is good for classification and regression with stationary input. 
-* FFN CLUSTER: Use a cluster if you want represent, compress or cluster your data. Think of word2vec, auto-encoders or principal component analysis. 
+* FFN CLUSTER: Use a cluster if you want to represent, compress or cluster your data. Think of word2vec, auto-encoders or principal component analysis. 
 * RNN LSTM: A recurrent network. The LSTM model is used here. Use it if you want to do classification and regression with sequential input.
 
 # Construction of a Net  
@@ -72,7 +72,8 @@ val complexNet = Network(
   Cluster(10, g) :: 
   Hidden(20, f) :: 
   Output(50, f) :: HNil, 
-  settings)
+  settings
+)
 ```
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
