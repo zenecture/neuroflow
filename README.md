@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
 
-NeuroFlow is a library to construct, sketch, train and evaluate Artificial Neural Networks (FFN, RNN).
+NeuroFlow is a library to construct, sketch, train and evaluate Artificial Neural Networks.
 It is written in Scala, matrix operations are performed with <a href="https://github.com/scalanlp/breeze">Breeze</a> and <a href="https://github.com/fommil/netlib-java">NetLib</a>.
 
 # Introduction
@@ -27,11 +27,21 @@ resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repos
 Seeing code examples is a good way to get started. You may have a look at the playground for some inspiration.
 If you want to use neural nets in your project, you can expect a journey full of fun and experiments.
 
+# Net Types
+
+It's hard to hammer a nail using a screw driver, so we have different net types.
+
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/nettypes.png" width=700 height=250 />
+
+* Feed Forward Network: The good old standard. It is good for classification and regression with stationary input. 
+* Feed Forward Cluster: Use a cluster if you want represent, compress or cluster your data. Think of word2vec, auto-encoders or principal component analysis. 
+* Recurrent Neural Network: The LSTM model is used here. Use it if you want to do classification and regression with sequential input.
+
 # Construction of a Net  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=443 height=320 />
 
-Let's construct the net depicted above. First, we have to pick the desired behavior:
+Let's construct the FFN net depicted above. First, we have to pick the desired behavior:
 
 ```scala
 import neuroflow.application.plugin.Notation._
@@ -42,21 +52,27 @@ import neuroflow.nets.DefaultNetwork._
 import shapeless._
 ```
 
-This will give us a fully connected ANN, which is initialized with random weights and supervised training mode.
+This will give us a fully connected net, which is initialized with random weights in supervised training mode.
 
 ```scala
 val f = Sigmoid
 val net = Network(Input(2) :: Hidden(3, f) :: Output(1, f) :: HNil)
 ```
 
-This is the most basic net. The architecture of the net is a list. We use a sigmoid activation function `fn` for our hidden and output layers. 
+The architecture of the net is expressed as a list. We use a sigmoid activation function `fn` for our hidden and output layers. 
 A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
 import neuroflow.core.LBFGSNetwork._
 val (f, g) = (Sigmoid, Linear)
 val settings = Settings(precision = 1E-5, iterations = 200)
-val net = Network(Input(50) :: Hidden(20, f) :: Cluster(10, g) :: Hidden(20, f) :: Output(50, f) :: HNil, settings)
+val complexNet = Network(
+  Input(50) :: 
+  Hidden(20, f) :: 
+  Cluster(10, g) :: 
+  Hidden(20, f) :: 
+  Output(50, f) :: HNil, 
+  settings)
 ```
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
@@ -64,7 +80,7 @@ If a network doesn't follow this rule, it won't compile.
 
 # Training
 
-Let's train our net with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
+Let's train our `net` with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
 For our little example, let's quickly define the training data using the vector notation:
 
 ```scala
