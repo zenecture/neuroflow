@@ -177,8 +177,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
     */
-  @tailrec private def chain(ds: Matrices, ws: Matrices, in: Matrix,
-                             cursor: Int, cursorDs: Int): Matrix = {
+  @tailrec private def chain(ds: Matrices, ws: Matrices, in: Matrix, cursor: Int, cursorDs: Int): Matrix = {
     if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) *:* (in * ws(cursor)), cursor + 1, cursorDs + 1)
     else ds(cursorDs) *:* (in * ws(cursor))
   }
