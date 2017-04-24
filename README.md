@@ -59,7 +59,7 @@ val f = Sigmoid
 val net = Network(Input(2) :: Hidden(3, f) :: Output(1, f) :: HNil)
 ```
 
-The architecture of the net is expressed as a list. We use a sigmoid activation function `fn` for our hidden and output layers. 
+The architecture of the net is expressed as a list. We use a sigmoid activation function `f` for our hidden and output layers. 
 A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
