@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.11
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.602",
-  "com.zenecture" %% "neuroflow-application" % "0.602"
+  "com.zenecture" %% "neuroflow-core" % "0.603",
+  "com.zenecture" %% "neuroflow-application" % "0.603"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
