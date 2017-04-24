@@ -19,7 +19,7 @@ trait Welcoming { self: Network =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 0.602
+      |         Version 0.603
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
