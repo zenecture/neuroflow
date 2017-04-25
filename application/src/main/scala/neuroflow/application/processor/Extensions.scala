@@ -10,10 +10,10 @@ object Extensions {
 
   /* Lazyness */
   implicit class VectorOps(l: Vector[Double]) {
-    def +(r: Vector[Double]): Vector[Double] = (l.dv + r.dv).v
-    def -(r: Vector[Double]): Vector[Double] = (l.dv - r.dv).v
-    def dot(r: Vector[Double]): Double = l.dv dot r.dv
-    def *(r: Vector[Double]): Vector[Double] = (l.dv * r.dv).v
+    def +(r: Vector[Double]): Vector[Double]   = (l.dv  +  r.dv).v
+    def -(r: Vector[Double]): Vector[Double]   = (l.dv  -  r.dv).v
+    def dot(r: Vector[Double]): Double         =  l.dv dot r.dv
+    def *(r: Vector[Double]): Vector[Double]   = (l.dv  *  r.dv).v
     def *:*(r: Vector[Double]): Vector[Double] = (l.dv *:* r.dv).v
     def /:/(r: Vector[Double]): Vector[Double] = (l.dv /:/ r.dv).v
   }
@@ -30,6 +30,11 @@ object Extensions {
     import breeze.linalg._
     def apply(v1: scala.Vector[Double], v2: scala.Vector[Double]): Double =
       Breeze.cosineSimilarity(DenseVector(v1.toArray), DenseVector(v2.toArray))
+  }
+
+  object euclideanDistance {
+    def apply(v1: scala.Vector[Double], v2: scala.Vector[Double]): Double =
+      breeze.linalg.functions.euclideanDistance(v2.dv, v2.dv)
   }
 
   object Breeze {
