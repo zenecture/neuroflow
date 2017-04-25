@@ -17,12 +17,12 @@ import scala.io.Source
 
 /**
   *
-  * Having fun with https://www.kaggle.com/abcsds/pokemon
+  * There is a story behind: http://znctr.com/blog/neural-pokemon
+  * Data set from: https://www.kaggle.com/abcsds/pokemon
   *
   * @author bogdanski
   * @since 21.04.17
   */
-
 
 object PokeMonCluster {
 

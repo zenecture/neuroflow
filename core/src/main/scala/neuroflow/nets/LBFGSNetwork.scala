@@ -95,7 +95,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     /**
       * Maps from W_i to V.
       */
-    def flatten: DVector = DenseVector(weights.foldLeft(Array.empty[Double])((l, r) => l ++ r.data))
+    def flatten: DVector = DenseVector(weights.foldLeft(Array.empty[Double])((l, r) => l ++ r.toArray))
 
     /**
       * Updates W_i using V.
@@ -114,7 +114,8 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     val approx = approximation.getOrElse(Approximation(1E-5)).Δ
 
     val gradientFunction = new ApproximateGradientFunction[Int, DVector](errorFunc, approx)
-    val lbfgs = new NFLBFGS(maxIter = iterations, m = mem, maxZoomIter = mzi, maxLineSearchIter = mlsi, tolerance = settings.precision)
+    val lbfgs = new NFLBFGS(verbose = settings.verbose, maxIter = iterations, m = mem, maxZoomIter = mzi,
+      maxLineSearchIter = mlsi, tolerance = settings.precision)
     val optimum = lbfgs.minimize(gradientFunction, flatten)
 
     update(optimum)
