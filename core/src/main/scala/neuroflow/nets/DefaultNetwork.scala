@@ -38,20 +38,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
   import neuroflow.core.Network._
 
-  private implicit object KBL extends CanAverage[DefaultNetwork] {
-    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) =>
-          val im = a.zip(b).map {
-            case (x, y) => (x - y).abs
-          }
-          im.sum / im.size.toDouble
-      }
-      val averaged = errors.sum / errors.size.toDouble
-      averaged
-    }
-  }
-
   private val fastLayersSize1 = layers.size - 1
   private val fastWeightsSize1 = weights.size - 1
 
@@ -194,6 +180,20 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     weights(weightLayer).update(weight, v + Δ)
     val b = errorFunc(xs, ys)
     (b - a) / (2 * Δ)
+  }
+
+  private implicit object KBL extends CanAverage[DefaultNetwork] {
+    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
+      val errors = xs.map(evaluate).zip(ys).map {
+        case (a, b) =>
+          val im = a.zip(b).map {
+            case (x, y) => (x - y).abs
+          }
+          im.sum / im.size.toDouble
+      }
+      val averaged = errors.sum / errors.size.toDouble
+      averaged
+    }
   }
 
 }
