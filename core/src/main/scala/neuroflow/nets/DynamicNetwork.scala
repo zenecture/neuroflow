@@ -43,6 +43,20 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   private val fastLayersSize1 = layers.size - 1
   private val fastWeightsSize1 = weights.size - 1
 
+  private implicit object KBL extends CanAverage[DynamicNetwork] {
+    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
+      val errors = xs.map(evaluate).zip(ys).map {
+        case (a, b) =>
+          val im = a.zip(b).map {
+            case (x, y) => (x - y).abs
+          }
+          im.sum / im.size.toDouble
+      }
+      val averaged = errors.sum / errors.size.toDouble
+      averaged
+    }
+  }
+
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -207,20 +221,6 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     val b = mean(errorFunc(xs, ys))
     weights(weightLayer).update(weight, v)
     if ((a - b) < (stepSize * t)) α(stepSize * τ, direction, xs, ys, weightLayer, weight) else stepSize
-  }
-
-  private implicit object KBL extends CanAverage[DynamicNetwork] {
-    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) =>
-          val im = a.zip(b).map {
-            case (x, y) => (x - y).abs
-          }
-          im.sum / im.size.toDouble
-      }
-      val averaged = errors.sum / errors.size.toDouble
-      averaged
-    }
   }
 
 }
