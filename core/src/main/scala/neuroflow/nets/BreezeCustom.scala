@@ -15,12 +15,12 @@ import neuroflow.nets.NFLBFGS.ErrorFunctionMin
   */
 
 
-private[nets] class NFLBFGS(verbose: Boolean, cc: ConvergenceCheck[DenseVector[Double]], m: Int, maxZoomIter: Int, maxLineSearchIter: Int)
+private[nets] class NFLBFGS(verbose: Boolean, cc: ConvergenceCheck[DenseVector[Double]], m: Int, maxZoomIter: Int, maxLineSearchIter: Int, maybeGraph: (Double) => Unit)
                            (implicit space: MutableInnerProductModule[DenseVector[Double], Double]) extends LBFGS[DenseVector[Double]](cc, m)(space) with Logs {
 
-  def this(verbose: Boolean, maxIter: Int = -1, m: Int = 7, tolerance: Double = 1E-5, maxZoomIter: Int, maxLineSearchIter: Int)
+  def this(verbose: Boolean, maxIter: Int = -1, m: Int = 7, tolerance: Double = 1E-5, maxZoomIter: Int, maxLineSearchIter: Int, maybeGraph: (Double) => Unit)
           (implicit space: MutableInnerProductModule[DenseVector[Double], Double]) =
-    this(verbose, NFLBFGS.defaultConvergenceCheck(maxIter, tolerance), m, maxZoomIter, maxLineSearchIter)
+    this(verbose, NFLBFGS.defaultConvergenceCheck(maxIter, tolerance), m, maxZoomIter, maxLineSearchIter, maybeGraph)
 
   override protected def determineStepSize(state: State, f: DiffFunction[DenseVector[Double]], dir: DenseVector[Double]): Double = {
     val x = state.x
@@ -41,6 +41,7 @@ private[nets] class NFLBFGS(verbose: Boolean, cc: ConvergenceCheck[DenseVector[D
           val (adjValue, adjGrad) = adjust(x, grad, value)
           val oneOffImprovement = (state.adjustedValue - adjValue) / (state.adjustedValue.abs max adjValue.abs max 1E-6 * state.initialAdjVal.abs)
           if (verbose) info(f"Taking step ${state.iter}. Step Size: $stepSize%.4g. Val and Grad Norm: $adjValue%.6g (rel: $oneOffImprovement%.3g) ${norm(adjGrad)}%.6g")
+          maybeGraph(adjValue)
           val history = updateHistory(x, grad, value, adjustedFun, state)
           val newCInfo = convergenceCheck.update(x, grad, value, state, state.convergenceInfo)
           failedOnce = false
