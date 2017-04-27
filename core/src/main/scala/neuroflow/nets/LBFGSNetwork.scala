@@ -88,7 +88,6 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
           case (xx, yy) => 0.5 * pow(flow(ws(Nil, v, 0), xx, 0, fastLayerSize1) - yy, 2)
         }.reduce(_ + _)
       }
-      maybeGraph(err)
       err
     }
 
@@ -115,7 +114,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
 
     val gradientFunction = new ApproximateGradientFunction[Int, DVector](errorFunc, approx)
     val lbfgs = new NFLBFGS(verbose = settings.verbose, maxIter = iterations, m = mem, maxZoomIter = mzi,
-      maxLineSearchIter = mlsi, tolerance = settings.precision)
+      maxLineSearchIter = mlsi, tolerance = settings.precision, maybeGraph = maybeGraph)
     val optimum = lbfgs.minimize(gradientFunction, flatten)
 
     update(optimum)
