@@ -17,7 +17,7 @@ import scala.util.Random
 
 /**
   *
-  * This is a Long Short-Term Memory Network. The standard LSTM model is implemented.
+  * This is a Long-Short-Term Memory Network. The standard model is implemented.
   * It comes with recurrent connections and a dedicated memory cell with input-, output-
   * and forget-gates for each neuron. Multiple layers can be stacked horizontally,
   * where the current layer gets input from the lower layers at the same time step
