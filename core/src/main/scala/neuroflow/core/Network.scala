@@ -38,11 +38,11 @@ object Network extends TypeAliases {
   */
 trait TypeAliases {
 
-  type Vector = scala.Vector[Double]
-  type DVector = DenseVector[Double]
-  type Matrix = DenseMatrix[Double]
+  type Vector   = scala.Vector[Double]
+  type DVector  = DenseVector[Double]
+  type Matrix   = DenseMatrix[Double]
   type Matrices = Seq[Matrix]
-  type Weights = Seq[Matrix]
+  type Weights  = Seq[Matrix]
 
 }
 
@@ -64,19 +64,19 @@ trait Constructor[+T <: Network] {
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
-  * With `partitions` a training sequence can be partitioned for RNNs (0 index-based).
+  * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
   * Some nets use specific parameters set in the `specifics` map.
   */
-case class Settings(verbose: Boolean = true,
-                    learningRate: Double = 0.1,
-                    precision: Double = 1E-5,
-                    iterations: Int = 100,
-                    prettyPrint: Boolean = false,
+case class Settings(verbose: Boolean      = true,
+                    learningRate: Double  = 0.1,
+                    precision: Double     = 1E-5,
+                    iterations: Int       = 100,
+                    prettyPrint: Boolean  = false,
                     errorFuncOutput: Option[ErrorFuncOutput] = None,
-                    regularization: Option[Regularization] = None,
-                    approximation: Option[Approximation] = None,
-                    partitions: Option[Set[Int]] = None,
-                    specifics: Option[Map[String, Double]] = None) extends Serializable
+                    regularization: Option[Regularization]   = None,
+                    approximation: Option[Approximation]     = None,
+                    partitions: Option[Set[Int]]             = None,
+                    specifics: Option[Map[String, Double]]   = None) extends Serializable
 
 
 trait IllusionBreaker { self: Network =>
