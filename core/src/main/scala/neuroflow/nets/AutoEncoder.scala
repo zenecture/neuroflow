@@ -7,7 +7,7 @@ import scala.collection.Seq
 import scala.util.Random
 
 /**
-  * Simple Auto Encoder using a [[LBFGSCluster]].
+  * Unsupervised Auto Encoder using a [[LBFGSCluster]].
   *
   * @author bogdanski
   * @since 16.04.17
