@@ -42,16 +42,12 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private val fastWeightsSize1 = weights.size - 1
 
   private implicit object KBL extends CanAverage[DefaultNetwork] {
+    import neuroflow.common.VectorTranslation._
     def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) =>
-          val im = a.zip(b).map {
-            case (x, y) => (x - y).abs
-          }
-          im.sum / im.size.toDouble
-      }
-      val averaged = errors.sum / errors.size.toDouble
-      averaged
+      val errors = xs.map(evaluate).zip(ys).toVector.map {
+        case (a, b) => mean(abs(a.dv - b.dv))
+      }.dv
+      mean(errors)
     }
   }
 
@@ -95,7 +91,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
                            iteration: Int, maxIterations: Int): Unit = {
     val error = errorFunc(xs, ys)
     val errorMean = mean(error)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly(this)) {
+    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
       if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)

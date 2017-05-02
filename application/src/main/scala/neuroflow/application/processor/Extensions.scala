@@ -1,6 +1,6 @@
 package neuroflow.application.processor
 
-import breeze.linalg.DenseVector
+import neuroflow.common.VectorTranslation._
 
 /**
   * @author bogdanski
@@ -8,22 +8,14 @@ import breeze.linalg.DenseVector
   */
 object Extensions {
 
-  /* Lazyness */
+  /* Enriched scala.Vector */
   implicit class VectorOps(l: Vector[Double]) {
-    def +(r: Vector[Double]): Vector[Double]   = (l.dv  +  r.dv).v
-    def -(r: Vector[Double]): Vector[Double]   = (l.dv  -  r.dv).v
+    def +(r: Vector[Double]): Vector[Double]   = (l.dv  +  r.dv).vv
+    def -(r: Vector[Double]): Vector[Double]   = (l.dv  -  r.dv).vv
     def dot(r: Vector[Double]): Double         =  l.dv dot r.dv
-    def *(r: Vector[Double]): Vector[Double]   = (l.dv  *  r.dv).v
-    def *:*(r: Vector[Double]): Vector[Double] = (l.dv *:* r.dv).v
-    def /:/(r: Vector[Double]): Vector[Double] = (l.dv /:/ r.dv).v
-  }
-
-  implicit class AsDenseVector(v: Vector[Double]) {
-    def dv: DenseVector[Double] = DenseVector(v.toArray)
-  }
-
-  implicit class AsVector(w: DenseVector[Double]) {
-    def v: Vector[Double] = w.toArray.toVector
+    def *(r: Vector[Double]): Vector[Double]   = (l.dv  *  r.dv).vv
+    def *:*(r: Vector[Double]): Vector[Double] = (l.dv *:* r.dv).vv
+    def /:/(r: Vector[Double]): Vector[Double] = (l.dv /:/ r.dv).vv
   }
 
   object cosineSimilarity {
