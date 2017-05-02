@@ -1,5 +1,6 @@
 package neuroflow.nets
 
+import breeze.linalg.DenseVector
 import neuroflow.core.Activator.Linear
 import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core._
@@ -9,6 +10,8 @@ import neuroflow.nets.DefaultNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
+import breeze.numerics._
+import breeze.stats._
 
 import scala.collection.Seq
 
@@ -30,6 +33,8 @@ class RegularizationTest extends Specification {
 
   def earlyStopping = {
 
+    import neuroflow.common.VectorTranslation._
+
     val (xs, ys) = (Vector(Vector(1.0), Vector(2.0), Vector(3.0)), Vector(Vector(3.2), Vector(5.8), Vector(9.2)))
 
     val net = Network(Input(1) :: Hidden(3, Linear) :: Output(1, Linear) :: HNil,
@@ -37,15 +42,10 @@ class RegularizationTest extends Specification {
 
     implicit object KBL extends CanAverage[DefaultNetwork] {
       def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
-        val errors = xs.map(net.evaluate).zip(ys).map {
-          case (a, b) =>
-            val im = a.zip(b).map {
-              case (x, y) => (x - y).abs
-            }
-            im.sum / im.size.toDouble
-        }
-        val averaged = errors.sum / errors.size.toDouble
-        averaged
+        val errors = xs.map(net.evaluate).zip(ys).toVector.map {
+          case (a, b) => mean(abs(a.dv - b.dv))
+        }.dv
+        mean(errors)
       }
     }
 
@@ -53,8 +53,8 @@ class RegularizationTest extends Specification {
     net.evaluate(Vector(2.0)) must be equalTo Vector(6.0)
     net.evaluate(Vector(3.0)) must be equalTo Vector(9.0)
 
-    net.shouldStopEarly(net) must be equalTo false
-    net.shouldStopEarly(net) must be equalTo true
+    net.shouldStopEarly must be equalTo false
+    net.shouldStopEarly must be equalTo true
 
   }
 

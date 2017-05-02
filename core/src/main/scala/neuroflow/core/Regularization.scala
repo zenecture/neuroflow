@@ -37,7 +37,7 @@ trait EarlyStoppingLogic { self: Network =>
   private var best = Double.PositiveInfinity
   import settings._
 
-  def shouldStopEarly[N <: Network](net: N)(implicit k: CanAverage[N]): Boolean = regularization match {
+  def shouldStopEarly[N <: Network](implicit k: CanAverage[N]): Boolean = regularization match {
     case Some(EarlyStopping(xs, ys, f)) =>
       val averaged = k.averagedError(xs, ys)
       if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
