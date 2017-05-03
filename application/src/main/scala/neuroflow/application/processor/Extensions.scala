@@ -26,7 +26,7 @@ object Extensions {
 
   object euclideanDistance {
     def apply(v1: scala.Vector[Double], v2: scala.Vector[Double]): Double =
-      breeze.linalg.functions.euclideanDistance(v2.dv, v2.dv)
+      breeze.linalg.functions.euclideanDistance(v1.dv, v2.dv)
   }
 
   object Breeze {
