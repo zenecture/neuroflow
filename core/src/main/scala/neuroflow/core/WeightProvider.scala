@@ -51,7 +51,7 @@ trait BaseOps {
   /**
     * Gives a seed function to generate weights in range `i`.
     */
-  def random(i: (Double, Double)) = () => ThreadLocalRandom.current.nextDouble(i._1, i._2)
+  def random(i: (Double, Double)): () => Double = () => ThreadLocalRandom.current.nextDouble(i._1, i._2)
 
 }
 
