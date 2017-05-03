@@ -37,14 +37,14 @@ trait BaseOps {
     }
 
   /**
-    * Enriches the given `layers` and their `weights` with recurrent connections.
+    * Enriches the given `layers` and their `weights` with recurrent LSTM connections.
     */
   def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: () => Double): Weights =
     weights.dropRight(1).zipWithIndex.flatMap {
       case (ws, index) =>
         val ns = layers(index + 1).neurons
-        val in = (1 to 3) map { w => DenseMatrix.create[Double](ws.rows, ws.cols, (1 to ws.rows * ws.cols).map(_ => seed.apply).toArray) }
-        val cells = (1 to 4) map { w => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
+        val in = (1 to 3) map { _ => DenseMatrix.create[Double](ws.rows, ws.cols, (1 to ws.rows * ws.cols).map(_ => seed.apply).toArray) }
+        val cells = (1 to 4) map { _ => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
         in ++ cells
     }
 
