@@ -60,8 +60,8 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   override def checkSettings(): Unit = {
     super.checkSettings()
     settings.regularization.foreach {
-      case _: EarlyStopping =>
-      case _ => throw new SettingsNotSupportedException("No regularization other than EarlyStopping supported.")
+      case _: EarlyStopping | KeepBest =>
+      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
     }
   }
 

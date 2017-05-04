@@ -60,8 +60,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
-      case _: EarlyStopping =>
-      case _ => throw new SettingsNotSupportedException("No regularization other than EarlyStopping supported.")
+      case _: EarlyStopping | KeepBest =>
+      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
     }
   }
 
