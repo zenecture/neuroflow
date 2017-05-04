@@ -38,10 +38,10 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
   import neuroflow.core.Network._
 
-  private val fastLayersSize1 = layers.size - 1
+  private val fastLayersSize1  = layers.size - 1
   private val fastWeightsSize1 = weights.size - 1
 
-  private implicit object KBL extends CanAverage[DefaultNetwork] {
+  private implicit object Average extends CanAverage[DefaultNetwork] {
     import neuroflow.common.VectorTranslation._
     def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
       val errors = xs.map(evaluate).zip(ys).toVector.map {
