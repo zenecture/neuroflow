@@ -25,6 +25,7 @@ object App extends App {
                MovieSimilarity.find
     case 12 => ParityCluster.apply
     case 13 => PokeMonCluster.apply
+    case 14 => Convolutional.apply
 
     case  _ => sys.exit()
   }
