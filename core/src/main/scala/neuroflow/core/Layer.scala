@@ -64,8 +64,8 @@ case class LinConvolution(filters: Int,
   val neurons: Int = filters * filters * fieldSize
   val symbol: String = "Cn"
   def receptiveField(in: Matrix): Matrix = {
-    val pads = DenseMatrix.zeros[Double](1, padding)
-    val input   = DenseMatrix.horzcat(pads, in, pads)
+    val pads  = DenseMatrix.zeros[Double](1, padding)
+    val input = DenseMatrix.horzcat(pads, in, pads)
     (1 to filters).toParArray.flatMap { _ =>
       Range(0, input.size - fieldSize, stride).toParArray.map { i =>
         DenseMatrix.create[Double](fieldSize, 1, input.data.slice(i, i + fieldSize))
