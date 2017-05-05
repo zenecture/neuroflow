@@ -7,7 +7,7 @@ import scala.collection.Seq
 import scala.util.Random
 
 /**
-  * Unsupervised Auto Encoder using a [[LBFGSCluster]].
+  * Unsupervised Auto Encoder using a [[LBFGSNetwork]].
   *
   * @author bogdanski
   * @since 16.04.17
@@ -29,7 +29,7 @@ private[nets] case class AutoEncoder(layers: Seq[Layer],
 
   import neuroflow.core.Network._
 
-  private val net = new LBFGSCluster(layers, settings, weights, identifier) {
+  private val net = new LBFGSNetwork(layers, settings, weights, identifier) {
     override def sayHi(): Unit = ()
   }
 

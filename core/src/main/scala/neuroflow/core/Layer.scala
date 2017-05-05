@@ -21,7 +21,7 @@ trait Layer {
   * Fixed input layer carrying `neurons`
   */
 case class Input(neurons: Int) extends Layer {
-  val symbol: String = "I"
+  val symbol: String = "In"
 }
 
 
@@ -37,8 +37,9 @@ case class Hidden(neurons: Int, activator: Activator[Double]) extends Layer with
   * A [[Cluster]] layer is used in (un-)supervised training scenarios, e.g. AutoEncoders,
   * where the desired model output is not the [[Output]] layer of a net, but a hidden one.
   */
-case class Cluster(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] {
-  val symbol: String = "C"
+case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
+  val symbol: String = s"C(${inner.symbol}(${inner.activator.symbol}))"
+  val neurons: Int = inner.neurons
 }
 
 
@@ -84,5 +85,5 @@ case class LinConvolution(filters: Int,
   * Fixed output layer carrying `neurons` with `activator` function
   */
 case class Output(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] {
-  val symbol: String = "O"
+  val symbol: String = "Out"
 }
