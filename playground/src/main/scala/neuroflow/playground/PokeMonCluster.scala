@@ -62,7 +62,7 @@ object PokeMonCluster {
     val net =
       Network(
         Input(dim) ::
-        Cluster(3, Linear) ::
+        Cluster(Hidden(3, Linear)) ::
         Hidden(dim / 2, ReLU) ::
         Output(dim, ReLU) :: HNil,
         Settings(iterations = 200, prettyPrint = true)

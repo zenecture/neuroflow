@@ -9,7 +9,7 @@ import neuroflow.application.processor.{Extensions, Normalizer, Util}
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.LBFGSCluster._
+import neuroflow.nets.LBFGSNetwork._
 import shapeless._
 
 import scala.io.{Source, StdIn}
@@ -41,7 +41,7 @@ object MovieSimilarity {
   val observations: List[Rating] = Source.fromFile(getResourceFile("file/ml-100k/u.data"))
     .getLines.map(_.split("\t")).map(r => Rating(r(0).toInt, r(1).toInt, r(2).toInt)).toList
 
-  val layout = Input(movies.size) :: Cluster(3, Linear) :: Output(movies.size, Sigmoid) :: HNil
+  val layout = Input(movies.size) :: Cluster(Hidden(3, Linear)) :: Output(movies.size, Sigmoid) :: HNil
 
   def apply = {
 

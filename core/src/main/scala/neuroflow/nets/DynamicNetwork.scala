@@ -40,7 +40,12 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
 
   import neuroflow.core.Network._
 
-  private val fastLayersSize1  = layers.size - 1
+  private val _layers = layers.map {
+    case Cluster(inner) => inner
+    case layer: Layer   => layer
+  }.toArray
+
+  private val fastLayersSize1  = _layers.size - 1
   private val fastWeightsSize1 = weights.size - 1
 
   private implicit object Average extends CanAverage[DynamicNetwork] {
@@ -81,7 +86,14 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     */
   def evaluate(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    flow(input, 0, fastLayersSize1).toArray.toVector
+    layers.collect {
+      case c: Cluster => c
+    }.headOption.map { cl =>
+      flow(input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toArray.toVector
+    }.getOrElse {
+      info("Couldn't find Cluster Layer. Using Output Layer.")
+      flow(input, 0, layers.size - 1).toArray.toVector
+    }
   }
 
   /**
@@ -136,7 +148,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   @tailrec final protected def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
     else {
-      val processed = layers(cursor) match {
+      val processed = _layers(cursor) match {
         case h: HasActivator[Double] =>
           if (cursor <= fastWeightsSize1) in.map(h.activator) * weights(cursor)
           else in.map(h.activator)
@@ -157,14 +169,14 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
         ws(weightLayer).update(weight, 1.0)
         ws(weightLayer).foreachKey(k => if (k != weight) ws(weightLayer).update(k, 0.0))
         val in = flow(x, 0, weightLayer - 1).map { i =>
-          layers(weightLayer) match {
+          _layers(weightLayer) match {
             case h: HasActivator[Double] => h.activator(i)
             case _ => i
           }
         }
-        val ds = layers.drop(weightLayer + 1).map {
+        val ds = _layers.drop(weightLayer + 1).map {
           case h: HasActivator[Double] =>
-            val i = layers.indexOf(h) - 1
+            val i = _layers.indexOf(h) - 1
             flow(x, 0, i).map(h.activator.derivative)
         }
         (flow(x, 0, fastLayersSize1) - y) *:* chain(ds, ws, in, weightLayer, 0)

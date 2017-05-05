@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.11
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.605",
-  "com.zenecture" %% "neuroflow-application" % "0.605"
+  "com.zenecture" %% "neuroflow-core" % "0.700",
+  "com.zenecture" %% "neuroflow-application" % "0.700"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -63,16 +63,15 @@ The architecture of the net is expressed as a list. We use a sigmoid activation 
 A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
-import neuroflow.core.LBFGSCluster._
+import neuroflow.core.LBFGSNetwork._
 val (f, g) = (Sigmoid, Linear)
-val settings = Settings(precision = 1E-5, iterations = 200)
 val complexNet = Network(
-  Input    (50)    :: 
-  Hidden   (20, f) :: 
-  Cluster  (10, g) :: 
-  Hidden   (20, f) :: 
-  Output   (50, f) :: HNil, 
-  settings
+  Input(50)               :: 
+  Hidden(20, f)           :: 
+  Cluster(Hidden(10, g))  :: 
+  Hidden(20, f)           :: 
+  Output(50, f)           :: HNil, 
+  Settings(precision = 1E-5, iterations = 200)
 )
 ```
 

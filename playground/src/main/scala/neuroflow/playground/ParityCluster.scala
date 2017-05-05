@@ -8,7 +8,7 @@ import neuroflow.application.processor.{Extensions, Normalizer, Util}
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.LBFGSCluster._
+import neuroflow.nets.LBFGSNetwork._
 import shapeless._
 
 import scala.util.Random
@@ -65,7 +65,7 @@ object ParityCluster {
 
     val net = Network(
         Input(dimension + 1) ::
-        Cluster(3, Linear) ::
+        Cluster(Hidden(3, Linear)) ::
         Output(dimension + 1, Sigmoid) :: HNil,
         Settings(iterations = 20)
       )
