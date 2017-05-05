@@ -17,7 +17,7 @@ import scala.annotation.implicitNotFound
   */
 @implicitNotFound(
   "No weight provider in scope. Import your desired provider or try: " +
-  "import neuroflow.core.XXX.WeightProvider._ (where XXX = { FFN | RNN }).")
+  "import neuroflow.core.XXX.WeightProvider._ (where XXX = { FFN | RNN | CNN }).")
 trait WeightProvider extends (Seq[Layer] => Weights)
 
 
@@ -47,6 +47,46 @@ trait BaseOps {
         val cells = (1 to 4) map { _ => DenseMatrix.create[Double](ns, ns, (1 to ns * ns).map(_ => seed.apply).toArray) }
         in ++ cells
     }
+
+  /**
+    * Non-convolutional layers will be fully connected, whereas [[Convolutable]]
+    * layers will be connected locally.
+    */
+  def fullyAndLocallyConnected(layers: Seq[Layer], seed: () => Double): Weights = {
+
+
+    def generateCon(c: Convolutable): Seq[DenseMatrix[Double]] = {
+      Seq((1 to c.filters).map(_ => DenseMatrix.create[Double](1, c.fieldSize, (1 to c.fieldSize)
+        .map(_ => seed.apply).toArray)).reduce((l, r) => DenseMatrix.vertcat(l, r)))
+    }
+
+    def generate(l: Layer, r: Layer): Seq[DenseMatrix[Double]] = {
+      val initialWeights = (1 to l.neurons * r.neurons).map(_ => seed.apply).toArray
+      Seq(DenseMatrix.create[Double](l.neurons, r.neurons, initialWeights))
+    }
+
+
+    layers.dropRight(1).zipWithIndex.flatMap {
+
+      case (l: Convolutable, index) =>
+        layers(index + 1) match {
+          case r: Convolutable =>
+            generateCon(r)
+          case r: Layer =>
+            generate(l, r)
+        }
+
+      case (l: Layer, index) =>
+        layers(index + 1) match {
+          case r: Convolutable =>
+            generateCon(r)
+          case r: Layer =>
+            generate(l, r)
+        }
+
+    }
+
+  }
 
   /**
     * Gives a seed function to generate weights in range `i`.
@@ -102,6 +142,26 @@ object RNN extends BaseOps {
       def apply(layers: Seq[Layer]): Weights = {
         val fc = fullyConnected(layers, random(r))
         fc ++ recurrentEnrichment(layers, fc, random(r))
+      }
+    }
+
+    implicit val randomWeights: WeightProvider = apply(-1, 1)
+
+  }
+
+}
+
+
+object CNN extends BaseOps {
+
+  object WeightProvider {
+
+    /**
+      * Gives a weight provider with random weights in range `r`.
+      */
+    def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = {
+        fullyAndLocallyConnected(layers, random(r))
       }
     }
 

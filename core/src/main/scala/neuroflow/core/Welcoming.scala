@@ -19,7 +19,7 @@ trait Welcoming { self: Network =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 0.605
+      |         Version 0.700
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
@@ -32,8 +32,8 @@ trait Welcoming { self: Network =>
 
   private def buildString(l: Layer): String =
     l match {
-      case h: HasActivator[_] => s"${h.neurons} (${h.activator.symbol})"
-      case _ => l.neurons.toString
+      case h: HasActivator[_] => s"${h.neurons} ${l.symbol}(${h.activator.symbol})"
+      case _ => s"${l.neurons} ${l.symbol}"
     }
 
   private def prettyPrint(): Unit = {
@@ -42,7 +42,7 @@ trait Welcoming { self: Network =>
     val cols = layers.map(l => (l.neurons - 1).toDouble).map { l =>
       val col = (0 until max) map { _ => " " }
       col.zipWithIndex.map {
-        case (c, i) if i <= center && i >= (center - math.ceil(l / 2.0))    => "O"
+        case (c, i) if i <= center && i >= (center - math.ceil (l / 2.0))   => "O"
         case (c, i) if i >= center && i <= (center + math.floor(l / 2.0))   => "O"
         case (c, i)                                                         =>  c
       }
