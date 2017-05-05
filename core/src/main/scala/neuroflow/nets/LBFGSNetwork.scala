@@ -51,7 +51,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   override def checkSettings(): Unit = {
     super.checkSettings()
     if (settings.regularization.isDefined)
-      throw new SettingsNotSupportedException("No regularization other than built-in LBFGS supported.")
+      throw new SettingsNotSupportedException("No regularization supported.")
   }
 
   /**
@@ -85,7 +85,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     def errorFunc(v: DVector): Double = {
       val err = mean {
         in.zip(out).map {
-          case (xx, yy) => 0.5 * pow(flow(ws(Nil, v, 0), xx, 0, fastLayerSize1) - yy, 2)
+          case (xx, yy) => pow(flow(ws(Nil, v, 0), xx, 0, fastLayerSize1) - yy, 2)
         }.reduce(_ + _)
       }
       err
