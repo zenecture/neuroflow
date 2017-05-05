@@ -8,26 +8,20 @@ import breeze.linalg.DenseMatrix
   */
 
 
-/**
-  * Label for any layer with `neurons` count.
-  */
+/** Base-label for all layers. */
 trait Layer {
   val neurons: Int
   val symbol: String
 }
 
 
-/**
-  * Fixed input layer carrying `neurons`
-  */
+/** Fixed input layer carrying `neurons` */
 case class Input(neurons: Int) extends Layer {
   val symbol: String = "In"
 }
 
 
-/**
-  * Hidden layer carrying `neurons` with `activator` function
-  */
+/** Hidden layer carrying `neurons` with `activator` function */
 case class Hidden(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] {
   val symbol: String = "H"
 }
@@ -38,7 +32,7 @@ case class Hidden(neurons: Int, activator: Activator[Double]) extends Layer with
   * where the desired model output is not the [[Output]] layer of a net, but a hidden one.
   */
 case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
-  val symbol: String = s"C(${inner.symbol}(${inner.activator.symbol}))"
+  val symbol: String = s"Cl(${inner.symbol}(${inner.activator.symbol}))"
   val neurons: Int = inner.neurons
 }
 
@@ -81,9 +75,7 @@ case class LinConvolution(filters: Int,
 }
 
 
-/**
-  * Fixed output layer carrying `neurons` with `activator` function
-  */
+/** Fixed output layer carrying `neurons` with `activator` function */
 case class Output(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] {
   val symbol: String = "Out"
 }
