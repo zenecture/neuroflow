@@ -61,7 +61,7 @@ trait Constructor[+T <: Network] {
   * The `learningRate` determines the amplification of the gradients.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
-  * The `errorFuncOutput` option prints the error func graph to the specified file/closure
+  * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
   * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
