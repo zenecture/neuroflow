@@ -32,8 +32,12 @@ trait Welcoming { self: Network =>
 
   private def buildString(l: Layer): String =
     l match {
-      case h: HasActivator[_] => s"${h.neurons} ${l.symbol}(${h.activator.symbol})"
-      case _ => s"${l.neurons} ${l.symbol}"
+      case c: Convolutable    => c.reshape match {
+        case Some(_)          => s"${c.filters} * ${c.fieldSize} ~> ${c.neurons} (${c.activator.symbol})"
+        case None             => s"${c.filters} * ${c.fieldSize} (${c.activator.symbol})"
+      }
+      case h: HasActivator[_] => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
+      case _                  => s"${l.neurons} ${l.symbol}"
     }
 
   private def prettyPrint(): Unit = {

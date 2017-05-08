@@ -1,6 +1,6 @@
 package neuroflow.core
 
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{DenseMatrix, DenseVector}
 
 /**
   * @author bogdanski
@@ -38,12 +38,14 @@ case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
 
 
 /**
-  * Convolutes the input using `receptiveField`,
-  * which transforms the input to a matrix holding all field slices.
+  * Convolutes the input using implementation `receptiveField`,
+  * which transforms the input to a matrix holding all field slices for all filters.
+  * The `activator` function will be mapped over the resulting filters.
   * `filters`: amount of filters for this layer
   * `fieldSize`: the size of the field
-  * `stride`: the stride, or stepsize
-  * `padding`: add zero-padding to input
+  * `stride`: the stride to use iterating over the input
+  * `padding`: adds zero-padding to the input
+  * `reshape`: reshapes the output to a matrix of shape [1, reshape], so fully layers can dock
   */
 trait Convolutable extends HasActivator[Double] {
   import Network._
@@ -51,7 +53,8 @@ trait Convolutable extends HasActivator[Double] {
   val fieldSize: Int
   val stride: Int
   val padding: Int
-  def receptiveField(in: Matrix): Matrix
+  val reshape: Option[Int]
+  def receptiveField(in: Matrix): Matrices
 }
 
 /** Convolutes the input in a linear fashion. */
@@ -59,18 +62,21 @@ case class LinConvolution(filters: Int,
                           fieldSize: Int,
                           stride: Int,
                           padding: Int,
-                          activator: Activator[Double]) extends Layer with Convolutable {
+                          activator: Activator[Double],
+                          reshape: Option[Int] = None) extends Layer with Convolutable {
   import Network._
-  val neurons: Int = filters * filters * fieldSize
+  val neurons: Int = reshape.getOrElse(filters * fieldSize)
   val symbol: String = "Cn"
-  def receptiveField(in: Matrix): Matrix = {
-    val pads  = DenseMatrix.zeros[Double](1, padding)
-    val input = DenseMatrix.horzcat(pads, in, pads)
-    (1 to filters).toParArray.flatMap { _ =>
-      Range(0, input.size - fieldSize, stride).toParArray.map { i =>
-        DenseMatrix.create[Double](fieldSize, 1, input.data.slice(i, i + fieldSize))
-      }
-    }.reduce((l, r) => DenseMatrix.horzcat(l, r))
+  private val pads  = DenseVector.zeros[Double](padding)
+  def receptiveField(in: Matrix): Matrices = {
+    (0 until in.rows).map { r =>
+      val d = DenseVector.vertcat(pads, in.t(::, r), pads).toArray
+      (1 to filters).toParArray.flatMap { _ =>
+        Range(0, d.size - fieldSize, stride).toParArray.map { i =>
+          DenseMatrix.create[Double](fieldSize, 1, d.slice(i, i + fieldSize))
+        }
+      }.reduce((l, r) => DenseMatrix.horzcat(l, r))
+    }
   }
 }
 

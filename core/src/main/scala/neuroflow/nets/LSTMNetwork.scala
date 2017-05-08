@@ -58,7 +58,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
 
   /**
     * Checks if the [[Settings]] are properly defined for this network.
-    * Throws a [[SettingsNotSupportedException]] if not. Default behavior is no op.
+    * Throws a [[neuroflow.core.IllusionBreaker.SettingsNotSupportedException]] if not. Default behavior is no op.
     */
   override def checkSettings(): Unit = {
     super.checkSettings()

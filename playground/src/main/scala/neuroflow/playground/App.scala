@@ -7,7 +7,7 @@ package neuroflow.playground
 
 object App extends App {
 
-  print("Run example (1-14): ")
+  print("Run example (1-13): ")
 
   scala.io.StdIn.readInt() match {
     case  1 => XOR.apply
@@ -25,7 +25,6 @@ object App extends App {
                MovieSimilarity.find
     case 12 => ParityCluster.apply
     case 13 => PokeMonCluster.apply
-    case 14 => Convolutional.apply
 
     case  _ => sys.exit()
   }

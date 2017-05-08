@@ -4,6 +4,7 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.optimize._
 import breeze.stats._
+import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
 
@@ -151,22 +152,32 @@ private[nets] case class ConvolutionalNetwork(layers: Seq[Layer], settings: Sett
 
         case c: Convolutable =>
 
-          val convoluted = weights(cursor - 1) * c.receptiveField(in)
+          val rf = c.receptiveField(in)
+
+          val convoluted = rf.map {
+            field => weights(cursor - 1) * field
+          }.reduce((l, r) => DenseMatrix.vertcat(l, r))
 
           fastLayers(cursor + 1) match {
-            case _: Convolutable => convoluted.map(c.activator).reshape(1, convoluted.size)
-            case _: Layer        => convoluted.map(c.activator).reshape(1, convoluted.size) * weights(cursor)
+            case _: Convolutable => convoluted.map(c.activator)
+            case _: Layer        =>
+              val cm = convoluted.map(c.activator).t
+              val ms = (0 until cm.cols).map {
+                c => mean(cm(::, c))
+              }
+              val ma = DenseMatrix.create[Double](1, ms.size, ms.toArray)
+              ma * weights(cursor)
           }
 
-        case h: HasActivator[Double] if cursor <= fastWeightSize1 =>
+        case l: Layer with HasActivator[Double] if cursor <= fastWeightSize1 =>
           fastLayers(cursor + 1) match {
-            case _: Convolutable => in.map(h.activator)
-            case _: Layer        => in.map(h.activator) * weights(cursor)
+            case _: Convolutable => in.map(l.activator)
+            case _: Layer        => in.map(l.activator) * weights(cursor)
           }
 
-        case h: HasActivator[Double] => in.map(h.activator)
+        case o: Output => in.map(o.activator)
 
-        case _: Input => fastLayers(cursor + 1) match {
+        case _: Input  => fastLayers(cursor + 1) match {
           case _: Convolutable   => in
           case _: Layer          => in * weights(cursor)
         }
