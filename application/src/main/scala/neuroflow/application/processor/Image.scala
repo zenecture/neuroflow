@@ -4,6 +4,8 @@ import java.awt.Color
 import java.io.File
 import javax.imageio.ImageIO
 
+import scala.io.Source
+
 /**
   * @author bogdanski
   * @since 03.01.16
@@ -24,6 +26,14 @@ object Image {
       }
     }
   }.toVector
+
+  def extractPgm(path: String): Vector[Double] = extractPgm(new File(path))
+  def extractPgm(file: File): Vector[Double] = {
+    val raw = Source.fromFile(file).getLines.drop(2).toVector // P2, width, height
+    val max = raw.head.toDouble
+    val img = raw.tail.flatMap(_.split(" ")).map(_.toDouble / max)
+    img
+  }
 
   /**
     * Loads image from `file` or `path` and returns flattened sequence of pixels,

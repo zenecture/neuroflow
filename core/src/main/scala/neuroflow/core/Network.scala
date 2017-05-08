@@ -81,13 +81,18 @@ case class Settings(verbose: Boolean      = true,
 
 trait IllusionBreaker { self: Network =>
 
-  class SettingsNotSupportedException(message: String) extends Exception(message)
-
   /**
     * Checks if the [[Settings]] are properly defined for this network.
-    * Throws a [[SettingsNotSupportedException]] if not. Default behavior is no op.
+    * Throws a [[neuroflow.core.IllusionBreaker.SettingsNotSupportedException]] if not. Default behavior is no op.
     */
   def checkSettings(): Unit = ()
+
+}
+
+object IllusionBreaker {
+
+  class SettingsNotSupportedException(message: String) extends Exception(message)
+  class NotSoundException(message: String) extends Exception(message)
 
 }
 
