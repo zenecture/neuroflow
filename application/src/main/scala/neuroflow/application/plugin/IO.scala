@@ -15,8 +15,13 @@ import scala.io.Source
   */
 object IO extends Logs {
 
+  case class RawMatrix(rows: Int, cols: Int, data: Array[Double]) {
+    def toDenseMatrix = DenseMatrix.create[Double](rows, cols, data)
+  }
+
   object Json {
 
+    import io.circe.generic.auto._
     import io.circe.parser._
     import io.circe.syntax._
 
@@ -24,16 +29,16 @@ object IO extends Logs {
       * Deserializes weights as `json` to construct a `WeightProvider`
       */
     def read(json: String): WeightProvider = new WeightProvider {
-      def apply(v1: Seq[Layer]): Weights = decode[Array[Array[Double]]](json) match {
+      def apply(v1: Seq[Layer]): Weights = decode[Array[RawMatrix]](json) match {
         case Left(t) => throw t
-        case Right(ws) => ws.map(DenseMatrix(_))
+        case Right(ws) => ws.map(_.toDenseMatrix)
       }
     }
 
     /**
       * Serializes weights of `network` to json string
       */
-    def write(network: Network): String = network.weights.toArray.map(_.toArray).asJson.noSpaces
+    def write(network: Network): String = network.weights.toArray.map(m => RawMatrix(m.rows, m.cols, m.toArray)).asJson.noSpaces
   }
 
 
