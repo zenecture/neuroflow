@@ -69,14 +69,14 @@ trait KeepBestLogic { self: Network =>
   private var bestErr = Double.PositiveInfinity
   private var bestWs: Weights = self.weights
 
-  def update(error: Double, ws: Weights): Unit = {
+  def keepBest(error: Double, ws: Weights): Unit = {
     if (error < bestErr) Future {
       bestErr = error
       bestWs = ws.map(_.copy)
     }
   }
 
-  def take(): Unit = self.settings.regularization match {
+  def takeBest(): Unit = self.settings.regularization match {
     case Some(KeepBest) =>
       info(f"Applying KeepBest strategy. Best test error so far: $bestErr%.6g.")
       bestWs.foreach { l =>
