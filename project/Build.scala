@@ -1,14 +1,13 @@
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
-import sbtassembly.PathList
 
 object NeuroflowBuild extends Build {
 
   val neuroflowSettings = Defaults.coreDefaultSettings ++ Seq(
     name in ThisBuild := "neuroflow",
     organization in ThisBuild := "com.zenecture",
-    version := "0.700",
+    version := "0.701",
     scalaVersion := "2.12.1",
     assemblyMergeStrategy in assembly := {
       case x => MergeStrategy defaultMergeStrategy x

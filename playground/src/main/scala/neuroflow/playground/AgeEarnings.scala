@@ -34,7 +34,7 @@ object AgeEarnings {
 
     val train = src.take(2000)
     //val test = src.drop(1000)
-    val sets = Settings(learningRate = 0.05, precision = 0.001, iterations = 5000,
+    val sets = Settings(learningRate = { case _ => 0.05 }, precision = 0.001, iterations = 5000,
       regularization = None, approximation = None, specifics = None)
     val network = Network(Input(1) :: Hidden(20, Sigmoid) :: Output(1, Sigmoid) :: HNil, sets)
     val maxAge = train.map(_._1).sorted.reverse.head
