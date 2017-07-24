@@ -93,7 +93,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     }.headOption.map { cl =>
       flow(input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toArray.toVector
     }.getOrElse {
-      info("Couldn't find Cluster Layer. Using Output Layer.")
       flow(input, 0, layers.size - 1).toArray.toVector
     }
   }
