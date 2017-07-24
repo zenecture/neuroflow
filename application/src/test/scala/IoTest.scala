@@ -29,7 +29,7 @@ class IoTest extends Specification {
     import neuroflow.core.FFN.WeightProvider.zeroWeights
     Network(layers)
   }
-  val asJson = "[[0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0]]"
+  val asJson = "[{\"rows\":2,\"cols\":3,\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]},{\"rows\":3,\"cols\":2,\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]}]"
 
   def serialize = {
     val serialized = Json.write(measure)
