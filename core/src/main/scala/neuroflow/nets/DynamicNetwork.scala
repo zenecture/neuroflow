@@ -107,11 +107,11 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
       if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
-      update(errorMean, weights)
+      keepBest(errorMean, weights)
       run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
-      take()
+      takeBest()
     }
   }
 
