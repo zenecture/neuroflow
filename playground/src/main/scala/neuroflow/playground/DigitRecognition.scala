@@ -7,11 +7,8 @@ import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.application.plugin.Notation._
-import neuroflow.application.plugin.Notation.Implicits.toVector
-import neuroflow.nets.DynamicNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
-
-import scala.collection.immutable.Seq
 
 /**
   * @author bogdanski
@@ -37,8 +34,14 @@ object DigitRecognition {
     val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/").toVector)
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid
-      val settings = Settings(verbose = true, learningRate = { case _ => 100.0 }, precision = 0.001, iterations = 50,
-        regularization = None, approximation = Some(Approximation(0.00001)), specifics = Some(Map("τ" -> 0.25, "c" -> 0.01)))
+      val settings = Settings(
+        learningRate = {
+          case i if i < 10 => 10.0
+          case i if i >= 10 && i < 20 => 5.0
+          case i => 0.2
+        },
+        precision = 0.001, iterations = 50,
+        regularization = None, approximation = Some(Approximation(1E-5)))
       val xs = sets.dropRight(1).flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
       val ys = sets dropRight 1 flatMap { m => (0 to 9) map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).updated(digit, 1.0) } }
       val net = Network(Input(xs.head.size) :: Hidden(50, fn) :: Output(10, fn) :: HNil, settings)
@@ -60,97 +63,98 @@ object DigitRecognition {
 
 /*
 
-[INFO] [09.01.2016 13:00:18:190] [ForkJoinPool-1-worker-13] Took 200 iterations of 200 with error 0.2514897816501956  0.0012656955183186303  ... (10 total)
-[INFO] [09.01.2016 13:00:20:629] [ForkJoinPool-1-worker-11] Took 200 iterations of 200 with error 9.645298738455374E-4  0.0010791357253543453  ... (10 total)
-set a:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set b:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set c:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set d:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set e:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set f:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set g:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-set h:
-0 classified as 0
-1 classified as 1
-2 classified as 2
-3 classified as 3
-4 classified as 4
-5 classified as 5
-6 classified as 6
-7 classified as 7
-8 classified as 8
-9 classified as 9
-[success] Total time: 1397 s, completed 09.01.2016 13:00:20
+
+  [scala-execution-context-global-65] INFO neuroflow.nets.DefaultNetwork - [24.07.2017 23:53:50:278] Taking step 49 - Mean Error 0,255050 - Error Vector 0.33900173137057654  0.06398308896039989  0.4939397088502782  ... (10 total)
+  [scala-execution-context-global-65] INFO neuroflow.nets.DefaultNetwork - [24.07.2017 23:53:56:473] Took 50 iterations of 50 with Mean Error = 0,254763
+  set a:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set b:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set c:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set d:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set e:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set f:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set g:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  set h:
+  0 classified as 0
+  1 classified as 1
+  2 classified as 2
+  3 classified as 3
+  4 classified as 4
+  5 classified as 5
+  6 classified as 6
+  7 classified as 7
+  8 classified as 8
+  9 classified as 9
+  [success] Total time: 315 s, completed 24.07.2017 23:53:58
 
 
  */
