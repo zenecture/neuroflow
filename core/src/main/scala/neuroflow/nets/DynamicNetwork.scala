@@ -79,7 +79,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     import settings._
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toVector
     val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toVector
-    run(in, out, learningRate, precision, 0, iterations)
+    run(in, out, learningRate(0), precision, 0, iterations)
   }
 
   /**
@@ -108,7 +108,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       keepBest(errorMean, weights)
-      run(xs, ys, stepSize, precision, iteration + 1, maxIterations)
+      run(xs, ys, settings.learningRate(iteration + 1), precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()
