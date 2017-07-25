@@ -58,7 +58,7 @@ trait Constructor[+T <: Network] {
 
 /**
   * The `verbose` flag indicates logging behavior.
-  * The `learningRate` determines the amplification of the gradients.
+  * The `learningRate` is a function from current iteration to learning rate, enabling dynamic rates.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
