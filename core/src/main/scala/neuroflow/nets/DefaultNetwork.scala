@@ -16,7 +16,7 @@ import scala.util.Random
 /**
   *
   * This is a standard artificial neural network, using gradient descent,
-  * fully connected weights, no sharing.
+  * fully connected weights.
   *
   * @author bogdanski
   * @since 15.01.16
@@ -44,9 +44,10 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     case layer: Layer   => layer
   }.toArray
 
-  private val fastWeights = weights.toArray
-  private val fastLayersSize1  = _layers.size - 1
-  private val fastWeightsSize1 = weights.size - 1
+  private val _layersNI = _layers.tail.map { case h: HasActivator[Double] => h }
+
+  private val layerSize  = _layers.size - 1
+  private val weightLayerSize = weights.size - 1
 
   private implicit object Average extends CanAverage[DefaultNetwork] {
     import neuroflow.common.VectorTranslation._
@@ -98,7 +99,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * The eval loop.
+    * The training loop.
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
@@ -122,27 +123,11 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     xs.zip(ys).par.map {
       case (x, y) =>
-        0.5 * pow(flow(x, 0, fastLayersSize1) - y, 2)
+        0.5 * pow(flow(x, 0, layerSize) - y, 2)
     }.reduce(_ + _)
   }
 
-  /**
-    * Computes gradient via `deriveErrorFunc` for all weights,
-    * and adapts their value using gradient descent.
-    */
-  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = {
-    weights.foreach { l =>
-      l.foreachPair { (k, v) =>
-        val layer = weights.indexOf(l)
-        val grad =
-          if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k)
-          else errorFuncDerivative(xs, ys, layer, k)
-        l.update(k, v - stepSize * mean(grad))
-      }
-    }
-  }
-
-  /**
+    /**
     * Computes the network recursively from `cursor` until `target`.
     */
   @tailrec private def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
@@ -150,7 +135,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     else {
       val processed = _layers(cursor) match {
         case h: HasActivator[Double] =>
-          if (cursor <= fastWeightsSize1) in.map(h.activator) * weights(cursor)
+          if (cursor <= weightLayerSize) in.map(h.activator) * weights(cursor)
           else in.map(h.activator)
         case _ => in * weights(cursor)
       }
@@ -159,37 +144,77 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Computes the error function derivative with respect to `weight` in `weightLayer`.
+    * Computes gradient for all weights,
+    * and adapts their value using gradient descent.
     */
-  private def errorFuncDerivative(xs: Matrices, ys: Matrices,
-                              weightLayer: Int, weight: (Int, Int)): Matrix = {
-    xs.zip(ys).map {
-      case (x, y) =>
-        val ws = weights.map(_.copy)
-        ws(weightLayer).update(weight, 1.0)
-        ws(weightLayer).foreachKey(k => if (k != weight) ws(weightLayer).update(k, 0.0))
-        val in = flow(x, 0, weightLayer - 1).map { i =>
-          _layers(weightLayer) match {
-            case h: HasActivator[Double] => h.activator(i)
-            case _ => i
-          }
+  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = 
+    if (settings.approximation.isDefined) {
+      weights.zipWithIndex.foreach { case (l, idx) =>
+        l.foreachPair { (k, v) =>
+          val grad = approximateErrorFuncDerivative(xs, ys, idx, k)
+          l.update(k, v - stepSize * mean(grad))
         }
-        val ds = _layers.drop(weightLayer + 1).map {
-          case h: HasActivator[Double] =>
-            val i = _layers.indexOf(h) - 1
-            flow(x, 0, i).map(h.activator.derivative)
-        }
-        (flow(x, 0, fastLayersSize1) - y) *:* chain(ds, ws, in, weightLayer, 0)
-    }.reduce(_ + _)
-  }
+      }
+    } else {
+      val derivatives = xs.par.zip(ys).map {
+        case (x, y) =>
+          val  ps = collection.mutable.Map.empty[Int, Matrix]
+          val  fa = collection.mutable.Map.empty[Int, Matrix]
+          val  fb = collection.mutable.Map.empty[Int, Matrix]
+          val dws = collection.mutable.Map.empty[Int, Matrix]
+          val  ds = collection.mutable.Map.empty[Int, Matrix]
 
-  /**
-    * Constructs overall chain rule derivative based on single derivatives `ds` recursively.
-    */
-  @tailrec private def chain(ds: Matrices, ws: Matrices, in: Matrix, cursor: Int, cursorDs: Int): Matrix = {
-    if (cursor < ws.size - 1) chain(ds, ws, ds(cursorDs) *:* (in * ws(cursor)), cursor + 1, cursorDs + 1)
-    else ds(cursorDs) *:* (in * ws(cursor))
-  }
+          @tailrec def forward(in: Matrix, i: Int): Unit = {
+            val p = in * weights(i)
+            val a = p.map(_layersNI(i).activator)
+            val b = p.map(_layersNI(i).activator.derivative)
+            ps += i -> p
+            fa += i -> a
+            fb += i -> b
+            if (i < weightLayerSize) forward(a, i + 1)
+          }
+
+          @tailrec def derive(j: Int): Unit = j match {
+            case i if i == 0 && weightLayerSize == 0 =>
+              val d = -(y - fa(0)) *:* fb(0)
+              val dw = x.t * d
+              dws += 0 -> dw
+            case i if i == weightLayerSize =>
+              val d = -(y - fa(i)) *:* fb(i)
+              val dw = fa(i - 1).t * d
+              dws += i -> dw
+              ds += i -> d
+              derive(i - 1)
+            case i if i < weightLayerSize && i > 0 =>
+              val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
+              val dw = fa(i - 1).t * d
+              dws += i -> dw
+              ds += i -> d
+              derive(i - 1)
+            case i if i == 0 =>
+              val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
+              val dw = x.t * d
+              dws += i -> dw
+          }
+
+          forward(x, 0)
+          derive(weightLayerSize)
+          dws
+      }.reduce { (a, b) =>
+        val ds = collection.mutable.Map.empty[Int, Matrix]
+        (0 to weightLayerSize).map { i =>
+          ds += i -> (a(i) + b(i)).map(_ * stepSize)
+        }
+        ds
+      }
+
+      (0 to weightLayerSize).foreach { i =>
+        val n = weights(i) - derivatives(i)
+        weights(i).foreachPair { (k, v) =>
+          weights(i).update(k, n(k))
+        }
+      }
+    }
 
   /**
     * Approximates the gradient based on finite central differences.

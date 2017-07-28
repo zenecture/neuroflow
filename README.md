@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.11
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.701",
-  "com.zenecture" %% "neuroflow-application" % "0.701"
+  "com.zenecture" %% "neuroflow-core" % "0.800",
+  "com.zenecture" %% "neuroflow-application" % "0.800"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -63,7 +63,7 @@ The architecture of the net is expressed as a list. We use a sigmoid activation 
 A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
-import neuroflow.core.LBFGSNetwork._
+import neuroflow.core.DefaultNetwork._
 val (f, g) = (Sigmoid, Linear)
 val complexNet = Network(
   Input(50)               :: 
@@ -71,9 +71,12 @@ val complexNet = Network(
   Cluster(Hidden(10, g))  :: 
   Hidden(20, f)           :: 
   Output(50, f)           :: HNil, 
-  Settings(precision = 1E-5, iterations = 200)
+  Settings(precision = 1E-5, iterations = 200, 
+    learningRate { case iter if iter < 100 => 0.5 case _ => 0.1 })
 )
 ```
+
+The learning rate is a partial function from iteration to step size for nets which use gradient descent.
 
 Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
 If a network doesn't follow this rule, it won't compile.
