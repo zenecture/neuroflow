@@ -144,7 +144,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Computes gradient via `deriveErrorFunc` for all weights,
+    * Computes gradient for all weights,
     * and adapts their value using gradient descent.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = 
