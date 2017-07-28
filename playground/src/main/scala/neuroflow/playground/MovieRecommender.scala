@@ -40,6 +40,23 @@ object MovieRecommender {
   val tts = ratings.count(_.rating == 5)
   val fls = ratings.count(_.rating == 1)
 
+  val lebowski = movies.find(_.title.contains("Lebowski"))
+  val allLeb = ratings.filter(_.movieId == lebowski.get.id)
+  val avgLeb = allLeb.map(_.rating).sum.toDouble / allLeb.size.toDouble
+
+  val toy = movies.find(_.title.contains("Toy Story"))
+  val allToy = ratings.filter(_.movieId == toy.get.id)
+  val avgToy = allToy.map(_.rating).sum.toDouble / allToy.size.toDouble
+
+  val all = movies.map(m => ratings.count(_.movieId == m.id))
+  val avg = all.sum.toDouble / movies.size.toDouble
+
+  println("allLeb.size =  " + allLeb.size)
+  println("avgLeb = " + avgLeb)
+  println("allToy.size =  " + allToy.size)
+  println("avgToy = " + avgToy)
+  println("avg = " + avg)
+
   println(s"tts: $tts, fls: $fls")
 
   val xs = ratings.groupBy(_.user).map {
@@ -48,7 +65,7 @@ object MovieRecommender {
     }.reduce(_ + _)
   }.toList
 
-  val layout = Input(movies.size) :: Hidden(4, Sigmoid) :: Output(movies.size, Sigmoid) :: HNil
+  val layout = Input(movies.size) :: Hidden(400, Sigmoid) :: Output(movies.size, Sigmoid) :: HNil
 
   import neuroflow.nets.DefaultNetwork._
 
@@ -57,13 +74,12 @@ object MovieRecommender {
     import neuroflow.core.FFN.WeightProvider._
 
     val net = Network(layout,
-      Settings(iterations = 25,
+      Settings(iterations = 100,
         learningRate = {
-          case iter if iter <= 10              => 10.0
-          case iter if iter  > 10 && iter < 20 =>  5.0
-          case iter                            =>  0.2
-        },
-        approximation = Some(Approximation(1E-5))))
+          case iter if iter <= 10              =>  0.5
+          case iter if iter  > 10 && iter < 50 =>  0.5
+          case iter                            =>  0.5
+        }, precision = 1E-3))
 
     net.train(xs, xs)
 

@@ -14,11 +14,11 @@ import scala.util.Random
 
 /**
   *
-  * Same as DefaultNetwork, but it uses the Armijo–Goldstein condition
-  * to adapt the learning rate to an optimal value. This promises faster convergence,
-  * but comes with more computational overhead than DefaultNetwork.
+  * This net uses the Armijo–Goldstein condition to adapt the learning rate to an optimal value.
+  * The derivatives are smoothed using the mean of the respective derivative vector for a single weight.
+  * It comes with more computational overhead than DefaultNetwork, so use it with small data.
   *
-  * Here, the learning parameter should be a large starting value, e.g. 10.
+  * The learning parameter should be a large starting value, e.g. 10.
   *
   * @author bogdanski
   * @since 20.01.16
@@ -97,7 +97,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * The eval loop.
+    * The training loop.
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
