@@ -65,7 +65,7 @@ object PokeMonCluster {
         Cluster(Hidden(3, Linear)) ::
         Hidden(dim / 2, ReLU) ::
         Output(dim, ReLU) :: HNil,
-        Settings(iterations = 200, prettyPrint = true)
+        Settings(iterations = 5000, prettyPrint = true, learningRate = { case i if i < 100 => 0.4 case _ => 0.3 })
       )
 
 

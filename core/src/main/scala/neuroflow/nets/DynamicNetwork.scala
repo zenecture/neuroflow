@@ -15,8 +15,8 @@ import scala.util.Random
 /**
   *
   * This net uses the Armijo–Goldstein condition to adapt the learning rate to an optimal value.
-  * The derivatives are smoothed using the mean of the respective derivative vector for a single weight.
-  * It comes with more computational overhead than DefaultNetwork, so use it with small data.
+  * The derivatives are smoothed using the mean of the respective derivative vector of a single weight.
+  * It comes with more computational overhead than DefaultNetwork, so better use it with small data.
   *
   * The learning parameter should be a large starting value, e.g. 10.
   *
