@@ -66,12 +66,13 @@ A more complex net could look like this, with some rates and rules being defined
 import neuroflow.core.DefaultNetwork._
 val (f, g) = (Sigmoid, Linear)
 val complexNet = Network(
-  Input(50)               :: 
-  Hidden(20, f)           :: 
+  Input(50)               ::  
   Cluster(Hidden(10, g))  :: 
-  Hidden(20, f)           :: 
+  Hidden(20, f)           ::
+  Hidden(30, f)           ::
+  Hidden(40, f)           :: 
   Output(50, f)           :: HNil, 
-  Settings(precision = 1E-5, iterations = 200, 
+  Settings(precision = 1E-5, iterations = 250, 
     learningRate { case iter if iter < 100 => 0.5 case _ => 0.1 },
     regularization = Some(KeepBest))
 )
