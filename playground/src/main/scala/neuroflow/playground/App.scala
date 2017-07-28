@@ -11,7 +11,7 @@ object App extends App {
 
   //scala.io.StdIn.readInt()
 
-  14 match {
+  5 match {
     case  1 => XOR.apply
     case  2 => SigGap.apply
     case  3 => Trending.apply
@@ -27,7 +27,7 @@ object App extends App {
                MovieSimilarity.find
     case 12 => ParityCluster.apply
     case 13 => PokeMonCluster.apply
-    case 14 => MovieRecommender.eval
+    case 14 => MovieRecommender.apply
 
     case  _ => sys.exit()
   }
