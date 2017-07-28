@@ -29,7 +29,7 @@ private[nets] case class AutoEncoder(layers: Seq[Layer],
 
   import neuroflow.core.Network._
 
-  private val net = new LBFGSNetwork(layers, settings, weights, identifier) {
+  private val net = new DefaultNetwork(layers, settings, weights, identifier) {
     override def sayHi(): Unit = ()
   }
 

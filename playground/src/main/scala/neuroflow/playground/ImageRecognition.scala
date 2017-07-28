@@ -7,7 +7,7 @@ import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.application.plugin.Notation.Implicits.toVector
-import neuroflow.nets.LBFGSNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 /**
@@ -36,7 +36,7 @@ object ImageRecognition {
     val training = plus.zip(heart).zip(random).zip(plusRotated)
     val nets = training.par.map {
       case (((p, h), r), pr) =>
-        val settings = Settings(iterations = 100)
+        val settings = Settings(iterations = 1000, learningRate = { case i if i < 100 => 0.5 case _ => 0.1 })
         val net = Network(Input(p.size) :: Hidden(20, fn) :: Hidden(10, fn) :: Output(3, fn) :: HNil, settings)
         net.train(-->(p, h, r, pr), -->(->(1.0, 0.0, 0.0), ->(0.0, 1.0, 0.0), ->(0.0, 0.0, 1.0), ->(1.0, 0.0, 0.0)))
         net
@@ -71,22 +71,14 @@ object ImageRecognition {
 
 /*
 
-        General Layout:
-
-          Plus ->(1.0, 0.0, 0.0)
-          Heart ->(0.0, 1.0, 0.0)
-          Random ->(0.0, 0.0, 1.0)
-
-          [scala-execution-context-global-65] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 1,05332e-05 (rel: 0,460) 3,38469e-05
-          [scala-execution-context-global-65] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-          [scala-execution-context-global-65] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 4,33024e-06 (rel: 0,589) 1,19527e-05
-          [scala-execution-context-global-65] INFO neuroflow.nets.NFLBFGS - Converged because error function is sufficiently minimal.
-          Plus classified: Vector(0.999999895367549, 0.0026118417961460503, 3.7604261592618936E-8)
-          Plus Rotated classified: Vector(0.9999999295749643, 0.0021358566858272476, 2.2406596672020294E-8)
-          Heart classified: Vector(0.001438279264291867, 0.9973241450760597, 0.0022719941679902405)
-          Heart distorted classified: Vector(0.0014273469497369767, 0.9973195940390195, 0.002287412422013441)
-          Heart rotated classified: Vector(0.006757400029251021, 0.5726952097176847, 0.0748294063598314)
-          Random classified: Vector(8.187014938437293E-5, 4.43750291767083E-4, 0.9999415821496581)
-          [success] Total time: 114 s, completed 19.04.2017 22:48:04
+    [scala-execution-context-global-63] INFO neuroflow.nets.DefaultNetwork - [28.07.2017 12:42:03:314] Taking step 999 - Mean Error 0,0294242 - Error Vector 0.03261444866124473  0.026382058841120708  0.02927599065790197
+    [scala-execution-context-global-63] INFO neuroflow.nets.DefaultNetwork - [28.07.2017 12:42:03:316] Took 1000 iterations of 1000 with Mean Error = 0,0294098
+    Plus classified: Vector(0.8575534162481321, 0.09582553167510581, 0.06881838268270643)
+    Plus Rotated classified: Vector(0.8947821350050726, 0.07513311797101342, 0.09147777427535529)
+    Heart classified: Vector(0.13802425024512344, 0.8437069779266096, 0.11353161811927058)
+    Heart distorted classified: Vector(0.22380692463363228, 0.7291546099037295, 0.10834893153783258)
+    Heart rotated classified: Vector(0.18782520100911257, 0.6960125283436842, 0.15336960656603785)
+    Random classified: Vector(0.12158710274155932, 0.11611218088283029, 0.8196337328573723)
+    [success] Total time: 11 s, completed 28.07.2017 12:42:03
 
  */

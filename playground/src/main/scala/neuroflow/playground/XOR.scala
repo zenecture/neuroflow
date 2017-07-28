@@ -31,7 +31,7 @@ object XOR {
     val fn = Sigmoid
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-    val settings = Settings(verbose = true, learningRate = { case _ => 0.1 }, precision = 1E-5, iterations = 20000)
+    val settings = Settings(verbose = true, learningRate = { case _ => 1.0 }, precision = 1E-5, iterations = 20000)
     val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 
