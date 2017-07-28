@@ -72,7 +72,8 @@ val complexNet = Network(
   Hidden(20, f)           :: 
   Output(50, f)           :: HNil, 
   Settings(precision = 1E-5, iterations = 200, 
-    learningRate { case iter if iter < 100 => 0.5 case _ => 0.1 })
+    learningRate { case iter if iter < 100 => 0.5 case _ => 0.1 },
+    regularization = Some(KeepBest))
 )
 ```
 
