@@ -12,12 +12,12 @@ import shapeless._
   * @author bogdanski
   * @since 19.01.16
   */
-class DefaultNetworkNumTest extends Specification {
+class DynamicNetworkNumTest extends Specification {
 
   def is: SpecStructure =
     s2"""
 
-    This spec will test the gradients from DefaultNetwork by comparison of the derived values with
+    This spec will test the gradients from DynamicNetwork by comparison of the derived values with
     the approximated ones.
 
       - Check the linear gradients                                $linGrad
@@ -32,7 +32,7 @@ class DefaultNetworkNumTest extends Specification {
   private def toMatrix(xs: Seq[Double]) = DenseMatrix.create[Double](1, xs.size, xs.toArray)
 
   def linGrad = {
-    import neuroflow.nets.DefaultNetwork._
+    import neuroflow.nets.DynamicNetwork._
 
     val fn = Linear
     val sets = Settings(learningRate = { case _ => 0.01 }, iterations = 1000, approximation = Some(Approximation(1E-4)))
@@ -45,8 +45,8 @@ class DefaultNetworkNumTest extends Specification {
     val weight = (0, 0)
 
     val instance = m.reflect(net)
-    val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
-    val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
+    val deriveGrad = instance.reflectMethod(ru.typeOf[DynamicNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
+    val numericGrad = instance.reflectMethod(ru.typeOf[DynamicNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
 
     val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
     val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
@@ -55,7 +55,7 @@ class DefaultNetworkNumTest extends Specification {
   }
 
   def linGradMultiple = {
-    import neuroflow.nets.DefaultNetwork._
+    import neuroflow.nets.DynamicNetwork._
 
     val fn = Linear
     val sets = Settings(learningRate = { case _ => 0.01 }, iterations = 1000, approximation = Some(Approximation(1E-4)))
@@ -70,8 +70,8 @@ class DefaultNetworkNumTest extends Specification {
     val results = layers zip weights map { lw =>
       val (layer, weight) = lw
       val instance = m.reflect(net)
-      val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
-      val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
+      val deriveGrad = instance.reflectMethod(ru.typeOf[DynamicNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
+      val numericGrad = instance.reflectMethod(ru.typeOf[DynamicNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
       val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       if ((a - b).forall { (w, v) => v.abs < 0.0001 }) success else failure
@@ -81,7 +81,7 @@ class DefaultNetworkNumTest extends Specification {
   }
 
   def nonlinearGrad = {
-    import neuroflow.nets.DefaultNetwork._
+    import neuroflow.nets.DynamicNetwork._
 
     val fn = Sigmoid
     val gn = Tanh
@@ -98,8 +98,8 @@ class DefaultNetworkNumTest extends Specification {
     val results = weights map { lw =>
       val (layer, weight) = lw
       val instance = m.reflect(net)
-      val deriveGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
-      val numericGrad = instance.reflectMethod(ru.typeOf[DefaultNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
+      val deriveGrad = instance.reflectMethod(ru.typeOf[DynamicNetwork].decl(ru.TermName("errorFuncDerivative")).asMethod)
+      val numericGrad = instance.reflectMethod(ru.typeOf[DynamicNetwork].decl(ru.TermName("approximateErrorFuncDerivative")).asMethod)
       val a = deriveGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       val b = numericGrad(xs, ys, layer, weight).asInstanceOf[DenseMatrix[Double]]
       if ((a - b).forall { (w, v) => v.abs < 0.0001 }) success else failure

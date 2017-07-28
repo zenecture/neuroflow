@@ -9,9 +9,7 @@ object App extends App {
 
   print("Run example (1-14): ")
 
-  //scala.io.StdIn.readInt()
-
-  5 match {
+  scala.io.StdIn.readInt() match {
     case  1 => XOR.apply
     case  2 => SigGap.apply
     case  3 => Trending.apply
@@ -28,6 +26,7 @@ object App extends App {
     case 12 => ParityCluster.apply
     case 13 => PokeMonCluster.apply
     case 14 => MovieRecommender.apply
+               MovieRecommender.eval
 
     case  _ => sys.exit()
   }
