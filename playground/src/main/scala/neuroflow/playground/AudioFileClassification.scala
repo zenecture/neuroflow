@@ -5,7 +5,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator.Tanh
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.LBFGSNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 import scala.collection.immutable.Seq
@@ -34,7 +34,7 @@ object AudioFileClassification {
   def apply = {
 
     val fn = Tanh
-    val sets = Settings(iterations = 20, precision = 1E-4)
+    val sets = Settings(iterations = 2000, precision = 1E-4)
     val (a, b, c) = (prepare("audio/hello.wav"), prepare("audio/goodbye.wav"), prepare("audio/hello-alt.wav"))
 
     val nets = ((a zip b) zip c).par.map {
@@ -67,12 +67,12 @@ object AudioFileClassification {
         Hello ->(1.0, -1.0)
         Goodbye ->(-1.0, 1.0)
 
-      [ForkJoinPool-1-worker-7] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 8,45814e-05 (rel: 0,462) 0,00109807
-      [ForkJoinPool-1-worker-7] INFO neuroflow.nets.NFLBFGS - Converged because error function is sufficiently minimal.
-      hello.wav: Vector(0.9953617500652691, -0.9942334604656619)
-      goodbye.wav: Vector(-0.9952830206661016, 0.9937201854988833)
-      hello-alt.wav: Vector(0.9538430918578609, -0.9544885348625157)
-      [success] Total time: 57 s, completed 13.06.2016 23:45:11
+      [scala-execution-context-global-84] INFO neuroflow.nets.DefaultNetwork - [31.07.2017 21:41:07:016] Took 2000 iterations of 2000 with Mean Error = 0,000153440
+      hello.wav: Vector(0.9960103806540942, -0.9965630625015153)
+      goodbye.wav: Vector(-0.9871920187975733, 0.9034866666916598)
+      hello-alt.wav: Vector(0.987595444420504, -0.9462879943364947)
+      [success] Total time: 36 s, completed 31.07.2017 21:41:07
+
 
 
  */
