@@ -118,12 +118,12 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Evaluates the error function Σ1/2(prediction(x) - observation)² in parallel.
+    * Evaluates the error function Σ1/2(target - prediction(x))² in parallel.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     xs.zip(ys).par.map {
       case (x, y) =>
-        0.5 * pow(flow(x, 0, layerSize) - y, 2)
+        0.5 * pow(y - flow(x, 0, layerSize), 2)
     }.reduce(_ + _)
   }
 
@@ -144,7 +144,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Computes gradient for all weights,
+    * Computes gradient for all weights in parallel,
     * and adapts their value using gradient descent.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Unit = 

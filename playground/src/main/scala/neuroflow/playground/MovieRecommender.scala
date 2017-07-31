@@ -2,7 +2,6 @@ package neuroflow.playground
 
 import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.Notation._
-import neuroflow.application.processor.Extensions
 import neuroflow.application.processor.Extensions.VectorOps
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
@@ -73,7 +72,7 @@ object MovieRecommender {
     Hidden(50, Sigmoid) ::
     Output(movies.size, Sigmoid) :: HNil
 
-  import neuroflow.nets.LBFGSNetwork._
+  import neuroflow.nets.DefaultNetwork._
 
   def apply = {
 
