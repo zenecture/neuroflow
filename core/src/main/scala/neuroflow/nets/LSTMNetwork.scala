@@ -5,7 +5,7 @@ import java.lang.System.identityHashCode
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import neuroflow.common.{Registry, ~>}
+import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._

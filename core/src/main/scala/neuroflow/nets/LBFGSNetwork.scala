@@ -4,7 +4,6 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.optimize._
 import breeze.stats._
-import neuroflow.common.Registry
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
