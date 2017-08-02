@@ -7,7 +7,7 @@ object NeuroflowBuild extends Build {
   val neuroflowSettings = Defaults.coreDefaultSettings ++ Seq(
     name in ThisBuild := "neuroflow",
     organization in ThisBuild := "com.zenecture",
-    version := "0.801",
+    version := "0.802",
     scalaVersion := "2.12.3",
     assemblyMergeStrategy in assembly := {
       case x => MergeStrategy defaultMergeStrategy x

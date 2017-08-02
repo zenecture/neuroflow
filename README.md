@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Supported Scala Ve
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.801",
-  "com.zenecture" %% "neuroflow-application" % "0.801"
+  "com.zenecture" %% "neuroflow-core" % "0.802",
+  "com.zenecture" %% "neuroflow-application" % "0.802"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -74,7 +74,7 @@ val complexNet = Network(
   Output(50, f)           :: HNil, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case iter if iter < 100 => 0.5 case _ => 0.1 },
-    regularization = Some(KeepBest))
+    regularization = Some(KeepBest), parallelism = 8)
 )
 ```
 

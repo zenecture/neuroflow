@@ -61,22 +61,24 @@ trait Constructor[+T <: Network] {
   * The `learningRate` is a function from current iteration to learning rate, enabling dynamic rates.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
+  * The level of `parallelism` controls how many threads will be used for training.
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
   * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
   * Some nets use specific parameters set in the `specifics` map.
   */
-case class Settings(verbose: Boolean      = true,
+case class Settings(verbose: Boolean                            = true,
                     learningRate: PartialFunction[Int, Double]  = { case _ => 0.1 },
-                    precision: Double     = 1E-5,
-                    iterations: Int       = 100,
-                    prettyPrint: Boolean  = false,
-                    errorFuncOutput: Option[ErrorFuncOutput] = None,
-                    regularization: Option[Regularization]   = None,
-                    approximation: Option[Approximation]     = None,
-                    partitions: Option[Set[Int]]             = None,
-                    specifics: Option[Map[String, Double]]   = None) extends Serializable
+                    precision: Double                           = 1E-5,
+                    iterations: Int                             = 100,
+                    prettyPrint: Boolean                        = false,
+                    parallelism: Int                            = Runtime.getRuntime.availableProcessors,
+                    errorFuncOutput: Option[ErrorFuncOutput]    = None,
+                    regularization: Option[Regularization]      = None,
+                    approximation: Option[Approximation]        = None,
+                    partitions: Option[Set[Int]]                = None,
+                    specifics: Option[Map[String, Double]]      = None) extends Serializable
 
 
 trait IllusionBreaker { self: Network =>

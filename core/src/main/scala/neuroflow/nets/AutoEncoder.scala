@@ -1,10 +1,10 @@
 package neuroflow.nets
 
+import neuroflow.common.Registry
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 
 import scala.collection.Seq
-import scala.util.Random
 
 /**
   * Unsupervised Auto Encoder using a [[LBFGSNetwork]].
@@ -24,7 +24,7 @@ object AutoEncoder {
 private[nets] case class AutoEncoder(layers: Seq[Layer],
                                      settings: Settings,
                                      weights: Weights,
-                                     identifier: String = Random.alphanumeric.take(3).mkString)
+                                     identifier: String = Registry.register())
   extends FeedForwardNetwork with UnsupervisedTraining {
 
   import neuroflow.core.Network._

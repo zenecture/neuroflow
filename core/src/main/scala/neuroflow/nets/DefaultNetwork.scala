@@ -3,6 +3,7 @@ package neuroflow.nets
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
+import neuroflow.common.Registry
 import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
@@ -10,7 +11,8 @@ import neuroflow.core._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
-import scala.util.Random
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
 
 
 /**
@@ -34,7 +36,7 @@ object DefaultNetwork {
 
 
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                        identifier: String = Random.alphanumeric.take(3).mkString)
+                                        identifier: String = Registry.register())
   extends FeedForwardNetwork with SupervisedTraining with EarlyStoppingLogic with KeepBestLogic {
 
   import neuroflow.core.Network._
@@ -45,6 +47,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }.toArray
 
   private val _layersNI = _layers.tail.map { case h: HasActivator[Double] => h }
+
+  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
   private val layerSize  = _layers.size - 1
   private val weightLayerSize = weights.size - 1
@@ -152,11 +156,13 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       weights.zipWithIndex.foreach { case (l, idx) =>
         l.foreachPair { (k, v) =>
           val grad = approximateErrorFuncDerivative(xs, ys, idx, k)
-          l.update(k, v - stepSize * mean(grad))
+          l.update(k, v - stepSize * sum(grad))
         }
       }
     } else {
-      val derivatives = xs.par.zip(ys).map {
+      val xsys = xs.par.zip(ys)
+      xsys.tasksupport = _forkJoinTaskSupport
+      val derivatives = xsys.map {
         case (x, y) =>
           val  ps = collection.mutable.Map.empty[Int, Matrix]
           val  fa = collection.mutable.Map.empty[Int, Matrix]

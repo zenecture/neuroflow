@@ -4,13 +4,13 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.optimize._
 import breeze.stats._
+import neuroflow.common.Registry
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
-import scala.util.Random
 
 
 /**
@@ -34,7 +34,7 @@ object LBFGSNetwork {
 
 
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                      identifier: String = Random.alphanumeric.take(3).mkString) extends FeedForwardNetwork with SupervisedTraining {
+                                      identifier: String = Registry.register()) extends FeedForwardNetwork with SupervisedTraining {
 
   import neuroflow.core.Network._
 
