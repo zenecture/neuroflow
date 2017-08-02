@@ -5,14 +5,13 @@ import java.lang.System.identityHashCode
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import neuroflow.common.~>
+import neuroflow.common.{Registry, ~>}
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
 import scala.collection._
-import scala.util.Random
 
 
 /**
@@ -39,7 +38,7 @@ object LSTMNetwork {
 
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                     identifier: String = Random.alphanumeric.take(3).mkString)
+                                     identifier: String = Registry.register())
   extends RecurrentNetwork with SupervisedTraining with KeepBestLogic {
 
   import neuroflow.core.Network._

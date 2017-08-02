@@ -3,14 +3,14 @@ package neuroflow.nets
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
+import neuroflow.common.Registry
 import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
-import neuroflow.core._
 import neuroflow.core.Network._
+import neuroflow.core._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
-import scala.util.Random
 
 /**
   *
@@ -36,7 +36,7 @@ object DynamicNetwork {
 
 
 private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                        identifier: String = Random.alphanumeric.take(3).mkString)
+                                        identifier: String = Registry.register())
   extends FeedForwardNetwork with SupervisedTraining with EarlyStoppingLogic with KeepBestLogic {
 
   import neuroflow.core.Network._
