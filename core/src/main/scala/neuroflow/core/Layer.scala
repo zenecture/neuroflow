@@ -23,7 +23,7 @@ case class Input(neurons: Int) extends Layer {
 
 /** Hidden layer carrying `neurons` with `activator` function */
 case class Hidden(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] {
-  val symbol: String = "H"
+  val symbol: String = "Hidden"
 }
 
 
@@ -32,7 +32,7 @@ case class Hidden(neurons: Int, activator: Activator[Double]) extends Layer with
   * where the desired model output is not the [[Output]] layer of a net, but a hidden one.
   */
 case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
-  val symbol: String = s"Cl(${inner.symbol}(${inner.activator.symbol}))"
+  val symbol: String = s"Cluster(${inner.symbol}(${inner.activator.symbol}))"
   val neurons: Int = inner.neurons
 }
 
@@ -66,7 +66,7 @@ case class LinConvolution(filters: Int,
                           reshape: Option[Int] = None) extends Layer with Convolutable {
   import Network._
   val neurons: Int = reshape.getOrElse(filters * fieldSize)
-  val symbol: String = "Cn"
+  val symbol: String = "LinConvolution"
   private val pads  = DenseVector.zeros[Double](padding)
   def receptiveField(in: Matrix): Matrices = {
     (0 until in.rows).map { r =>
