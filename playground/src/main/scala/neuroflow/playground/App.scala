@@ -26,7 +26,8 @@ object App extends App {
     case 14 => ParityCluster.apply
     case 15 => PokeMonCluster.apply
     case 16 => MovieRecommender.apply
-    case 17 => MovieRecommender.eval
+    case 17 => MovieRecommender.eval(verbose = true)
+    case 18 => MovieRecommender.cluster
 
     case  _ => sys.exit()
   }
