@@ -1,6 +1,5 @@
 package neuroflow.nets
 
-import neuroflow.common.Registry
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 
