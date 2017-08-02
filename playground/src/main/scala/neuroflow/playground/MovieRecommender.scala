@@ -1,8 +1,11 @@
 package neuroflow.playground
 
+import java.io.{File, FileOutputStream, PrintWriter}
+
 import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Extensions.VectorOps
+import neuroflow.application.processor.Normalizer
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
@@ -46,7 +49,7 @@ object MovieRecommender {
   println("avg = " + avg)
   println(s"tts: $tts, fls: $fls")
 
-  val xs = ratings.groupBy(_.user).map {
+  val _xs = ratings.groupBy(_.user).map {
     case (userId, rs) => rs.map { r =>
       ζ(movies.size).updated(r.movieId - 1, r.rating.toDouble * 0.2)
     }.reduce(_ + _)
@@ -72,44 +75,71 @@ object MovieRecommender {
           case _                   =>  0.5
         }, precision = 1E-3, parallelism = 64))
 
-    net.train(xs)
+    net.train(_xs)
 
     IO.File.write(net, file)
 
   }
 
-  def eval = {
+  def eval(verbose: Boolean): Seq[Vector[Double]] = {
 
     implicit val wp = IO.File.read(file)
     val net = Network(layout)
     import neuroflow.application.processor.Extensions.VectorOps
 
-    xs.foreach { x =>
-      val z = x.zipWithIndex.flatMap {
-        case (i, k) if i == 0 => Some(k)
-        case _ => None
-      }
-
-      val o = x.zipWithIndex.flatMap {
-        case (i, k) if i > 0 => Some(movies.find(_.id == k + 1).get.title -> (i / 0.2))
-        case _ => None
-      }
-
+    val res = _xs.map { x =>
       val r = net.evaluate(x).map(_ / 0.2)
-      val all = z.map { i => i -> r(i) }.sortBy(_._2).reverse.map {
-        case (i, rat) => movies.find(_.id == i + 1).get.title -> rat
+      if (verbose) {
+        val z = x.zipWithIndex.flatMap {
+          case (i, k) if i == 0 => Some(k)
+          case _ => None
+        }
+
+        val o = x.zipWithIndex.flatMap {
+          case (i, k) if i > 0 => Some(movies.find(_.id == k + 1).get.title -> (i / 0.2))
+          case _ => None
+        }
+        val all = z.map { i => i -> r(i) }.sortBy(_._2).reverse.map {
+          case (i, rat) => movies.find(_.id == i + 1).get.title -> rat
+        }
+
+        val (top, flop) = (all.take(10), all.takeRight(5))
+
+        val delta = x.map(i => i / 0.2) - r
+        println("err: " + delta.sum / delta.size)
+
+        println(s"rated: $o")
+        println(s"top: $top")
+        println(s"flop: $flop")
+        println()
       }
-
-      val (top, flop) = (all.take(10), all.takeRight(5))
-
-      val delta = x.map(i => i / 0.2) - r
-      println("err: " + delta.sum / delta.size)
-
-      println(s"rated: $o")
-      println(s"top: $top")
-      println(s"flop: $flop")
-      println()
+      r
     }
+
+    res
+  }
+
+  def cluster = {
+
+    val clusterOutput = "/Users/felix/github/unversioned/movieCluster.txt"
+
+    import neuroflow.core.FFN.WeightProvider._
+
+    val xs = eval(verbose = false)
+
+    val settings = Settings(iterations = 1000, parallelism = 250, learningRate = { case _ => 0.1 })
+    val net = Network(Input(xs.head.size) :: Cluster(Hidden(3, Linear)) :: Output(xs.head.size, Sigmoid) :: HNil, settings)
+
+    net.train(xs)
+
+    val clustered = xs.map { x =>
+      Normalizer.UnitVector(net.evaluate(x))
+    }
+
+    val outputFile = ~>(new File(clusterOutput)).io(_.delete)
+    ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
+      clustered.foreach(v => writer.println(s"${v(0)};${v(1)};${v(2)}"))
+    }.io(_.close)
 
   }
 
