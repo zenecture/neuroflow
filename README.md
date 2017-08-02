@@ -55,8 +55,8 @@ import shapeless._
 This will give us a fully connected net, which is initialized with random weights in supervised training mode.
 
 ```scala
-val f = Sigmoid
-val net = Network(Input(2) :: Hidden(3, f) :: Output(1, f) :: HNil)
+val (g, h) = (Sigmoid, Sigmoid)
+val net = Network(Input(2) :: Hidden(3, g) :: Output(1, h) :: HNil)
 ```
 
 The architecture of the net is expressed as a list. We use a sigmoid activation function `f` for our hidden and output layers. 
@@ -64,14 +64,14 @@ A more complex net could look like this, with some rates and rules being defined
 
 ```scala
 import neuroflow.core.DefaultNetwork._
-val (f, g) = (Sigmoid, Linear)
+val (f, g) = (Linear, Sigmoid)
 val complexNet = Network(
   Input(50)               ::  
-  Cluster(Hidden(10, g))  :: 
-  Hidden(20, f)           ::
-  Hidden(30, f)           ::
-  Hidden(40, f)           :: 
-  Output(50, f)           :: HNil, 
+  Cluster(Hidden(10, f))  :: 
+  Hidden(20, g)           ::
+  Hidden(30, g)           ::
+  Hidden(40, g)           :: 
+  Output(50, g)           :: HNil, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case iter if iter < 100 => 0.5 case _ => 0.1 },
     regularization = Some(KeepBest), parallelism = 8)
