@@ -19,7 +19,7 @@ object AudioFileClassification {
 
   /*
 
-        WAV file classification with LBFGS network.
+        Audio wave classification
 
         Hello = (1.0, -1.0)
         Good-Bye = (-1.0, 1.0)
