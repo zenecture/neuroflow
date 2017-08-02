@@ -55,8 +55,8 @@ import shapeless._
 This will give us a fully connected net, which is initialized with random weights in supervised training mode.
 
 ```scala
-val (g, h) = (Sigmoid, Sigmoid)
-val net = Network(Input(2) :: Hidden(3, g) :: Output(1, h) :: HNil)
+val f = Sigmoid
+val net = Network(Input(2) :: Hidden(3, f) :: Output(1, f) :: HNil)
 ```
 
 The architecture of the net is expressed as a list. We use a sigmoid activation function `f` for our hidden and output layers. 
