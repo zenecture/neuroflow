@@ -32,12 +32,12 @@ case class EarlyStopping(xs: Seq[Vector], ys: Seq[Vector], factor: Double) exten
 case object KeepBest extends Regularization
 
 
-trait EarlyStoppingLogic { self: Network =>
+trait EarlyStoppingLogic { self: Network[_] =>
 
   private var best = Double.PositiveInfinity
   import settings._
 
-  def shouldStopEarly[N <: Network](implicit k: CanAverage[N]): Boolean = regularization match {
+  def shouldStopEarly[N <: Network[_]](implicit k: CanAverage[N]): Boolean = regularization match {
     case Some(EarlyStopping(xs, ys, f)) =>
       val averaged = k.averagedError(xs, ys)
       if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
@@ -56,13 +56,13 @@ trait EarlyStoppingLogic { self: Network =>
 object EarlyStoppingLogic {
 
   /** Type-Class for concrete net impl of error averaging. */
-  trait CanAverage[N <: Network] {
+  trait CanAverage[N <: Network[_]] {
     def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double
   }
 
 }
 
-trait KeepBestLogic { self: Network =>
+trait KeepBestLogic { self: Network[_] =>
 
   import scala.concurrent.ExecutionContext.Implicits.global
 

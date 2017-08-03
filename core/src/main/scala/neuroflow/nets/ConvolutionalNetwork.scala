@@ -55,7 +55,7 @@ private[nets] case class ConvolutionalNetwork(layers: Seq[Layer], settings: Sett
   /**
     * Takes the input vector `x` to compute the output vector.
     */
-  def evaluate(x: Vector): Vector = {
+  def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     flow(fastWeights, input, 0, layers.size - 1).toArray.toVector
   }

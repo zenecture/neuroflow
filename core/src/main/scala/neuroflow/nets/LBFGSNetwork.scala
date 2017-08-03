@@ -127,7 +127,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   /**
     * Takes the input vector `x` to compute the output vector.
     */
-  def evaluate(x: Vector): Vector = {
+  def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     layers.collect {
       case c: Cluster => c

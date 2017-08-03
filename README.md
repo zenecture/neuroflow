@@ -127,14 +127,15 @@ with the respective error as input after each training epoch.
 
 # Evaluation
 
-Our trained net can be evaluated with the `evaluate` method.
+Our trained net can be evaluated like a regular function:
 
 ```scala
-val result = net.evaluate(->(0.0, 1.0))
+val x = ->(0.0, 1.0)
+val result = net(x)
 // result: Vector(0.9785958704533262)
 ```
 
-This will give us a result vector with dimension of our specified output layer.
+The resulting vector has dimension = 1, as specified for our output layer.
 
 # IO
 

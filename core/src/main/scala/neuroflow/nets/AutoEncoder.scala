@@ -35,7 +35,7 @@ private[nets] case class AutoEncoder(layers: Seq[Layer],
   /**
     * Takes the input vector `x` to compute the output vector.
     */
-  def evaluate(x: Vector): Vector = net.evaluate(x)
+  def apply(x: Vector): Vector = net(x)
 
   /**
     * Takes a sequence of input vectors `xs` and trains this

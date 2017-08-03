@@ -127,13 +127,24 @@ object MovieRecommender {
 
     val xs = eval(verbose = false)
 
-    val settings = Settings(iterations = 1000, parallelism = 250, learningRate = { case _ => 0.1 })
-    val net = Network(Input(xs.head.size) :: Cluster(Hidden(3, Linear)) :: Output(xs.head.size, Sigmoid) :: HNil, settings)
+    val dim = xs.head.size
+
+    val (f, g) = (Sigmoid, Linear)
+
+    val settings = Settings(iterations = 1000, parallelism = 250, learningRate = { case _ => 0.5 })
+    val net = Network(
+      Input(dim)              ::
+      Cluster(Hidden(3, g))   ::
+      Hidden(50, f)           ::
+      Hidden(50, f)           ::
+      Hidden(50, f)           ::
+      Output(xs.head.size, f) :: HNil,
+      settings)
 
     net.train(xs)
 
     val clustered = xs.map { x =>
-      Normalizer.UnitVector(net.evaluate(x))
+      Normalizer.UnitVector(net(x))
     }
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)

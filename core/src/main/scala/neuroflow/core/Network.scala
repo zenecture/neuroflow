@@ -20,7 +20,7 @@ object Network extends TypeAliases {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[T <: Network, L <: HList](ls: L, settings: Settings = Settings())
+  def apply[T <: Network[_], L <: HList](ls: L, settings: Settings = Settings())
                                      (implicit
                                       startsWith: L StartsWith Input,
                                       endsWith: L EndsWith Output,
@@ -51,7 +51,7 @@ trait TypeAliases {
   * A minimal constructor for a [[Network]].
   */
 @implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
-trait Constructor[+T <: Network] {
+trait Constructor[+T <: Network[_]] {
   def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
 }
 
@@ -81,7 +81,7 @@ case class Settings(verbose: Boolean                            = true,
                     specifics: Option[Map[String, Double]]      = None) extends Serializable
 
 
-trait IllusionBreaker { self: Network =>
+trait IllusionBreaker { self: Network[_] =>
 
   /**
     * Checks if the [[Settings]] are properly defined for this network.
@@ -99,7 +99,7 @@ object IllusionBreaker {
 }
 
 
-trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
+trait Network[M] extends (M => M) with Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
 
   checkSettings()
 
@@ -121,6 +121,12 @@ trait Network extends Logs with ErrorFuncGrapher with IllusionBreaker with Welco
     * The weights are a bunch of matrices.
     */
   val weights: Weights
+
+  /**
+    * Computes output for given input `m`.
+    * Alias for `net(x)` syntax.
+    */
+  def evaluate(m: M): M = apply(m)
 
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
@@ -147,12 +153,7 @@ trait UnsupervisedTraining {
 }
 
 
-trait FeedForwardNetwork extends Network {
-
-  /**
-    * Takes the input vector `x` to compute the output vector.
-    */
-  def evaluate(x: Vector): Vector
+trait FeedForwardNetwork extends Network[Vector] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -162,12 +163,7 @@ trait FeedForwardNetwork extends Network {
 }
 
 
-trait RecurrentNetwork extends Network {
-
-  /**
-    * Takes the input vector sequence `xs` to compute the output vector sequence.
-    */
-  def evaluate(xs: Seq[Vector]): Seq[Vector]
+trait RecurrentNetwork extends Network[Seq[Vector]] {
 
   /**
     * Takes the input vector sequence `xs` to compute the mean output vector.
