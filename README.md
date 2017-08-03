@@ -132,7 +132,7 @@ Our trained net can be evaluated like a regular function:
 ```scala
 val x = ->(0.0, 1.0)
 val result = net(x)
-// result: Vector(0.9785958704533262)
+// result: Vector(0.980237270455592)
 ```
 
 The resulting vector has dimension = 1, as specified for our output layer.
