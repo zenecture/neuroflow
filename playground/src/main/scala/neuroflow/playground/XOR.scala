@@ -31,7 +31,10 @@ object XOR {
     val fn = Sigmoid
     val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-    val settings = Settings(verbose = true, learningRate = { case _ => 1.0 }, precision = 1E-5, iterations = 20000)
+    val settings = Settings(
+      learningRate = { case _ => 1.0 },
+      iterations = 10000,
+      errorFuncOutput = Some(ErrorFuncOutput(Some("/Users/felix/github/unversioned/errorFunc.txt"), None)))
     val net = Network(Input(2) :: Hidden(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 
@@ -46,13 +49,6 @@ object XOR {
     println(s"Input: 1.0, 1.0   Output: $d")
 
     println("Network was: " + net)
-
-//    println("Taking a lot of samples from model:")
-//    Range.Double(0.0, 1.0, 0.01) map { x1 =>
-//      Range.Double(0.0, 1.0, 0.01) map { x2 =>
-//        println(s"$x1, $x2, ${net.evaluate(Seq(x1, x2)).head}")
-//      }
-//    }
 
   }
 
