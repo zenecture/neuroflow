@@ -84,7 +84,7 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * Takes the input vector `x` to compute the output vector.
     */
-  def evaluate(x: Vector): Vector = {
+  def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     layers.collect {
       case c: Cluster => c

@@ -12,7 +12,7 @@ import scala.util.Try
   */
 
 
-trait ErrorFuncGrapher { self: Network =>
+trait ErrorFuncGrapher { self: Network[_] =>
 
   /**
     * Appends the `error` to the specified output file, if any,

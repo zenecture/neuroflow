@@ -5,7 +5,7 @@ package neuroflow.core
   * @since 09.07.16
   */
 
-trait Welcoming { self: Network =>
+trait Welcoming { self: Network[_] =>
 
   private val welcome =
     s"""

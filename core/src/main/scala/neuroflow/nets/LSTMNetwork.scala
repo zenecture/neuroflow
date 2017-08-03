@@ -68,7 +68,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
-  def evaluate(xs: Seq[Vector]): Seq[Vector] = {
+  def apply(xs: Seq[Vector]): Seq[Vector] = {
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
     ~> (reset) next unfoldingFlow(in, initialOut, Nil, Nil) map (_.map(_.toArray.toVector))
