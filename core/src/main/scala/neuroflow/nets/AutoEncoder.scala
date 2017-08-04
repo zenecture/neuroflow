@@ -41,6 +41,6 @@ private[nets] case class AutoEncoder(layers: Seq[Layer],
     * Takes a sequence of input vectors `xs` and trains this
     * network using the unsupervised learning strategy.
     */
-  def train(xs: Seq[Vector]): Unit = net.train(xs, xs)
+  def train(xs: Array[Data]): Unit = net.train(xs, xs)
 
 }

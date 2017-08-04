@@ -8,20 +8,29 @@ object Normalizer {
 
   object MaxUnit {
     /**
-      * Normalizes `ys` such that `ys.max == 1.0`
+      * Normalizes `xs` such that `xs.max == 1.0`
       */
-    def apply(ys: Vector[Double]): Vector[Double] = ys.map(_ / ys.max)
+    def apply(xs: Vector[Double]): Vector[Double] = xs.map(_ / xs.max)
   }
 
 
 
   object UnitVector {
     /**
-      * Normalizes `ys` such that the vector components are <= 1.
+      * Normalizes `xs` such that all vector components are <= 1.
       */
-    def apply(ys: Vector[Double]): Vector[Double] = {
-      val length = math.sqrt(ys.map(i => i * i).sum)
-      ys.map(_ / length)
+    def apply(xs: Vector[Double]): Vector[Double] = {
+      val length = math.sqrt(xs.map(i => i * i).sum)
+      xs.map(_ / length)
+    }
+  }
+
+  object Binary {
+    def apply(xs: Vector[Double]): Vector[Double] = {
+      xs.map {
+        case i if i > 0.0 => 1.0
+        case _            => 0.0
+      }
     }
   }
 

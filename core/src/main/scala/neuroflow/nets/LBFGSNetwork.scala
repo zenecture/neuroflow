@@ -61,18 +61,18 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
+  def train(xs: Array[Data], ys: Array[Data]): Unit = {
 
     import settings._
 
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toParArray
-    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toParArray
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
+    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
     val neuronProduct = (0 until fastLayerSize1).map(i => (i, i + 1) -> fastLayers(i).neurons * fastLayers(i + 1).neurons).toMap
 
     /**
       * Maps from V to W_i.
       */
-    @tailrec def ws(pw: Seq[Matrix], v: DVector, i: Int): Seq[Matrix] = {
+    @tailrec def ws(pw: Array[Matrix], v: DVector, i: Int): Array[Matrix] = {
       val (neuronsLeft, neuronsRight) = (fastLayers(i).neurons, fastLayers(i + 1).neurons)
       val product = neuronProduct(i, i + 1)
       val weightValues = v.slice(0, product).toArray
@@ -88,7 +88,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     def errorFunc(v: DVector): Double = {
       val err = mean {
         in.zip(out).map {
-          case (xx, yy) => pow(flow(ws(Nil, v, 0), xx, 0, fastLayerSize1) - yy, 2)
+          case (xx, yy) => pow(flow(ws(Array.empty[Matrix], v, 0), xx, 0, fastLayerSize1) - yy, 2)
         }.reduce(_ + _)
       }
       err
@@ -103,7 +103,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
       * Updates W_i using V.
       */
     def update(v: DVector): Unit = {
-      (ws(Nil, v, 0) zip weights) foreach {
+      (ws(Array.empty[Matrix], v, 0) zip weights) foreach {
         case (n, o) => n.foreachPair {
           case ((r, c), nv) => o.update(r, c, nv)
         }

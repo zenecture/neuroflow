@@ -44,7 +44,8 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   import neuroflow.core.Network._
 
   private val hiddenLayers = layers.drop(1).dropRight(1)
-  private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
+  private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)).toArray
+  private val _ANil      = Array.empty[Matrix]
   private val separators = settings.partitions.getOrElse(Set.empty)
   private val zeroOutput = DenseMatrix.zeros[Double](1, layers.last.neurons)
 
@@ -69,19 +70,19 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Takes the input vector sequence `xs` to compute the output vector sequence.
     */
   def apply(xs: Seq[Vector]): Seq[Vector] = {
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toArray
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
-    ~> (reset) next unfoldingFlow(in, initialOut, Nil, Nil) map (_.map(_.toArray.toVector))
+    ~> (reset) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toArray.toVector).toSeq)
   }
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
+  def train(xs: Array[Data], ys: Array[Data]): Unit = {
     import settings._
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toList
-    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toList
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
+    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
     noTargets = ys.zipWithIndex.filter { case (vec, idx) => vec.forall(_ == Double.PositiveInfinity) }.map(_._2).toSet
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
     yIndices = out.map(identityHashCode).zipWithIndex.toMap
@@ -113,7 +114,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     reset()
-    val errs = unfoldingFlow(xs, initialOut, Nil, Nil)
+    val errs = unfoldingFlow(xs, initialOut, Array.empty[Matrix], Array.empty[Matrix], 0)
     errs.zip(ys).map {
       case (_, t) if noTargets.contains(yIndices(identityHashCode(t))) => zeroOutput
       case (y, t) => 0.5 * pow(y - t, 2)
@@ -157,17 +158,20 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Unfolds this network through time and space.
     */
   @tailrec private def unfoldingFlow(xs: Matrices, lastOuts: Matrices,
-                                     newOuts: Matrices, res: Matrices): Matrices =
-    xs match {
-      case hd :: tl if isSeparator(hd) =>
-        val (ri, _) = flow(hd, lastOuts, Nil)
+                                     newOuts: Matrices, res: Matrices, cur: Int): Matrices = {
+    val in = cur < xs.length
+    if (in) {
+      val hd = xs(cur)
+      if (isSeparator(hd)) {
+        val (ri, _) = flow(hd, lastOuts, _ANil)
         reset()
-        unfoldingFlow(xs = tl, lastOuts = initialOut, newOuts = Nil, res = res :+ ri)
-      case hd :: tl =>
-        val (ri, newOut) = flow(hd, lastOuts, Nil)
-        unfoldingFlow(xs = tl, lastOuts = newOut, newOuts = Nil, res = res :+ ri)
-      case Nil => res
-    }
+        unfoldingFlow(xs, lastOuts = initialOut, newOuts = _ANil, res = res :+ ri, cur = cur + 1)
+      } else {
+        val (ri, newOut) = flow(hd, lastOuts, _ANil)
+        unfoldingFlow(xs, lastOuts = newOut, newOuts = _ANil, res = res :+ ri, cur = cur + 1)
+      }
+    } else { res }
+  }
 
   /**
     * Checks if given matrix `m` is the end of logical input partition.

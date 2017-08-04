@@ -74,10 +74,10 @@ private[nets] case class DynamicNetwork(layers: Seq[Layer], settings: Settings, 
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = {
+  def train(xs: Array[Data], ys: Array[Data]): Unit = {
     import settings._
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toVector
-    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y.toArray)).toVector
+    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
+    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
     run(in, out, learningRate(0), precision, 0, iterations)
   }
 

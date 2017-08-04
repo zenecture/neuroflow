@@ -29,7 +29,7 @@ class DynamicNetworkNumTest extends Specification {
   val ru = scala.reflect.runtime.universe
   val m = ru.runtimeMirror(getClass.getClassLoader)
 
-  private def toMatrix(xs: Seq[Double]) = DenseMatrix.create[Double](1, xs.size, xs.toArray)
+  private def toMatrix(xs: Array[Double]) = DenseMatrix.create[Double](1, xs.size, xs)
 
   def linGrad = {
     import neuroflow.nets.DynamicNetwork._
@@ -38,8 +38,8 @@ class DynamicNetworkNumTest extends Specification {
     val sets = Settings(learningRate = { case _ => 0.01 }, iterations = 1000, approximation = Some(Approximation(1E-4)))
     val net = Network(Input(1) :: Output(1, fn) :: HNil, sets)
 
-    val xs = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
-    val ys = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
+    val xs = Array(Array(1.0), Array(2.0), Array(3.0)) map toMatrix
+    val ys = Array(Array(1.0), Array(2.0), Array(3.0)) map toMatrix
 
     val layer = 0
     val weight = (0, 0)
@@ -61,8 +61,8 @@ class DynamicNetworkNumTest extends Specification {
     val sets = Settings(learningRate = { case _ => 0.01 }, iterations = 1000, approximation = Some(Approximation(1E-4)))
     val net = Network(Input(1) :: Output(2, fn) :: HNil, sets)
 
-    val xs = (Seq(1.0) :: Seq(2.0) :: Seq(3.0) :: Nil) map toMatrix
-    val ys = (Seq(1.0, 1.0) :: Seq(2.0, 2.0) :: Seq(3.0, 3.0) :: Nil) map toMatrix
+    val xs = Array(Array(1.0), Array(2.0), Array(3.0)) map toMatrix
+    val ys = Array(Array(1.0, 1.0), Array(2.0, 2.0), Array(3.0, 3.0)) map toMatrix
 
     val layers = 0 :: 0 :: Nil
     val weights = (0, 0) :: (0, 1) :: Nil
@@ -88,8 +88,8 @@ class DynamicNetworkNumTest extends Specification {
     val sets = Settings(learningRate = { case _ => 0.01 }, iterations = 1000, approximation = Some(Approximation(1E-4)))
     val net = Network(Input(2) :: Hidden(30, fn) :: Hidden(10, gn) :: Output(2, fn) :: HNil, sets)
 
-    val xs = (Seq(1.0, 2.0) :: Seq(2.0, 4.0) :: Seq(3.0, 6.0) :: Nil) map toMatrix
-    val ys = (Seq(1.0, 1.0) :: Seq(2.0, 2.0) :: Seq(3.0, 3.0) :: Nil) map toMatrix
+    val xs = Array(Array(1.0, 2.0), Array(2.0, 4.0), Array(3.0, 6.0)) map toMatrix
+    val ys = Array(Array(1.0, 1.0), Array(2.0, 2.0), Array(3.0, 3.0)) map toMatrix
 
     val weights = net.layers.indices.dropRight(1) flatMap { i =>
       net.weights(i).mapPairs((p, v) => (i, p)).activeValuesIterator.toList

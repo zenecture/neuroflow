@@ -38,11 +38,12 @@ object Network extends TypeAliases {
   */
 trait TypeAliases {
 
+  type Data     = scala.Array[Double]
   type Vector   = scala.Vector[Double]
   type DVector  = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
-  type Matrices = Seq[Matrix]
-  type Weights  = Seq[Matrix]
+  type Matrices = Array[Matrix]
+  type Weights  = Array[Matrix]
 
 }
 
@@ -138,7 +139,8 @@ trait SupervisedTraining {
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit
+  def train(xs: Array[Network.Data], ys: Array[Network.Data]): Unit
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = train(xs.map(_.toArray).toArray, ys.map(_.toArray).toArray)
 
 }
 
@@ -148,7 +150,8 @@ trait UnsupervisedTraining {
     * Takes a sequence of input vectors `xs` and trains this
     * network using the unsupervised learning strategy.
     */
-  def train(xs: Seq[Vector]): Unit
+  def train(xs: Array[Network.Data]): Unit
+  def train(xs: Seq[Vector]): Unit = train(xs.map(_.toArray).toArray)
 
 }
 
