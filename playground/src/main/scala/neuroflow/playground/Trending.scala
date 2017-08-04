@@ -30,8 +30,8 @@ object Trending {
     def noise = if (Random.nextDouble > 0.5) 0.0625 else -0.0625
 
     // Training
-    val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, i))
-    val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 0.3))
+    val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, i)).toVector
+    val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, 0.3)).toVector
 
     // Testing
     val trendTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => ->(i, (1 + Random.nextDouble) * i)) // Linear trend with noise on slope

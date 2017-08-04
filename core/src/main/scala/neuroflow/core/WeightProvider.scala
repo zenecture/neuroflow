@@ -28,12 +28,12 @@ trait BaseOps {
     * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight values.
     */
   def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights =
-    layers.dropRight(1).zipWithIndex.flatMap {
+    layers.dropRight(1).zipWithIndex.toArray.map {
       case (layer, index) =>
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
         val product = neuronsLeft * neuronsRight
         val initialWeights = (1 to product).map(_ => seed.apply).toArray
-        Seq(DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights))
+        DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights)
     }
 
   /**
@@ -66,7 +66,7 @@ trait BaseOps {
     }
 
 
-    layers.dropRight(1).zipWithIndex.flatMap {
+    layers.dropRight(1).zipWithIndex.toArray.flatMap {
 
       case (l: Convolutable, index) =>
         layers(index + 1) match {

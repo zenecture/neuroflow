@@ -69,7 +69,7 @@ case class LinConvolution(filters: Int,
   val symbol: String = "LinConvolution"
   private val pads  = DenseVector.zeros[Double](padding)
   def receptiveField(in: Matrix): Matrices = {
-    (0 until in.rows).map { r =>
+    (0 until in.rows).toArray.map { r =>
       val d = DenseVector.vertcat(pads, in.t(::, r), pads).toArray
       (1 to filters).toParArray.flatMap { _ =>
         Range(0, d.size - fieldSize, stride).toParArray.map { i =>
