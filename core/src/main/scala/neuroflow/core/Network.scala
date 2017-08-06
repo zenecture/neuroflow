@@ -70,7 +70,7 @@ trait Constructor[+T <: Network[_]] {
   * Some nets use specific parameters set in the `specifics` map.
   */
 case class Settings(verbose: Boolean                            = true,
-                    learningRate: PartialFunction[Int, Double]  = { case _ => 0.1 },
+                    learningRate: PartialFunction[Int, Double]  = { case _ => 1E-4 },
                     precision: Double                           = 1E-5,
                     iterations: Int                             = 100,
                     prettyPrint: Boolean                        = false,

@@ -9,7 +9,7 @@ import neuroflow.application.processor.{Extensions, Normalizer, Util}
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.LBFGSNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 import scala.io.{Source, StdIn}
@@ -58,7 +58,7 @@ object MovieSimilarity {
 
     println("Training samples: " + topByUser.size)
 
-    val net = Network(layout, Settings(iterations = 25))
+    val net = Network(layout, Settings(iterations = 500, learningRate = { case _ => 1E-4 }))
 
     net.train(topByUser.map(_._1), topByUser.map(_._2))
 
@@ -73,7 +73,7 @@ object MovieSimilarity {
       Network(layout, Settings())
     }
 
-    val res = movies.map(m => m.copy(vec = Normalizer.UnitVector(net.evaluate(m.vec))))
+    val res = movies.map(m => m.copy(vec = net(m.vec)))
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
@@ -106,55 +106,31 @@ object MovieSimilarity {
 
     See:
         - resources/file/ml-100k/MovieCloud.png
-        - resources/file/ml-100k/MovieCloudL.png
 
-    Find movieId: 36
-    The 10 most (un-)similar movies for: Nadja (1994)
-    (Nadja (1994),1.0000000000000002)
-    (Kansas City (1996),0.54186693884391)
-    (Free Willy 2: The Adventure Home (1995),0.37849939209395833)
-    (Mimic (1997),0.3781999525612457)
-    (Mad Love (1995),0.24935136110925749)
-    (Twelve Monkeys (1995),-0.01001494196088354)
-    (Batman & Robin (1997),-0.0950935761314235)
-    (Rock, The (1996),-0.09623026204644874)
-    (Promesse, La (1996),-0.10399911124969907)
-    (Amadeus (1984),-0.12995581089852)
+    Find movieId: 100
+    The 10 most (un-)similar movies for: Heavy Metal (1981)
+    (Heavy Metal (1981),1.0)
+    (Priest (1994),0.9996337330358226)
+    (Get Shorty (1995),0.9993119619452804)
+    (Up Close and Personal (1996),0.9980979346218072)
+    (Billy Madison (1995),0.997593692885892)
+    (Beavis and Butt-head Do America (1996),0.9969605830805026)
+    (Crimson Tide (1995),0.9966695525631081)
+    (Ulee's Gold (1997),0.996190468249715)
+    (Shall We Dance? (1996),0.9955180716800702)
+    (Lost World: Jurassic Park, The (1997),0.9944897656524266)
     ...
-    (Pink Floyd - The Wall (1982),-0.9990339133043322)
-    (Nikita (La Femme Nikita) (1990),-0.9983140999393241)
-    (Jude (1996),-0.9979989237940924)
-    (Horseman on the Roof, The (Hussard sur le toit, Le) (1995),-0.9968073903210092)
-    (Cinema Paradiso (1988),-0.9943456650005529)
-    (Rumble in the Bronx (1995),-0.9941455598932651)
-    (Alien (1979),-0.9919619374747143)
-    (Madness of King George, The (1994),-0.9910138507914289)
-    (Die Hard 2 (1990),-0.9878334851355521)
-    (Last of the Mohicans, The (1992),-0.9871419174832422)
+    (Free Willy 2: The Adventure Home (1995),-0.9592297809777249)
+    (Kansas City (1996),-0.8039040484169)
+    (Operation Dumbo Drop (1995),-0.7549209605650805)
+    (French Twist (Gazon maudit) (1995),-0.7332665724074914)
+    (Muppet Treasure Island (1996),-0.6747395427916062)
+    (Theodore Rex (1995),-0.5375612877734781)
+    (Unhook the Stars (1996),-0.47010580617422415)
+    (Santa Clause, The (1994),-0.3543725709772031)
+    (Mimic (1997),-0.09361883933955371)
+    (Mad Love (1995),0.1907817999640347)
 
 
-    Find movieId: 248
-    The 10 most (un-)similar movies for: Austin Powers: International Man of Mystery (1997)
-    (Austin Powers: International Man of Mystery (1997),1.0)
-    (Stargate (1994),0.9999447952506219)
-    (Supercop (1992),0.9995768787253511)
-    (Batman Returns (1992),0.9991786113588649)
-    (Natural Born Killers (1994),0.9991646064003881)
-    (Ace Ventura: Pet Detective (1994),0.9987625132526217)
-    (Mars Attacks! (1996),0.9985953803999155)
-    (Ref, The (1994),0.9985449290579209)
-    (Aristocats, The (1970),0.9984795259166293)
-    (Maverick (1994),0.9979267681441143)
-    ...
-    (Nadja (1994),-0.9416555272158736)
-    (Kansas City (1996),-0.44930542326722545)
-    (Mimic (1997),-0.377332942648324)
-    (Promesse, La (1996),-0.15454584674877161)
-    (Free Willy 2: The Adventure Home (1995),-0.10162428851114265)
-    (Mad Love (1995),-0.07003133770064952)
-    (Faster Pussycat! Kill! Kill! (1965),0.03533770752223712)
-    (Theodore Rex (1995),0.32866995133890714)
-    (Twelve Monkeys (1995),0.34579731041018585)
-    (Wizard of Oz, The (1939),0.364071986200786)
 
  */

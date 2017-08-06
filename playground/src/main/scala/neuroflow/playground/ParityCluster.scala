@@ -4,11 +4,11 @@ import java.io.{File, FileOutputStream, PrintWriter}
 
 import neuroflow.application.plugin.Notation.{ζ, _}
 import neuroflow.application.processor.Util._
-import neuroflow.application.processor.{Extensions, Normalizer, Util}
+import neuroflow.application.processor.{Extensions, Util}
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.LBFGSNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 import scala.util.Random
@@ -20,7 +20,7 @@ import scala.util.Random
 
 object ParityCluster {
 
-  val dimension = 25
+  val dimension = 50
   val samples = 1000
   val maxObservations = 10
 
@@ -67,12 +67,12 @@ object ParityCluster {
         Input(dimension + 1) ::
         Cluster(Hidden(3, Linear)) ::
         Output(dimension + 1, Sigmoid) :: HNil,
-        Settings(iterations = 20)
+        Settings(iterations = 2000)
       )
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
-    val res = classes.map(c => Normalizer.UnitVector(net.evaluate(c._2)) -> c._1)
+    val res = classes.map(c => net(c._2) -> c._1)
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
@@ -85,15 +85,6 @@ object ParityCluster {
 
 /*
 
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 922,047 (rel: 0,00312) 16,5574
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 919,803 (rel: 0,00243) 10,6843
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Converged because max iterations reached
-    [success] Total time: 75 s, completed 19.04.2017 22:39:45
-
-
     Result Plot: resources/ParityCloud.png
-    With higher dimension and less samples: resources/ParityCloudAlt.png
-    With one additional 'greasy' feature that separates the observations: resources/ParityCloudAlt2.png + ParityCloudAlt3.png
 
  */

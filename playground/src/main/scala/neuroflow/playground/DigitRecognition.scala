@@ -35,11 +35,7 @@ object DigitRecognition {
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid
       val settings = Settings(
-        learningRate = {
-          case i if i < 10 => 0.5
-          case i if i >= 10 && i < 200 => 0.5
-          case i => 0.5
-        },
+        learningRate = { case _ => 0.05 },
         precision = 0.1, iterations = 5000,
         regularization = Some(KeepBest))
       val xs = sets.dropRight(1).flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
