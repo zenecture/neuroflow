@@ -39,7 +39,7 @@ class DefaultNetworkNumTest extends Specification {
     val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1, approximation = Some(Approximation(1E-5))))
     val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1))
 
-    val xs = Seq(Vector(1.0, 1.0))
+    val xs = Seq(Vector(0.5, 0.5), Vector(1.0, 1.0))
 
     netA.train(xs, xs)
     netB.train(xs, xs)
@@ -47,7 +47,7 @@ class DefaultNetworkNumTest extends Specification {
     println(netA)
     println(netB)
 
-    val tolerance = 1E-4
+    val tolerance = 1E-3
 
     val equal = netA.weights.zip(netB.weights).map {
       case (a, b) =>
