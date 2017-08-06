@@ -2,7 +2,8 @@ package neuroflow.core
 
 import breeze.generic._
 import breeze.linalg.max
-import breeze.numerics._
+import Math.{pow, exp, log}
+
 
 /**
   * @author bogdanski

@@ -15,7 +15,7 @@ import scala.collection.immutable.Seq
   * @since 12.06.16
   */
 
-object AudioFileClassification {
+object AudioRecognition {
 
   /*
 
