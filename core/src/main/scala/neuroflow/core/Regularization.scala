@@ -79,10 +79,8 @@ trait KeepBestLogic { self: Network[_] =>
   def takeBest(): Unit = self.settings.regularization match {
     case Some(KeepBest) =>
       info(f"Applying KeepBest strategy. Best test error so far: $bestErr%.6g.")
-      bestWs.foreach { l =>
-        l.foreachPair { (k, v) =>
-          self.weights(bestWs.indexOf(l)).update(k, v)
-        }
+      weights.zip(bestWs).foreach {
+        case (a, b) => a := b
       }
     case _ =>
   }

@@ -13,14 +13,12 @@ object Normalizer {
     def apply(xs: Vector[Double]): Vector[Double] = xs.map(_ / xs.max)
   }
 
-
-
   object UnitVector {
     /**
       * Normalizes `xs` such that all vector components are <= 1.
       */
     def apply(xs: Vector[Double]): Vector[Double] = {
-      val length = math.sqrt(xs.map(i => i * i).sum)
+      val length = math.sqrt(xs.map(x => x * x).sum)
       xs.map(_ / length)
     }
   }
@@ -32,6 +30,10 @@ object Normalizer {
         case _            => 0.0
       }
     }
+  }
+
+  object VectorLength {
+    def apply(xs: Vector[Double]): Double = math.sqrt(xs.map(x => x * x).sum)
   }
 
 }
