@@ -19,7 +19,7 @@ import scala.io.{Source, StdIn}
   * @since 15.04.17
   */
 
-object MovieSimilarity {
+object MovieCluster {
 
   case class Movie(id: Int, title: String, vec: Network.Vector)
   case class Rating(user: Int, movieId: Int, rating: Int)

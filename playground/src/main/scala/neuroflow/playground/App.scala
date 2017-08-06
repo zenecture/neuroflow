@@ -21,8 +21,8 @@ object App extends App {
     case  9 => LanguageProcessing.apply
     case 10 => LanguageProcessing.test
     case 11 => Sequences.apply
-    case 12 => MovieSimilarity.apply
-    case 13 => MovieSimilarity.find
+    case 12 => MovieCluster.apply
+    case 13 => MovieCluster.find
     case 14 => ParityCluster.apply
     case 15 => PokeMonCluster.apply
 
