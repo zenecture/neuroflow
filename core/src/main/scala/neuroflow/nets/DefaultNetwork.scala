@@ -122,7 +122,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Evaluates the error function Σ1/2(target - prediction(x))² in parallel.
+    * Evaluates the error function Σ1/2(y - net(x))² in parallel.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     val xsys = xs.zip(ys).par
