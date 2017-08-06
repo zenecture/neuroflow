@@ -4,7 +4,6 @@ import java.io.{File, FileOutputStream, PrintWriter}
 
 import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.plugin.Notation.Force._
-import neuroflow.application.processor.Normalizer
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
@@ -61,17 +60,17 @@ object PokeMonCluster {
 
     val net =
       Network(
-        Input(dim) ::
-        Cluster(Hidden(3, Linear)) ::
-        Hidden(dim / 2, ReLU) ::
-        Output(dim, ReLU) :: HNil,
-        Settings(iterations = 5000, prettyPrint = true, learningRate = { case i if i < 100 => 0.4 case _ => 0.3 })
+        Input(dim)                  ::
+        Cluster(Hidden(3, Linear))  ::
+        Hidden(dim / 2, ReLU)       ::
+        Output(dim, ReLU)           :: HNil,
+        Settings(iterations = 5000, prettyPrint = true, learningRate = { case _ => 1E-5 })
       )
 
 
     net.train(xs.map(_._2))
 
-    val cluster = xs.map(t => Normalizer.UnitVector(net.evaluate(t._2)) -> t._1)
+    val cluster = xs.map(t => net(t._2) -> t._1)
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
@@ -85,77 +84,7 @@ object PokeMonCluster {
 
 /*
 
-    For several results see:
-      resources/PokeCluster.png     (Linear Cluster Layer)
-      resources/PokeClusterSig.png  (Sigmoid Cluster Layer)
-      resources/PokeClusterDeep.png (Linear/ReLU Layers, reduced feature space: type1, total, hp, attack, defense)
-
-
-    [info] Running neuroflow.playground.App
-    Run example (1-13):
-
-
-
-                 _   __                      ________
-                / | / /__  __  ___________  / ____/ /___ _      __
-               /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
-              / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
-             /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
-
-
-             Version 0.601
-
-             Identifier: lHw
-             Network: neuroflow.nets.AutoEncoder
-             Layout: [23, 3 (x), 11 (R), 23 (R)]
-             Number of Weights: 355
-
-
-
-
-             O                             O
-             O                             O
-             O                             O
-             O                             O
-             O                             O
-             O                             O
-             O                   O         O
-             O                   O         O
-             O                   O         O
-             O                   O         O
-             O         O         O         O
-             O         O         O         O
-             O         O         O         O
-             O                   O         O
-             O                   O         O
-             O                   O         O
-             O                   O         O
-             O                             O
-             O                             O
-             O                             O
-             O                             O
-             O                             O
-             O                             O
-
-
-
-    Apr 22, 2017 5:27:11 PM com.github.fommil.jni.JniLoader liberalLoad
-    INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader8500436160996467391netlib-native_system-osx-x86_64.jnilib
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 0,004680
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 54,2450 (rel: 0,627) 58,8828
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 40,1199 (rel: 0,260) 34,3295
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 28,9957 (rel: 0,277) 11,6635
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 27,1558 (rel: 0,0635) 6,80454
-    ...
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 7,08702 (rel: 0,000473) 0,553453
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Step Size: 1,000
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Val and Grad Norm: 7,08400 (rel: 0,000425) 0,502604
-    [run-main-0] INFO neuroflow.nets.NFLBFGS - Converged because max iterations reached
-    [success] Total time: 132 s, completed 22.04.2017 17:29:16
-
+    For result see:
+      resources/PokeCluster.png
 
  */

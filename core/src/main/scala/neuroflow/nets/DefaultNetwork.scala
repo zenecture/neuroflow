@@ -113,7 +113,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
-    if (errorMean > precision && iteration <= maxIterations && !shouldStopEarly) {
+    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
       run(xs, ys, settings.learningRate(iteration + 1), precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
