@@ -20,9 +20,10 @@ import scala.util.Random
 
 object ParityCluster {
 
-  val dimension = 50
+  val dimension = 250
   val samples = 1000
-  val maxObservations = 10
+  val minObs = 5
+  val maxObs = 20
 
   val clusterOutput = "/Users/felix/github/unversioned/parityCluster.txt"
 
@@ -44,7 +45,7 @@ object ParityCluster {
     val xsys = {
       (0 until samples) flatMap { _ =>
         Util.shuffle {
-          (0 until Random.nextInt(maxObservations)).map { _ =>
+          (minObs until (minObs + Random.nextInt(maxObs))).map { _ =>
             classes(evens(Random.nextInt(evens.size)))._2
           }.toList
         }.map { case (k, v) =>
@@ -54,7 +55,7 @@ object ParityCluster {
     } ++ {
       (0 until samples) flatMap { _ =>
         Util.shuffle {
-          (0 until Random.nextInt(maxObservations)).map { _ =>
+          (minObs until (minObs + Random.nextInt(maxObs))).map { _ =>
             classes(odds(Random.nextInt(odds.size)))._2
           }.toList
         }.map { case (k, v) =>
@@ -64,10 +65,10 @@ object ParityCluster {
     }
 
     val net = Network(
-        Input(dimension + 1) ::
-        Cluster(Hidden(3, Linear)) ::
-        Output(dimension + 1, Sigmoid) :: HNil,
-        Settings(iterations = 2000)
+        Input(dimension + 1)            ::
+        Cluster(Hidden(3, Linear))      ::
+        Output(dimension + 1, Sigmoid)  :: HNil,
+        Settings(iterations = 2000, learningRate = { case _ => 1E-4 })
       )
 
     net.train(xsys.map(_._1), xsys.map(_._2))
@@ -86,5 +87,34 @@ object ParityCluster {
 /*
 
     Result Plot: resources/ParityCloud.png
+
+
+
+
+
+                 _   __                      ________
+                / | / /__  __  ___________  / ____/ /___ _      __
+               /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+              / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+             /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+
+
+             Version 0.805
+
+             Identifier: N1
+             Network: neuroflow.nets.DefaultNetwork
+             Layout: [251 In, 3 Cluster(Hidden(x)), 251 Out (σ)]
+             Number of Weights: 1506
+
+
+
+
+    [main] INFO neuroflow.nets.DefaultNetwork - [06.08.2017 23:25:50:360] Training with 19304 samples ...
+    Aug 06, 2017 11:25:50 PM com.github.fommil.jni.JniLoader liberalLoad
+    INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader8483919133436466263netlib-native_system-osx-x86_64.jnilib
+    [main] INFO neuroflow.nets.DefaultNetwork - [06.08.2017 23:25:51:075] Iteration 1 - Mean Error 2656,61 - Error Vector 3279.2229947232217  3061.3903604897746  2283.3098487748557  ... (251 total)
+    [main] INFO neuroflow.nets.DefaultNetwork - [06.08.2017 23:25:51:858] Iteration 2 - Mean Error 2800,51 - Error Vector 2130.65388165615  1775.2468656480069  2514.1046603739205  ... (251 total)
+    [main] INFO neuroflow.nets.DefaultNetwork - [06.08.2017 23:25:52:158] Iteration 3 - Mean Error 3000,49 - Error Vector 4987.0586594634005  4531.784129830394  1847.4267806266853  ... (251 total)
+    ...
 
  */
