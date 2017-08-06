@@ -105,7 +105,7 @@ object MovieSimilarity {
 /*
 
     See:
-        - resources/file/ml-100k/MovieCloud.png
+        - resources/MovieCloud.png
 
     Find movieId: 100
     The 10 most (un-)similar movies for: Heavy Metal (1981)
