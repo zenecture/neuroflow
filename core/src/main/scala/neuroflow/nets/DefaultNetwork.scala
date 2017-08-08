@@ -16,8 +16,10 @@ import scala.concurrent.forkjoin.ForkJoinPool
 
 /**
   *
-  * This is a standard artificial neural network, using gradient descent,
-  * fully connected weights.
+  * This is a feed-forward neural network with fully connected layers.
+  * It uses dynamic gradient descent to optimize the error function Σ1/2(y - net(x))².
+  *
+  * Use the parallelism parameter with care, as it greatly affects memory usage.
   *
   * @author bogdanski
   * @since 15.01.16
@@ -122,7 +124,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Evaluates the error function Σ1/2(y - net(x))² in parallel.
+    * Evaluates the error function in parallel.
     */
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     val xsys = xs.zip(ys).par
