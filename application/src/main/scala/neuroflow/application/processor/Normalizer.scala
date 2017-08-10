@@ -38,6 +38,16 @@ object Normalizer {
     }
   }
 
+  object ScaledVectorSpace {
+    /**
+      * Scales all components to be in range [-1; 1].
+      */
+    def apply(xs: Seq[Vector[Double]]): Seq[Vector[Double]] = {
+      val max = xs.map(x => VectorLength(x)).max
+      xs.map(x => x.map(_ / max))
+    }
+  }
+
   object VectorLength {
     /**
       * Computes the length of `x`.
