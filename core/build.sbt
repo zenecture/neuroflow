@@ -1,4 +1,4 @@
-val circeVersion = "0.7.0"
+val circeVersion = "0.8.0"
 
 libraryDependencies  ++= Seq(
   "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly(),

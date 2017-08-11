@@ -47,13 +47,12 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     case layer: Layer   => layer
   }.toArray
 
-  private val _layersNI = _layers.tail.map { case h: HasActivator[Double] => h }
-  private val _outputDim = _layers.last.neurons
+  private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
+  private val _outputDim      = _layers.last.neurons
+  private val _lastLayerIdx   = _layers.size - 1
+  private val _lastWlayerIdx  = weights.size - 1
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
-
-  private val layerSize  = _layers.size - 1
-  private val weightLayers = weights.size - 1
 
   private implicit object Average extends CanAverage[DefaultNetwork] {
     import neuroflow.common.VectorTranslation._
@@ -129,7 +128,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
     val xsys = xs.zip(ys).par
     xsys.tasksupport = _forkJoinTaskSupport
-    xsys.map { xy => 0.5 * pow(xy._1 - flow(xy._2, 0, layerSize), 2) }.reduce(_ + _)
+    xsys.map { xy => 0.5 * pow(xy._1 - flow(xy._2, 0, _lastLayerIdx), 2) }.reduce(_ + _)
   }
 
     /**
@@ -140,7 +139,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     else {
       val processed = _layers(cursor) match {
         case h: HasActivator[Double] =>
-          if (cursor <= weightLayers) in.map(h.activator) * weights(cursor)
+          if (cursor <= _lastWlayerIdx) in.map(h.activator) * weights(cursor)
           else in.map(h.activator)
         case _ => in * weights(cursor)
       }
@@ -166,7 +165,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       val xsys = xs.par.zip(ys)
       xsys.tasksupport = _forkJoinTaskSupport
 
-      val _ds = (0 to weightLayers).map { i =>
+      val _ds = (0 to _lastWlayerIdx).map { i =>
         i -> DenseMatrix.zeros[Double](weights(i).rows, weights(i).cols)
       }.toMap
 
@@ -190,17 +189,17 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
           ps += i -> p
           fa += i -> a
           fb += i -> b
-          if (i < weightLayers) forward(a, i + 1)
+          if (i < _lastWlayerIdx) forward(a, i + 1)
         }
 
         @tailrec def derive(i: Int): Unit = {
-          if (i == 0 && weightLayers == 0) {
+          if (i == 0 && _lastWlayerIdx == 0) {
             val yf = y - fa(0)
             val d = -yf *:* fb(0)
             val dw = x.t * d
             dws += 0 -> dw
             e += yf
-          } else if (i == weightLayers) {
+          } else if (i == _lastWlayerIdx) {
             val yf = y - fa(i)
             val d = -yf *:* fb(i)
             val dw = fa(i - 1).t * d
@@ -208,7 +207,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
             ds += i -> d
             e += yf
             derive(i - 1)
-          } else if (i < weightLayers && i > 0) {
+          } else if (i < _lastWlayerIdx && i > 0) {
             val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
             val dw = fa(i - 1).t * d
             dws += i -> dw
@@ -222,14 +221,14 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
         }
 
         forward(x, 0)
-        derive(weightLayers)
+        derive(_lastWlayerIdx)
         e :^= _square
         e *= 0.5
         (dws, e)
       }.seq.foreach { ab =>
         _errSum += ab._2
         var i = 0
-        while (i <= weightLayers) {
+        while (i <= _lastWlayerIdx) {
           val m = _ds(i)
           val n = ab._1(i)
           m += (n *= stepSize)
@@ -237,7 +236,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
         }
       }
       var i = 0
-      while (i <= weightLayers) {
+      while (i <= _lastWlayerIdx) {
         weights(i) -= _ds(i)
         i += 1
       }
