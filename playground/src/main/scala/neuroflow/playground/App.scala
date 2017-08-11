@@ -17,7 +17,7 @@ object App extends App {
     case  5 => ImageRecognition.apply
     case  6 => DigitRecognition.apply
     case  7 => Sinusoidal.apply
-    case  8 => AudioFileClassification.apply
+    case  8 => AudioRecognition.apply
     case  9 => LanguageProcessing.apply
     case 10 => LanguageProcessing.test
     case 11 => Sequences.apply
