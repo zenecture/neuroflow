@@ -61,7 +61,8 @@ object Normalizer {
       */
     def apply(x: Vector[Double]): Seq[Vector[Double]] = x.zipWithIndex.flatMap {
       case (v, i) if v >= 1.0 => Some(ζ(x.size).updated(i, 1.0))
-      case (v, i)             => None
+      case (v, i) if v == 0.0 => None
+      case (v, i) if v  < 0.0 => Some(ζ(x.size).updated(i, -1.0))
     }
   }
 
@@ -70,11 +71,25 @@ object Normalizer {
       * Locates the index of hot vector `x`.
       */
     def apply(x: Vector[Double]): Int = {
-      if (x.count(_ == 1.0) > 1) throw new Exception("Doesn't work.")
-      else x.zipWithIndex.find(_._1 == 1.0) match {
-        case Some((v, i)) => i
-        case None         => throw new Exception("Doesn't work.")
+      val wi = x.zipWithIndex
+      wi.find(_._1 == 1.0) match {
+        case Some(h1) => h1._2
+        case None => wi.find(_._1 == -1.0) match {
+          case Some(h2) => -h2._2
+          case None => throw new Exception("Doesn't work.")
+        }
       }
+    }
+  }
+
+  object Harmonize {
+    /**
+      * Harmonizes `x` by using `cap` as min/max.
+      */
+    def apply(x: Vector[Double], cap: Double = 1.0): Vector[Double] = x.map {
+      case v if v >  cap  =>  cap
+      case v if v < -cap  => -cap
+      case v              =>   v
     }
   }
 
