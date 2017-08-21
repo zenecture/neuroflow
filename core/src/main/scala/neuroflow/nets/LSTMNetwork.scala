@@ -67,7 +67,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Takes the input vector sequence `xs` to compute the output vector sequence.
+    * Computes output sequence for `xs`.
     */
   def apply(xs: Seq[Vector]): Seq[Vector] = {
     val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toArray
