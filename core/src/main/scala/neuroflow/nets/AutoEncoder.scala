@@ -6,7 +6,7 @@ import neuroflow.core._
 import scala.collection.Seq
 
 /**
-  * Unsupervised Auto Encoder using a [[LBFGSNetwork]].
+  * Unsupervised Auto Encoder using a [[DefaultNetwork]].
   *
   * @author bogdanski
   * @since 16.04.17
@@ -33,7 +33,7 @@ private[nets] case class AutoEncoder(layers: Seq[Layer],
   }
 
   /**
-    * Takes the input vector `x` to compute the output vector.
+    * Computes output for `x`.
     */
   def apply(x: Vector): Vector = net(x)
 
