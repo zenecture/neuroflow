@@ -29,7 +29,7 @@ If you want to use neural nets in your project, you can expect a journey full of
 
 # Net Types
 
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/nettypes.png" width=700 height=250 />
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/nettypes.png" width=500 height=250 />
 
 * FFN: A feed forward network. It is good for classification and regression with stationary input. 
 * FFN CLUSTER: Same as FFN, but with a hidden layer as model output. Use it if you want to represent, compress or cluster your data. Think of word2vec, auto-encoders or principal component analysis. 
