@@ -29,13 +29,10 @@ If you want to use neural nets in your project, you can expect a journey full of
 
 # Net Types
 
-It's hard to hammer a nail using a screw driver, so we have different net types.
-
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/nettypes.png" width=700 height=250 />
 
 * FFN: A feed forward network. It is good for classification and regression with stationary input. 
 * FFN CLUSTER: Use a cluster if you want to represent, compress or cluster your data. Think of word2vec, auto-encoders or principal component analysis. 
-* RNN LSTM: A recurrent network. The LSTM model is used here. Use it if you want to do classification and regression with sequential input.
 
 # Construction of a Net  
 
