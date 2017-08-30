@@ -2,7 +2,7 @@ package neuroflow.playground
 
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.DynamicNetwork._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 import scala.annotation.tailrec
@@ -31,7 +31,7 @@ object Sinusoidal {
 
     val fn = Tanh
     val group = 4
-    val sets = Settings(verbose = true, learningRate = { case _ => 10.0 }, precision = 1E-9, iterations = 1000, specifics = Some(Map("τ" -> 0.25, "c" -> 0.25)))
+    val sets = Settings(verbose = true, learningRate = { case _ => 1E-1 }, precision = 1E-9, iterations = 1000)
     val net = Network(Input(3) :: Hidden(5, fn) :: Hidden(3, fn) :: Output(1, fn) :: HNil, sets)
     val sinusoidal = Range.Double(0.0, 0.8, 0.05).grouped(group).toVector.map(i => i.toVector.map(k => (k, Math.sin(10 * k))))
     val xsys = sinusoidal.map(s => (s.dropRight(1).map(_._2), s.takeRight(1).map(_._2)))
