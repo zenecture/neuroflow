@@ -33,9 +33,7 @@ object Network extends TypeAliases {
 }
 
 
-/**
-  * For the sake of beauty.
-  */
+/** For the sake of beauty. */
 trait TypeAliases {
 
   type Data     = scala.Array[Double]
@@ -48,13 +46,21 @@ trait TypeAliases {
 }
 
 
-/**
-  * A minimal constructor for a [[Network]].
-  */
+/** A minimal constructor for a [[Network]]. */
 @implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
 trait Constructor[+T <: Network[_]] {
   def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
 }
+
+
+/** Distributed training node */
+case class Node(host: String, port: Int)
+
+/**
+  * The `messageGroupSize` controls how many weights per batch will be sent.
+  * The `frameSize` is the maximum message size for inter-node communication.
+  */
+case class Transport(messageGroupSize: Int, frameSize: String)
 
 
 /**
@@ -63,6 +69,7 @@ trait Constructor[+T <: Network[_]] {
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
   * The level of `parallelism` controls how many threads will be used for training.
+  * For distributed training, `coordinator` and `transport` specific settings need to be set configured.
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
@@ -75,6 +82,8 @@ case class Settings(verbose: Boolean                            = true,
                     iterations: Int                             = 100,
                     prettyPrint: Boolean                        = false,
                     parallelism: Int                            = Runtime.getRuntime.availableProcessors,
+                    coordinator: Node                           = Node("0.0.0.0", 2552),
+                    transport: Transport                        = Transport(100000, "128 MiB"),
                     errorFuncOutput: Option[ErrorFuncOutput]    = None,
                     regularization: Option[Regularization]      = None,
                     approximation: Option[Approximation]        = None,
@@ -108,19 +117,13 @@ trait Network[M] extends (M => M) with Logs with ErrorFuncGrapher with IllusionB
 
   val identifier: String
 
-  /**
-    * Settings of this neural network.
-    */
+  /** Settings of this neural network. */
   val settings: Settings
 
-  /**
-    * Layers of this neural network.
-    */
+  /** Layers of this neural network. */
   val layers: Seq[Layer]
 
-  /**
-    * The weights are a bunch of matrices.
-    */
+  /** The weights are a bunch of matrices. */
   val weights: Weights
 
   /**
@@ -133,6 +136,7 @@ trait Network[M] extends (M => M) with Logs with ErrorFuncGrapher with IllusionB
 
 }
 
+
 trait SupervisedTraining {
 
   /**
@@ -144,6 +148,7 @@ trait SupervisedTraining {
 
 }
 
+
 trait UnsupervisedTraining {
 
   /**
@@ -152,6 +157,16 @@ trait UnsupervisedTraining {
     */
   def train(xs: Array[Network.Data]): Unit
   def train(xs: Seq[Vector]): Unit = train(xs.map(_.toArray).toArray)
+
+}
+
+
+trait DistributedTraining {
+
+  /**
+    * Triggers execution of training for nodes `ns`.
+    */
+  def train(ns: collection.Set[Node])
 
 }
 
