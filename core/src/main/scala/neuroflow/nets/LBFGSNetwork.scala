@@ -44,7 +44,6 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   private val fastLayerSize1 = layers.size - 1
   private val fastLayerSize2 = layers.size - 2
 
-  private val fastWeights = weights.toArray
   private val fastWeightSize1 = weights.size - 1
 
   /**
@@ -132,9 +131,9 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     layers.collect {
       case c: Cluster => c
     }.headOption.map { cl =>
-      flow(fastWeights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toArray.toVector
+      flow(weights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toArray.toVector
     }.getOrElse {
-      flow(fastWeights, input, 0, layers.size - 1).toArray.toVector
+      flow(weights, input, 0, layers.size - 1).toArray.toVector
     }
   }
 

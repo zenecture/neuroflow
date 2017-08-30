@@ -49,35 +49,15 @@ case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
   */
 trait Convolutable extends HasActivator[Double] {
   import Network._
+  val width: Int
+  val height: Int
+  val depth: Int
   val filters: Int
   val fieldSize: Int
   val stride: Int
   val padding: Int
   val reshape: Option[Int]
-  def receptiveField(in: Matrix): Matrices
-}
-
-/** Convolutes the input in a linear fashion. */
-case class LinConvolution(filters: Int,
-                          fieldSize: Int,
-                          stride: Int,
-                          padding: Int,
-                          activator: Activator[Double],
-                          reshape: Option[Int] = None) extends Layer with Convolutable {
-  import Network._
-  val neurons: Int = reshape.getOrElse(filters * fieldSize)
-  val symbol: String = "LinConvolution"
-  private val pads  = DenseVector.zeros[Double](padding)
-  def receptiveField(in: Matrix): Matrices = {
-    (0 until in.rows).toArray.map { r =>
-      val d = DenseVector.vertcat(pads, in.t(::, r), pads).toArray
-      (1 to filters).toParArray.flatMap { _ =>
-        Range(0, d.size - fieldSize, stride).toParArray.map { i =>
-          DenseMatrix.create[Double](fieldSize, 1, d.slice(i, i + fieldSize))
-        }
-      }.reduce((l, r) => DenseMatrix.horzcat(l, r))
-    }
-  }
+  def receptiveField(in: Matrices): Matrices
 }
 
 

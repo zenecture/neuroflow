@@ -49,46 +49,6 @@ trait BaseOps {
     }
 
   /**
-    * Non-convolutional layers will be fully connected, whereas [[Convolutable]]
-    * layers will be connected locally.
-    */
-  def fullyAndLocallyConnected(layers: Seq[Layer], seed: () => Double): Weights = {
-
-
-    def generateCon(c: Convolutable): Seq[DenseMatrix[Double]] = {
-      Seq((1 to c.filters).map(_ => DenseMatrix.create[Double](1, c.fieldSize, (1 to c.fieldSize)
-        .map(_ => seed.apply).toArray)).reduce((l, r) => DenseMatrix.vertcat(l, r)))
-    }
-
-    def generate(l: Layer, r: Layer): Seq[DenseMatrix[Double]] = {
-      val initialWeights = (1 to l.neurons * r.neurons).map(_ => seed.apply).toArray
-      Seq(DenseMatrix.create[Double](l.neurons, r.neurons, initialWeights))
-    }
-
-
-    layers.dropRight(1).zipWithIndex.toArray.flatMap {
-
-      case (l: Convolutable, index) =>
-        layers(index + 1) match {
-          case r: Convolutable =>
-            generateCon(r)
-          case r: Layer =>
-            generate(l, r)
-        }
-
-      case (l: Layer, index) =>
-        layers(index + 1) match {
-          case r: Convolutable =>
-            generateCon(r)
-          case r: Layer =>
-            generate(l, r)
-        }
-
-    }
-
-  }
-
-  /**
     * Gives a seed function to generate weights in range `i`.
     */
   def random(i: (Double, Double)): () => Double = () => ThreadLocalRandom.current.nextDouble(i._1, i._2)
@@ -161,7 +121,7 @@ object CNN extends BaseOps {
       */
     def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
       def apply(layers: Seq[Layer]): Weights = {
-        fullyAndLocallyConnected(layers, random(r))
+        ???
       }
     }
 
