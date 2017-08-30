@@ -1,5 +1,7 @@
 package neuroflow.core
 
+import java.text.NumberFormat.{ getIntegerInstance => formatter }
+
 /**
   * @author bogdanski
   * @since 09.07.16
@@ -8,7 +10,7 @@ package neuroflow.core
 trait Welcoming { self: Network[_] =>
 
   private val welcome =
-    s"""
+    f"""
       |
       |
       |
@@ -19,12 +21,12 @@ trait Welcoming { self: Network[_] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 0.806
+      |         Version 0.900
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
       |         Layout: ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
-      |         Number of Weights: ${weights.map(_.size).sum}
+      |         Number of Weights: ${ formatter.format(weights.map(_.size).sum) } (≈ ${ weights.map(_.size).sum.toDouble * 8.0 / 1024.0 / 1024.0 }%.6g MB)
       |
       |
       |
@@ -41,10 +43,11 @@ trait Welcoming { self: Network[_] =>
     }
 
   private def prettyPrint(): Unit = {
-    val max = layers.map(_.neurons).max
-    val center = math.ceil((max.toDouble - 1.0) / 2.0)
-    val cols = layers.map(l => (l.neurons - 1).toDouble).map { l =>
-      val col = (0 until max) map { _ => " " }
+    val max = layers.map(_.neurons).max.toDouble
+    val f = if (max > 10) 10.0 / max.toDouble else 1.0
+    val center = math.ceil(((max * f) - 1.0) / 2.0)
+    val cols = layers.map(l => (l.neurons - 1).toDouble * f).map { l =>
+      val col = (0 until (max * f).toInt) map { _ => " " }
       col.zipWithIndex.map {
         case (c, i) if i <= center && i >= (center - math.ceil (l / 2.0))   => "O"
         case (c, i) if i >= center && i <= (center + math.floor(l / 2.0))   => "O"

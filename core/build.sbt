@@ -1,8 +1,14 @@
 val circeVersion = "0.8.0"
+val akkaVersion = "2.5.4"
 
 libraryDependencies  ++= Seq(
   "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly(),
   "org.scalanlp" %% "breeze" % "0.13",
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "com.typesafe.akka" %% "akka-remote" % akkaVersion,
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.5.1",
+  "com.twitter" % "chill_2.12" % "0.9.0",
+  "com.twitter" % "chill-akka_2.12" % "0.9.2",
   "joda-time" % "joda-time" % "2.8.2",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,

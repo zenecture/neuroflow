@@ -9,7 +9,7 @@ import breeze.linalg.{DenseMatrix, DenseVector}
 
 
 /** Base-label for all layers. */
-trait Layer {
+trait Layer extends Serializable {
   val neurons: Int
   val symbol: String
 }

@@ -17,6 +17,7 @@ trait Loggable[Return] {
   def warn(message: String): Return
   def error(message: String): Return
   def info(message: String): Return
+  def debug(message: String): Return
 
 }
 
@@ -32,5 +33,6 @@ trait Logs extends Loggable[Unit] {
   def warn(message: String): Unit = logger.warn(format(message))
   def error(message: String): Unit = logger.error(format(message))
   def info(message: String): Unit = logger.info(format(message))
+  def debug(message: String): Unit = logger.debug(format(message))
 
 }
