@@ -124,7 +124,7 @@ with the respective error as input after each training epoch.
 
 # Distributed Training
 
-Let's consider this network layout:
+Let's consider this fully connected FFN:
 
     Layout: [1200 In, 210 Hidden (ReLU), 210 Hidden (ReLU), 210 Hidden (ReLU), 1200 Out (ReLU)]
     Number of Weights: 592.200 (≈ 4,51813 MB)
