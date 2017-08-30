@@ -1,7 +1,5 @@
 package neuroflow.core
 
-import breeze.linalg.{DenseMatrix, DenseVector}
-
 /**
   * @author bogdanski
   * @since 03.01.16
