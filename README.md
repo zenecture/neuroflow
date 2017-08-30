@@ -168,13 +168,13 @@ The network is defined in the `Coordinator`.
 ```scala
 object Executor extends App {
 
-  val (xs, ys) =  (???, ???)
+  val (xs, ys) =  (???, ???) // Local Data Source
   DefaultExecutor(Node("localhost", 2553), xs, ys)
 
 }
 ```
 
-The `Executor` loads the local data source and boots its networking subsystem.
+The `Executor` loads the local data source and boots the networking subsystem.
 
 # Evaluation
 
