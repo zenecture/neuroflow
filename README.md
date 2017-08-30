@@ -102,11 +102,11 @@ If you want to visualize the error function graph during training,
 you can pipe the `ErrorFuncOutput` to any `file` like this:
 
 ```scala
-Settings(
-  errorFuncOutput = Some(ErrorFuncOutput(
-    file = Some("~/NF/errorFunc.txt"), 
-    closure = Some(error => proceed(error))))
-)
+  Settings(
+    errorFuncOutput = Some(ErrorFuncOutput(
+      file = Some("~/NF/errorFunc.txt"), 
+      closure = Some(error => proceed(error))))
+  )
 ```
 
 Let's use beloved gnuplot to come up with a plot of our error function over time:
