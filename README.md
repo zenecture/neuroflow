@@ -133,6 +133,8 @@ Distributed gradient descent broadcasts the respective weight updates between th
 In our example, the overhead is 4,5 MB network traffic per node and iteration.
 
 ```scala
+import neuroflow.nets.distributed.DefaultNetwork._
+
 object Coordinator extends App {
 
   val nodes = Set(Node("localhost", 2553) /* ... */)
@@ -156,6 +158,8 @@ object Coordinator extends App {
 The network is defined in the `Coordinator`. The `train` method will trigger training for all `nodes`. 
 
 ```scala
+import neuroflow.nets.distributed.DefaultExecutor
+
 object Executor extends App {
 
   val (xs, ys) =  (???, ???) // Local Training Data
@@ -164,7 +168,7 @@ object Executor extends App {
 }
 ```
 
-The `Executor` loads the local data source and boots the networking subsystem.
+The `Executor`, a single node, loads the local data source, boots the networking subsystem and listens for incoming jobs.
 
 # Evaluation
 
