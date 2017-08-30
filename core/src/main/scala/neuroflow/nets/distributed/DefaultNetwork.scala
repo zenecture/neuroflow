@@ -205,8 +205,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
         (w1, e1 += e2)
     }
 
-    newWeights.zip(weights).foreach {
-      case (n, o) => o -= n
+    weights.zip(newWeights).foreach {
+      case (o, n) => o -= n
     }
 
     error

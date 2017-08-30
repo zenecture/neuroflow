@@ -18,9 +18,10 @@ import scala.util.Random
 
 object DistributedTraining extends Logs {
 
-  val nodes = Set(Node("localhost", 2553))
-  val dim   = 12000
-  val out   = 210
+  val nodesC = 5
+  val nodes  = (1 to nodesC).map(i => Node("localhost", 2552 + i)).toSet
+  val dim    = 1200
+  val out    = 210
 
   def coordinator = {
 
@@ -35,7 +36,7 @@ object DistributedTraining extends Logs {
         Output(dim, f)            :: HNil,
         Settings(
           coordinator  = Node("localhost", 2552),
-          learningRate = { case _ => 1E-11 },
+          learningRate = { case _ => 1E-10 },
           iterations   = 2000,
           prettyPrint  = true
         )
@@ -46,7 +47,7 @@ object DistributedTraining extends Logs {
 
   val samples = 10
 
-  def executor = {
+  def executors = {
 
     val xs = (1 to samples).toArray.map { i =>
       Array.fill(dim)(Gaussian.distribution((0.0, i.toDouble / samples.toDouble)).draw().abs)
@@ -58,7 +59,7 @@ object DistributedTraining extends Logs {
       a
     }
 
-    DefaultExecutor(Node("localhost", 2553), xs, ys)
+    (1 to nodesC).par.foreach(i => DefaultExecutor(Node("localhost", 2552 + i), xs, ys))
 
   }
 

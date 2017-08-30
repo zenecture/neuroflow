@@ -69,7 +69,7 @@ case class Transport(messageGroupSize: Int, frameSize: String)
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
   * The level of `parallelism` controls how many threads will be used for training.
-  * For distributed training, `coordinator` and `transport` specific settings need to be set configured.
+  * For distributed training, `coordinator` and `transport` specific settings may be configured.
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
   * With `approximation`  the gradients will be approximated numerically.
