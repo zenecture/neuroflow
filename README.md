@@ -124,13 +124,13 @@ Let's consider this fully connected FFN:
 
 On the JVM, a `Double` takes 8 bytes, meaning this network requires roughly 4,5 MB per sample. Training with,
 let's say, 1 million samples would require ≈ 4,5 TB of RAM for gradient descent. If a single machine offering so much 
-memory is not available, we have to pay the price and spread the load across several machines. Luckily, the error function `Σ1/2(t - net(x))²` 
+memory is not available, we have to spread the load across several machines. Luckily, the error function `Σ1/2(t - net(x))²` 
 is parallelizable with respect to the sum operator.  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
 
 Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
-In our example, the overhead is 4,5 MB network traffic per node and iteration.
+In our example, the overhead is 4,5 MB network traffic per node and iteration, while gaining computational paralleism.
 
 ```scala
 import neuroflow.nets.distributed.DefaultNetwork._
