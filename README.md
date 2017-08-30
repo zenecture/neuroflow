@@ -2,7 +2,7 @@
 
 NeuroFlow is a library to train and evaluate Artificial Neural Networks.
 It is written in Scala, matrix operations are performed with <a href="https://github.com/scalanlp/breeze">Breeze</a> on top of <a href="https://github.com/fommil/netlib-java">netlib-java</a> (GPU/CPU).
-Large data sets can be distributed to nodes and trained in parallel, using <a href="https://github.com/akka/akka">Akka</a> for inter-node communication.
+Large training sets can be distributed over nodes and trained in parallel, using <a href="https://github.com/akka/akka">Akka</a> for inter-node communication.
 
 # Introduction
 
