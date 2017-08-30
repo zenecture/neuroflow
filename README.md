@@ -130,7 +130,7 @@ is parallelizable with respect to the sum operator.
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
 
 Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
-In our example, the overhead is 4,5 MB network traffic per node and iteration, while gaining computational paralleism.
+In our example, the overhead is 4,5 MB network traffic per node and iteration, while gaining computational parallelism.
 
 ```scala
 import neuroflow.nets.distributed.DefaultNetwork._
