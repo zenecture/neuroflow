@@ -2,6 +2,7 @@
 
 NeuroFlow is a library to train and evaluate Artificial Neural Networks.
 It is written in Scala, matrix operations are performed with <a href="https://github.com/scalanlp/breeze">Breeze</a> on top of <a href="https://github.com/fommil/netlib-java">netlib-java</a> (GPU/CPU).
+Large data sets can be distributed to nodes and trained in parallel, using <a href="https://github.com/akka/akka">Akka</a> for inter-node communication.
 
 # Introduction
 
@@ -17,8 +18,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.806",
-  "com.zenecture" %% "neuroflow-application" % "0.806"
+  "com.zenecture" %% "neuroflow-core" % "0.900",
+  "com.zenecture" %% "neuroflow-application" % "0.900"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -52,8 +53,8 @@ import shapeless._
 This will give us a fully connected net, which is initialized with random weights in supervised training mode.
 
 ```scala
-val f = Sigmoid
-val net = Network(Input(2) :: Hidden(3, f) :: Output(1, f) :: HNil)
+val (g, h) = (Sigmoid, Sigmoid)
+val net = Network(Input(2) :: Hidden(3, g) :: Output(1, h) :: HNil)
 ```
 
 The architecture of the net is expressed as a list. We use sigmoid activation function `f` for our hidden and output layers. 
@@ -122,9 +123,62 @@ If you want to be more flexible, e.g. piping the error over the wire to a real-t
 you can provide a `closure` of type `Double => Unit` that gets asynchronously executed 
 with the respective error as input after each training epoch.
 
+# Distributed Training
+
+Let's consider this network layout:
+
+    Layout: [1200 In, 210 Hidden (ReLU), 210 Hidden (ReLU), 210 Hidden (ReLU), 1200 Out (ReLU)]
+    Number of Weights: 592.200 (≈ 4,51813 MB)
+
+On the JVM, a `Double` takes 8 bytes, meaning this network would require roughly 4,5 MB per sample. Training with,
+let's say, 1 million samples would require ≈ 4,5 TB memory for gradient descent. If a single machine offering so much 
+memory is not available, we have to pay the price and spread the load across several machines. Luckily, the error function `Σ1/2(t - net(x))²` 
+is parallelizable with respect to the sum operator.  
+
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
+
+Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
+In our example, the overhead is 4,5 MB network traffic per node and iteration.
+
+```scala
+object Coordinator extends App {
+
+  val nodes = Set(Node("localhost", 2553))
+  val dim   = 1200
+  val out   = 210
+
+  def coordinator = {
+    val f   = ReLU
+    val net =
+      Network(
+        Input (1200) :: Hidden(210, f) :: Hidden(out, f) :: Hidden(out, f) :: Output(dim, f) :: HNil,
+        Settings(
+          coordinator  = Node("localhost", 2552),
+          transport    = Transport(messageGroupSize = 100000, frameSize = "128 MiB")
+        )
+      )
+    net.train(nodes)
+  }
+
+}
+```
+
+The network is defined in the `Coordinator`. 
+
+```scala
+object Executor extends App {
+
+  val (xs, ys) =  (???, ???)
+  DefaultExecutor(Node("localhost", 2553), xs, ys)
+
+}
+```
+
+The `Executor` loads the local data source and boots its networking subsystem.
+
 # Evaluation
 
-Our trained net can be evaluated like a regular function:
+A net can be evaluated like a regular function:
 
 ```scala
 val x = ->(0.0, 1.0)
@@ -132,7 +186,7 @@ val result = net(x)
 // result: Vector(0.980237270455592)
 ```
 
-The resulting vector has dimension = 1, as specified for our output layer.
+The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # IO
 

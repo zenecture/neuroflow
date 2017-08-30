@@ -20,7 +20,7 @@ object DistributedTraining extends Logs {
 
   val nodesC = 5
   val nodes  = (1 to nodesC).map(i => Node("localhost", 2552 + i)).toSet
-  val dim    = 1200
+  val dim    = 12000
   val out    = 210
 
   def coordinator = {
