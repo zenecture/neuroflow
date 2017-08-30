@@ -26,7 +26,7 @@ object App extends App {
     case 14 => ParityCluster.apply
     case 15 => PokeMonCluster.apply
     case 16 => DistributedTraining.coordinator
-    case 17 => DistributedTraining.executor
+    case 17 => DistributedTraining.executors
 
     case  _ => sys.exit()
   }
