@@ -143,7 +143,7 @@ In our example, the overhead is 4,5 MB network traffic per node and iteration.
 ```scala
 object Coordinator extends App {
 
-  val nodes = Set(Node("localhost", 2553))
+  val nodes = Set(Node("localhost", 2553) /* ... */)
 
   def coordinator = {
     val f   = ReLU
@@ -161,12 +161,12 @@ object Coordinator extends App {
 }
 ```
 
-The network is defined in the `Coordinator`. 
+The network is defined in the `Coordinator`. The `train` method will trigger training for all `nodes`. 
 
 ```scala
 object Executor extends App {
 
-  val (xs, ys) =  (???, ???) // Local Data Source
+  val (xs, ys) =  (???, ???) // Local Training Data
   DefaultExecutor(Node("localhost", 2553), xs, ys)
 
 }
