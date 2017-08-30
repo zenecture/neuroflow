@@ -26,20 +26,13 @@ resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repos
 ```
 
 Seeing code examples is a good way to get started. You may have a look at the playground for some inspiration.
-If you want to use neural nets in your project, you can expect a journey full of fun and experiments.
-
-# Net Types
-
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/nettypes.png" width=500 height=250 />
-
-* FFN: A feed forward network. It is good for classification and regression with stationary input. 
-* FFN CLUSTER: Same as FFN, but with a hidden layer as model output. Use it if you want to represent, compress or cluster your data. Think of word2vec, auto-encoders or principal component analysis. 
+If you want to use neural nets in your project, you can expect a journey full of fun and experiments. 
 
 # Construction of a Net  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=443 height=320 />
 
-Let's construct the FFN net depicted above. First, we have to pick the desired behavior:
+Let's construct the fully connected feed-forward net (FFN) depicted above. We have to import everything we need:
 
 ```scala
 import neuroflow.application.plugin.Notation._
@@ -50,7 +43,7 @@ import neuroflow.nets.DefaultNetwork._
 import shapeless._
 ```
 
-This will give us a fully connected net, which is initialized with random weights in supervised training mode.
+This gives us a fully connected net, which is initialized with random weights in supervised training mode. 
 
 ```scala
 val (g, h) = (Sigmoid, Sigmoid)
