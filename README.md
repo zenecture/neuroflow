@@ -130,7 +130,7 @@ Let's consider this network layout:
     Layout: [1200 In, 210 Hidden (ReLU), 210 Hidden (ReLU), 210 Hidden (ReLU), 1200 Out (ReLU)]
     Number of Weights: 592.200 (≈ 4,51813 MB)
 
-On the JVM, a `Double` takes 8 bytes, meaning this network would require roughly 4,5 MB per sample. Training with,
+On the JVM, a `Double` takes 8 bytes, meaning this network requires roughly 4,5 MB per sample. Training with,
 let's say, 1 million samples would require ≈ 4,5 TB memory for gradient descent. If a single machine offering so much 
 memory is not available, we have to pay the price and spread the load across several machines. Luckily, the error function `Σ1/2(t - net(x))²` 
 is parallelizable with respect to the sum operator.  
