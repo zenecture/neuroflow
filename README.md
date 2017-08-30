@@ -144,14 +144,12 @@ In our example, the overhead is 4,5 MB network traffic per node and iteration.
 object Coordinator extends App {
 
   val nodes = Set(Node("localhost", 2553))
-  val dim   = 1200
-  val out   = 210
 
   def coordinator = {
     val f   = ReLU
     val net =
       Network(
-        Input (1200) :: Hidden(210, f) :: Hidden(out, f) :: Hidden(out, f) :: Output(dim, f) :: HNil,
+        Input (1200) :: Hidden(210, f) :: Hidden(210, f) :: Hidden(210, f) :: Output(1200, f) :: HNil,
         Settings(
           coordinator  = Node("localhost", 2552),
           transport    = Transport(messageGroupSize = 100000, frameSize = "128 MiB")
