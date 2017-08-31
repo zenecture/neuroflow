@@ -124,7 +124,7 @@ Let's consider this fully connected FFN:
 
 On the JVM, a `Double` takes 8 bytes, meaning this network requires roughly 4,5 MB per sample. Training with,
 let's say, 1 million samples would require ≈ 4,5 TB of RAM for gradient descent. If a single machine offering this amount of 
-memory is not available, we can spread the load across several machines instead of batching. 
+memory is not available, we can spread the load across several machines instead of batching it. 
 Luckily, the error function `Σ1/2(t - net(x))²` is parallelizable with respect to the sum operator.  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
