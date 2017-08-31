@@ -1,12 +1,13 @@
 package neuroflow.playground
 
+import neuroflow.application.plugin.Notation.Implicits.toVector
 import neuroflow.application.plugin.Notation._
-import neuroflow.application.processor.Util._
 import neuroflow.application.processor.Image._
+import neuroflow.application.processor.Util._
+import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.application.plugin.Notation.Implicits.toVector
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
@@ -38,7 +39,7 @@ object ImageRecognition {
       case (((p, h), r), pr) =>
         val settings = Settings(iterations = 1000, learningRate = { case i if i < 100 => 0.5 case _ => 0.1 })
         val net = Network(Input(p.size) :: Hidden(20, fn) :: Hidden(10, fn) :: Output(3, fn) :: HNil, settings)
-        net.train(-->(p, h, r, pr), -->(->(1.0, 0.0, 0.0), ->(0.0, 1.0, 0.0), ->(0.0, 0.0, 1.0), ->(1.0, 0.0, 0.0)))
+        net.train(Seq(p.dv, h.dv, r.dv, pr.dv), Seq(->(1.0, 0.0, 0.0), ->(0.0, 1.0, 0.0), ->(0.0, 0.0, 1.0), ->(1.0, 0.0, 0.0)))
         net
     }
 
@@ -46,9 +47,7 @@ object ImageRecognition {
       image.zip(nets).map { s =>
         val (xs, net) = s
         net.evaluate(xs)
-      } reduce { (a, b) =>
-        a.zip(b).map(l => l._1 + l._2)
-      } map { end => end / nets.size }
+      } reduce (_ + _) map { end => end / nets.size }
     }
 
     val plusResult = eval(plus)

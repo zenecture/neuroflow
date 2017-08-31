@@ -12,9 +12,12 @@ trait Layer extends Serializable {
   val symbol: String
 }
 
+trait In
+trait Out
+
 
 /** Fixed input layer carrying `neurons` */
-case class Input(neurons: Int) extends Layer {
+case class Input(neurons: Int) extends In with Layer {
   val symbol: String = "In"
 }
 
@@ -35,31 +38,18 @@ case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
 }
 
 
-/**
-  * Convolutes the input using implementation `receptiveField`,
-  * which transforms the input to a matrix holding all field slices for all filters.
-  * The `activator` function will be mapped over the resulting filters.
-  * `filters`: amount of filters for this layer
-  * `fieldSize`: the size of the field
-  * `stride`: the stride to use iterating over the input
-  * `padding`: adds zero-padding to the input
-  * `reshape`: reshapes the output to a matrix of shape [1, reshape], so fully layers can dock
-  */
-trait Convolutable extends HasActivator[Double] {
-  import Network._
-  val width: Int
-  val height: Int
-  val depth: Int
-  val filters: Int
-  val fieldSize: Int
-  val stride: Int
-  val padding: Int
-  val reshape: Option[Int]
-  def receptiveField(in: Matrices): Matrices
+case class Convolution(widthIn: Int, heightIn: Int, depthIn: Int,
+                      filters: Int, fieldWidth: Int, fieldHeight: Int,
+                      stride: Int, padding: Int, activator: Activator[Double]) extends In with HasActivator[Double] with Layer {
+  val symbol: String = "Conv"
+  val widthOut: Int = (widthIn - fieldWidth + 2 * padding) / stride + 1
+  val heightOut: Int = (heightIn - fieldHeight + 2 * padding) / stride + 1
+  val depthOut: Int = filters
+  val neurons = widthOut * heightOut * depthOut
 }
 
 
 /** Fixed output layer carrying `neurons` with `activator` function */
-case class Output(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] {
+case class Output(neurons: Int, activator: Activator[Double]) extends Out with Layer with HasActivator[Double] {
   val symbol: String = "Out"
 }

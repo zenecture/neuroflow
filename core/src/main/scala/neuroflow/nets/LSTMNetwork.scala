@@ -39,7 +39,7 @@ object LSTMNetwork {
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                      identifier: String = Registry.register())
-  extends RecurrentNetwork with SupervisedTraining with KeepBestLogic {
+  extends RecurrentNetwork with KeepBestLogic {
 
   import neuroflow.core.Network._
 
@@ -70,9 +70,9 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     * Computes output sequence for `xs`.
     */
   def apply(xs: Seq[Vector]): Seq[Vector] = {
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x.toArray)).toArray
+    val in = xs.map(x => x.toDenseMatrix).toArray
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
-    ~> (reset) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toArray.toVector).toSeq)
+    ~> (reset) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toDenseVector).toSeq)
   }
 
   /**

@@ -35,7 +35,7 @@ class RegularizationTest extends Specification {
 
     import neuroflow.common.VectorTranslation._
 
-    val (xs, ys) = (Vector(Vector(1.0), Vector(2.0), Vector(3.0)), Vector(Vector(3.2), Vector(5.8), Vector(9.2)))
+    val (xs, ys) = (Vector(Vector(1.0).dv, Vector(2.0).dv, Vector(3.0).dv), Vector(Vector(3.2).dv, Vector(5.8).dv, Vector(9.2).dv))
 
     val net = Network(Input(1) :: Hidden(3, Linear) :: Output(1, Linear) :: HNil,
       Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
@@ -43,15 +43,15 @@ class RegularizationTest extends Specification {
     implicit object KBL extends CanAverage[DefaultNetwork] {
       def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
         val errors = xs.map(net.evaluate).zip(ys).toVector.map {
-          case (a, b) => mean(abs(a.dv - b.dv))
+          case (a, b) => mean(abs(a - b))
         }.dv
         mean(errors)
       }
     }
 
-    net.evaluate(Vector(1.0)) must be equalTo Vector(3.0)
-    net.evaluate(Vector(2.0)) must be equalTo Vector(6.0)
-    net.evaluate(Vector(3.0)) must be equalTo Vector(9.0)
+    net(Vector(1.0).dv) must be equalTo Vector(3.0).dv
+    net(Vector(2.0).dv) must be equalTo Vector(6.0).dv
+    net(Vector(3.0).dv) must be equalTo Vector(9.0).dv
 
     net.shouldStopEarly must be equalTo false
     net.shouldStopEarly must be equalTo true

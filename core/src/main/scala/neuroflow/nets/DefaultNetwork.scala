@@ -38,7 +38,7 @@ object DefaultNetwork {
 
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                         identifier: String = Registry.register())
-  extends FeedForwardNetwork with SupervisedTraining with EarlyStoppingLogic with KeepBestLogic {
+  extends FeedForwardNetwork with EarlyStoppingLogic with KeepBestLogic {
 
   import neuroflow.core.Network._
 
@@ -55,11 +55,10 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
   private implicit object Average extends CanAverage[DefaultNetwork] {
-    import neuroflow.common.VectorTranslation._
     def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
       val errors = xs.map(evaluate).zip(ys).toVector.map {
-        case (a, b) => mean(abs(a.dv - b.dv))
-      }.dv
+        case (a, b) => mean(abs(a - b))
+      }
       mean(errors)
     }
   }
@@ -98,9 +97,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     layers.collect {
       case c: Cluster => c
     }.headOption.map { cl =>
-      flow(input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toArray.toVector
+      flow(input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
     }.getOrElse {
-      flow(input, 0, layers.size - 1).toArray.toVector
+      flow(input, 0, layers.size - 1).toDenseVector
     }
   }
 

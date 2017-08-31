@@ -5,6 +5,7 @@ import java.io.File
 import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
+import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.LBFGSNetwork._
@@ -39,7 +40,7 @@ object LanguageProcessing {
     getResourceFiles(dir).drop(offset).take(max).map(scala.io.Source.fromFile)
       .flatMap(bs => try { Some(strip(bs.mkString)) } catch { case _: Throwable => None })
 
-  def readSingle(file: String) = ->(strip(scala.io.Source.fromFile(getResourceFile(file)).mkString))
+  def readSingle(file: String) = Seq(strip(scala.io.Source.fromFile(getResourceFile(file)).mkString))
 
   def normalize(xs: Seq[String]): Vector[Vector[String]] = xs.map(_.split(" ").distinct.toVector).toVector
 
@@ -77,7 +78,7 @@ object LanguageProcessing {
     val net = Network(Input(20) :: Hidden(40, Tanh) :: Hidden(40, Tanh) :: Output(2, Tanh) :: HNil,
       Settings(iterations = 500, specifics = Some(Map("m" -> 7))))
 
-    net.train(allTrain.map(_._1), allTrain.map(_._2))
+    net.train(allTrain.map(_._1.dv), allTrain.map(_._2))
 
     IO.File.write(net, netFile)
 
@@ -99,14 +100,16 @@ object LanguageProcessing {
     val testFree = vectorize(free)
 
     def eval(id: String, maxIndex: Int, xs: Vector[Vector[Double]]) = {
-      val (ok, fail) = xs.map(net.evaluate).map(k => k.indexOf(k.max) == maxIndex).partition(l => l)
+      val (ok, fail) = xs.map(x => net(x.dv)).map(k => k.toScalaVector.indexOf(k.max) == maxIndex).partition(l => l)
       println(s"Correctly classified $id: ${ok.size.toDouble / (ok.size.toDouble + fail.size.toDouble) * 100.0} % !")
     }
 
     eval("cars", 0, testCars)
     eval("med", 1, testMed)
 
-    testFree.map(net.evaluate).foreach(k => println(s"Free classified as: ${if (k.indexOf(k.max) == 0) "cars" else "med"}"))
+    testFree.map(x => net(x.dv)).foreach(k =>
+      println(s"Free classified as: ${if (k.toScalaVector.indexOf(k.max) == 0) "cars" else "med"}")
+    )
 
   }
 

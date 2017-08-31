@@ -22,8 +22,8 @@ object Network extends TypeAliases {
     */
   def apply[T <: Network[_], L <: HList](ls: L, settings: Settings = Settings())
                                      (implicit
-                                      startsWith: L StartsWith Input,
-                                      endsWith: L EndsWith Output,
+                                      startsWith: L StartsWith In,
+                                      endsWith: L EndsWith Out,
                                       weightProvider: WeightProvider,
                                       constructor: Constructor[T],
                                       toList: L ToList Layer): T = {
@@ -37,8 +37,8 @@ object Network extends TypeAliases {
 trait TypeAliases {
 
   type Data     = scala.Array[Double]
-  type Vector   = scala.Vector[Double]
-  type DVector  = DenseVector[Double]
+  type SVector  = scala.Vector[Double]
+  type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
   type Matrices = Array[Matrix]
   type Weights  = Array[Matrix]
@@ -137,40 +137,6 @@ trait Network[M] extends (M => M) with Logs with ErrorFuncGrapher with IllusionB
 }
 
 
-trait SupervisedTraining {
-
-  /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
-    */
-  def train(xs: Array[Network.Data], ys: Array[Network.Data]): Unit
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = train(xs.map(_.toArray).toArray, ys.map(_.toArray).toArray)
-
-}
-
-
-trait UnsupervisedTraining {
-
-  /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network using the unsupervised learning strategy.
-    */
-  def train(xs: Array[Network.Data]): Unit
-  def train(xs: Seq[Vector]): Unit = train(xs.map(_.toArray).toArray)
-
-}
-
-
-trait DistributedTraining {
-
-  /**
-    * Triggers execution of training for nodes `ns`.
-    */
-  def train(ns: collection.Set[Node])
-
-}
-
-
 trait FeedForwardNetwork extends Network[Vector] {
 
   override def checkSettings(): Unit = {
@@ -178,15 +144,50 @@ trait FeedForwardNetwork extends Network[Vector] {
       warn("FFNs don't support partitions. This setting has no effect.")
   }
 
+  /**
+    * Takes a sequence of input vectors `xs` and trains this
+    * network against the corresponding output vectors `ys`.
+    */
+  def train(xs: Array[Network.Data], ys: Array[Network.Data]): Unit
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = train(xs.toArray.map(_.data), ys.toArray.map(_.data))
+
+}
+
+
+trait DistributedFeedForwardNetwork extends Network[Vector] {
+
+  override def checkSettings(): Unit = {
+    if (settings.partitions.isDefined)
+      warn("FFNs don't support partitions. This setting has no effect.")
+  }
+
+  /**
+    * Triggers execution of training for nodes `ns`.
+    */
+  def train(ns: collection.Set[Node]): Unit
+
+}
+
+
+trait ConvolutionalNetwork extends Network[Matrices] {
+
+  override def checkSettings(): Unit = {
+    if (settings.partitions.isDefined)
+      warn("CNNs don't support partitions. This setting has no effect.")
+  }
+
+  def train(xs: Array[Matrices]): Unit
+
 }
 
 
 trait RecurrentNetwork extends Network[Seq[Vector]] {
 
   /**
-    * Takes the input vector sequence `xs` to compute the mean output vector.
+    * Takes a sequence of input vectors `xs` and trains this
+    * network against the corresponding output vectors `ys`.
     */
-  def evaluateMean(xs: Seq[Vector]): Vector =
-    ~> (evaluate(xs)) map(res => res.reduce { (r, v) => r.zip(v).map { case (a, b) => a + b } } map { _ / res.size })
+  def train(xs: Array[Network.Data], ys: Array[Network.Data]): Unit
+  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = train(xs.map(_.data).toArray, ys.map(_.data).toArray)
 
 }

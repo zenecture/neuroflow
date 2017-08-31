@@ -33,7 +33,7 @@ object LBFGSNetwork {
 
 
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                      identifier: String = Registry.register()) extends FeedForwardNetwork with SupervisedTraining {
+                                      identifier: String = Registry.register()) extends FeedForwardNetwork {
 
   import neuroflow.core.Network._
 
@@ -71,7 +71,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     /**
       * Maps from V to W_i.
       */
-    @tailrec def ws(pw: Array[Matrix], v: DVector, i: Int): Array[Matrix] = {
+    @tailrec def ws(pw: Array[Matrix], v: Vector, i: Int): Array[Matrix] = {
       val (neuronsLeft, neuronsRight) = (fastLayers(i).neurons, fastLayers(i + 1).neurons)
       val product = neuronProduct(i, i + 1)
       val weightValues = v.slice(0, product).toArray
@@ -84,7 +84,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     /**
       * Evaluates the error function Σ1/2(prediction(x) - observation)² in parallel.
       */
-    def errorFunc(v: DVector): Double = {
+    def errorFunc(v: Vector): Double = {
       val err = mean {
         in.zip(out).map {
           case (xx, yy) => pow(flow(ws(Array.empty[Matrix], v, 0), xx, 0, fastLayerSize1) - yy, 2)
@@ -96,12 +96,12 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     /**
       * Maps from W_i to V.
       */
-    def flatten: DVector = DenseVector(weights.foldLeft(Array.empty[Double])((l, r) => l ++ r.toArray))
+    def flatten: Vector = DenseVector(weights.foldLeft(Array.empty[Double])((l, r) => l ++ r.toArray))
 
     /**
       * Updates W_i using V.
       */
-    def update(v: DVector): Unit = {
+    def update(v: Vector): Unit = {
       (ws(Array.empty[Matrix], v, 0) zip weights) foreach {
         case (n, o) => n.foreachPair {
           case ((r, c), nv) => o.update(r, c, nv)
@@ -114,7 +114,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     val mlsi = settings.specifics.flatMap(_.get("maxLineSearchIterations").map(_.toInt)).getOrElse(10)
     val approx = approximation.getOrElse(Approximation(1E-5)).Δ
 
-    val gradientFunction = new ApproximateGradientFunction[Int, DVector](errorFunc, approx)
+    val gradientFunction = new ApproximateGradientFunction[Int, Vector](errorFunc, approx)
     val lbfgs = new NFLBFGS(verbose = settings.verbose, maxIter = iterations, m = mem, maxZoomIter = mzi,
       maxLineSearchIter = mlsi, tolerance = settings.precision, maybeGraph = maybeGraph)
     val optimum = lbfgs.minimize(gradientFunction, flatten)
@@ -131,9 +131,9 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     layers.collect {
       case c: Cluster => c
     }.headOption.map { cl =>
-      flow(weights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toArray.toVector
+      flow(weights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
     }.getOrElse {
-      flow(weights, input, 0, layers.size - 1).toArray.toVector
+      flow(weights, input, 0, layers.size - 1).toDenseVector
     }
   }
 

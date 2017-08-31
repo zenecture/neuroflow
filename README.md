@@ -85,8 +85,8 @@ Let's train our `net` with the `train` method. It expects the inputs `xs` and, s
 For our little example, let's quickly define the training data using the vector notation:
 
 ```scala
-val xs = -->(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
-val ys = -->(->(0.0), ->(1.0), ->(1.0), ->(0.0))
+val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
+val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys) // it's the XOR-Function :-)
 ```
 

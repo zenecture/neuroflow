@@ -9,6 +9,7 @@ import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
+
 /**
   * @author bogdanski
   * @since 03.01.16
@@ -34,7 +35,7 @@ object AgeEarnings {
 
     val train = src.take(2000)
     //val test = src.drop(1000)
-    val sets = Settings(learningRate = { case _ => 0.05 }, precision = 0.001, iterations = 5000,
+    val sets = Settings(learningRate = { case _ => 1E-2 }, precision = 0.001, iterations = 10000,
       regularization = None, approximation = None, specifics = None)
     val network = Network(Input(1) :: Hidden(20, Sigmoid) :: Output(1, Sigmoid) :: HNil, sets)
     val maxAge = train.map(_._1).sorted.reverse.head
@@ -49,10 +50,10 @@ object AgeEarnings {
     println(s"Mean of all $mean")
     println(s"Ratio $ratio")
 
-    val result = Range.Double(0.0, 1.1, 0.01).map(k => (k * maxAge, network.evaluate(->(k))))
-    val sum = result.map(_._2.head).sum
+    val result = Range.Double(0.0, 1.1, 0.1).map(k => (k * maxAge, network(->(k))))
+    val sum = result.map(_._2.apply(0)).sum
     println("Age, earning >50K")
-    result.foreach { r => println(s"${r._1}, ${r._2.head * (1 / sum)}")}
+    result.foreach { r => println(s"${r._1}, ${r._2(0) * (1 / sum)}")}
 
   }
 

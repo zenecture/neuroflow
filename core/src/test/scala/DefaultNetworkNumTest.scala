@@ -4,6 +4,8 @@ import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
 
+import neuroflow.common.VectorTranslation._
+
 
 /**
   * @author bogdanski
@@ -39,7 +41,7 @@ class DefaultNetworkNumTest extends Specification {
     val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1, approximation = Some(Approximation(1E-5))))
     val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1))
 
-    val xs = Seq(Vector(0.5, 0.5), Vector(1.0, 1.0))
+    val xs = Seq(Vector(0.5, 0.5).dv, Vector(1.0, 1.0).dv)
 
     netA.train(xs, xs)
     netB.train(xs, xs)
