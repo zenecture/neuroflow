@@ -1,7 +1,7 @@
 package neuroflow.playground
 
 import neuroflow.application.plugin.Notation._
-import neuroflow.application.processor.Util.prettyPrint
+import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import shapeless._
@@ -49,7 +49,7 @@ object Sequences {
     net.train(xsys.map(_._1), xsys.map(_._2))
 
     val res = net.evaluate(xsys.map(_._1))
-    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.toScalaVector.head}") }
 
   }
 
@@ -79,7 +79,7 @@ object Sequences {
     net.train(xsys.map(_._1), xsys.map(_._2))
 
     val res = net.evaluate(xsys.map(_._1))
-    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.toScalaVector.head}") }
 
   }
 
@@ -105,8 +105,8 @@ object Sequences {
     net.train(xsys.map(_._1), xsys.map(_._2))
 
     val res = net.evaluate(xsys.map(_._1))
-    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.head}") }
-    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.tail.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.toScalaVector.head}") }
+    Range.Double(0.0, 1.0, stepSize).zip(res).foreach { case (l, r) => println(s"$l, ${r.toScalaVector.tail.head}") }
 
   }
 
@@ -205,7 +205,7 @@ object Sequences {
     val (c, n, k) = (5, 5, 3)
 
     val all = (0 until c).flatMap { cc =>
-      (0 until n).map { _ => (ρ(k, -1, 1), ζ(c).updated(cc, 1.0)) }
+      (0 until n).map { _ => (ρ(k, -1, 1), ζ(c).toScalaVector.updated(cc, 1.0)) }
     }
 
     val f = Tanh
@@ -217,13 +217,13 @@ object Sequences {
         regularization = Some(KeepBest),
         approximation = Some(Approximation(1E-9))))
 
-    net.train(all.map(_._1), all.map(_._2))
+    net.train(all.map(_._1), all.map(_._2.dv))
 
     all.map(_._1).grouped(c).zipWithIndex.foreach {
       case (cc, i) =>
         val r = net.evaluate(cc).last
         println("Output: " + r)
-        println(s"=> Sequence $i classified as: " + r.indexOf(r.max))
+        println(s"=> Sequence $i classified as: " + r.toScalaVector.indexOf(r.max))
     }
 
     /*

@@ -3,13 +3,13 @@ package neuroflow.playground
 import java.io.{File, FileOutputStream, PrintWriter}
 
 import neuroflow.application.plugin.Notation.ζ
-import neuroflow.application.plugin.Notation.Force._
 import neuroflow.application.processor.Util._
+import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core._
 import neuroflow.core.FFN.WeightProvider._
-import neuroflow.nets.AutoEncoder._
+import neuroflow.core._
+import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
 import scala.io.Source
@@ -49,13 +49,13 @@ object PokeMonCluster {
 
     def toVector(p: Pokemon): Vector[Double] = p match {
       case Pokemon(_, t1, t2, tot, hp, att, defe, spAtk, spDef, speed, gen, leg) =>
-        ζ(types.size).updated(t1, 1.0) ++ /* ζ(types.size).updated(t2, 1.0) ++ */ ->(tot / maximums._1) ++
-          ->(hp / maximums._2) ++ ->(att / maximums._3) ++ ->(defe / maximums._4)
+        ζ(types.size).data.toVector.updated(t1, 1.0) ++ /* ζ(types.size).updated(t2, 1.0) ++ */ Vector(tot / maximums._1) ++
+          Vector(hp / maximums._2) ++ Vector(att / maximums._3) ++ Vector(defe / maximums._4)
           /* ++ ->(spAtk / maximums._5) ++ ->(spDef / maximums._6) ++ ->(speed / maximums._7)
              ++ ζ(gens.size).updated(gen, 1.0) ++ ->(leg) */
     }
 
-    val xs = pokemons.map(p => p -> toVector(p))
+    val xs = pokemons.map(p => p -> toVector(p).dv)
     val dim = xs.head._2.size
 
     val net =
@@ -67,14 +67,15 @@ object PokeMonCluster {
         Settings(iterations = 5000, prettyPrint = true, learningRate = { case _ => 1E-5 })
       )
 
+    val xz = xs.map(_._2)
 
-    net.train(xs.map(_._2))
+    net.train(xz, xz)
 
     val cluster = xs.map(t => net(t._2) -> t._1)
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
-      cluster.foreach(v => writer.println(prettyPrint(v._1, ";") + ";" + s"${v._2.name} (${v._2.type1}, " +
+      cluster.foreach(v => writer.println(prettyPrint(v._1.toScalaVector, ";") + ";" + s"${v._2.name} (${v._2.type1}, " +
         s"${v._2.total}, ${v._2.hp}, ${v._2.attack}, ${v._2.defense})"))
     }.io(_.close)
 

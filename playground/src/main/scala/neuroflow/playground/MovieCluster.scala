@@ -6,6 +6,7 @@ import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.application.processor.{Extensions, Normalizer, Util}
+import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
@@ -21,7 +22,7 @@ import scala.io.{Source, StdIn}
 
 object MovieCluster {
 
-  case class Movie(id: Int, title: String, vec: Network.Vector)
+  case class Movie(id: Int, title: String, vec: Network.SVector)
   case class Rating(user: Int, movieId: Int, rating: Int)
 
   val netFile = "/Users/felix/github/unversioned/movies.nf"
@@ -34,7 +35,7 @@ object MovieCluster {
     ~>(Source.fromFile(getResourceFile("file/ml-100k/u.item")).getLines.toList.take(dimensionLimit)).map { ms =>
       ms.map { line =>
         val r = line.replace("|", ";").split(";")
-        Movie(r(0).toInt, r(1), ζ(ms.size).updated(r(0).toInt - 1, 1.0))
+        Movie(r(0).toInt, r(1), ζ(ms.size).toScalaVector.updated(r(0).toInt - 1, 1.0))
       }
     }
 
@@ -45,14 +46,14 @@ object MovieCluster {
 
   def apply = {
 
-    import neuroflow.core.FFN.WeightProvider._
     import Extensions.VectorOps
+    import neuroflow.core.FFN.WeightProvider._
 
     val topByUser = observations.take(observationLimit).filter(_.rating == 5).groupBy(_.user).map {
       case (user, ratings) =>
         val vecs = ratings.flatMap(r => if (r.movieId <= dimensionLimit) Some(movies(r.movieId - 1).vec) else None)
         Util.shuffle(vecs).map {
-          case (k, v) => k -> Normalizer.MaxUnit(v.reduce(_ + _))
+          case (k, v) => k.dv -> Normalizer.MaxUnit(v.reduce(_ + _).dv)
         }
     }.toList.flatten
 
@@ -73,7 +74,7 @@ object MovieCluster {
       Network(layout, Settings())
     }
 
-    val res = movies.map(m => m.copy(vec = net(m.vec)))
+    val res = movies.map(m => m.copy(vec = net(m.vec.dv).vv))
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>

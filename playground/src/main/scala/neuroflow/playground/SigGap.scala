@@ -1,9 +1,9 @@
 package neuroflow.playground
 
+import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.application.plugin.Notation._
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
 
@@ -25,7 +25,7 @@ object SigGap {
 
     val settings = Settings(learningRate = { case _ => 0.1 }, precision = 1E-20, iterations = 100000)
     val net = Network(Input(2) :: Output(1, Sigmoid) :: HNil, settings)
-    net.train(-->(->(0.3, 0.3)), -->(->(0.5)))
+    net.train(Seq(->(0.3, 0.3)), Seq(->(0.5)))
 
     println("Output: " + net.evaluate(->(0.3, 0.3)))
     println("Parameters must roughly be of shape: -a, +a or +a, -a")
