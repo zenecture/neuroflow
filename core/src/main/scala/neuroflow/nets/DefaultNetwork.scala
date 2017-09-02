@@ -157,11 +157,11 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
     xsys.map { xy =>
       val (x, y) = xy
-      val fa = collection.mutable.Map.empty[Int, Matrix]
-      val fb = collection.mutable.Map.empty[Int, Matrix]
+      val fa  = collection.mutable.Map.empty[Int, Matrix]
+      val fb  = collection.mutable.Map.empty[Int, Matrix]
       val dws = collection.mutable.Map.empty[Int, Matrix]
-      val ds = collection.mutable.Map.empty[Int, Matrix]
-      val e = DenseMatrix.zeros[Double](1, _outputDim)
+      val ds  = collection.mutable.Map.empty[Int, Matrix]
+      val e   = DenseMatrix.zeros[Double](1, _outputDim)
 
       @tailrec def forward(in: Matrix, i: Int): Unit = {
         val p = in * weights(i)
@@ -223,7 +223,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     _errSum
   }
 
-  private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double) = {
+  private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
 
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par
