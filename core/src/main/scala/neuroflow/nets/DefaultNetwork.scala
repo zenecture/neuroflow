@@ -110,7 +110,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
                            iteration: Int, maxIterations: Int): Unit = {
     val error =
       if (settings.approximation.isDefined)
-        adaptWeightsApprox(xs, ys, stepSize)
+        adaptWeightsApprox(xs, ys, settings.approximation.get.Δ)
       else adaptWeights(xs, ys, stepSize)
     val errorMean = mean(error)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
