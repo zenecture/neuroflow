@@ -79,7 +79,7 @@ For feed-forward nets, the error function is defined as follows:
 
     Σ1/2(t - net(x))²
 
-Where `t` is the target vector and `net(x)` the predicted one. The sum `Σ` is taken over all samples and the square `²` gives a convex functional form, which is convenient for gradient descent.
+Where `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and the square `²` gives a convex functional form, which is convenient for gradient descent.
 
 Let's train our `net` with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
 For our little example, let's quickly define the training data using the vector notation:
