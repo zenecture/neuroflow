@@ -95,6 +95,10 @@ object FFN extends BaseOps {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, random(r))
     }
 
+    def static(seed: Double): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
+    }
+
     implicit val randomWeights: WeightProvider = apply(-1, 1)
 
   }
@@ -104,15 +108,33 @@ object FFN extends BaseOps {
 
 object CNN extends BaseOps {
 
-  object WeightProvider {
+  trait LowPrioWeightProviders {
+
+    implicit val zeroWeights = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => 0.0)
+    }
+
+    implicit val oneWeights = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => 1.0)
+    }
+
+    implicit val minusOneWeights = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => -1.0)
+    }
+
+  }
+
+  object WeightProvider extends LowPrioWeightProviders {
 
     /**
       * Gives a weight provider with random weights in range `r`.
       */
     def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = {
-        convoluted(layers, random(r))
-      }
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, random(r))
+    }
+
+    def static(seed: Double): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
     }
 
     implicit val randomWeights: WeightProvider = apply(-1, 1)
