@@ -70,7 +70,7 @@ val complexNet = Network(
 
 The learning rate is a partial function from iteration to step size for nets which use gradient descent.
 
-Be aware that a network must start with one `Input(i)` layer and end with one `Output(i, fn)` layer. 
+Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
 
 # Training
