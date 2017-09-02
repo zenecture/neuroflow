@@ -1,3 +1,5 @@
+package neuroflow.nets
+
 import org.scalatest.FunSuite
 
 import neuroflow.core.Activator._

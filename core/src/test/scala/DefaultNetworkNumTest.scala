@@ -1,10 +1,14 @@
+package neuroflow.nets
+
 import neuroflow.core.Activator._
 import neuroflow.core._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
-
 import neuroflow.common.VectorTranslation._
+import neuroflow.core
+import neuroflow.core.FFN.{fullyConnected, random}
+import neuroflow.core.Network.Weights
 
 
 /**
@@ -24,24 +28,34 @@ class DefaultNetworkNumTest extends Specification {
   """
 
   def gradCheck = {
-    import neuroflow.core.FFN.WeightProvider.oneWeights
     import neuroflow.nets.DefaultNetwork._
+    
+    val f = Sigmoid
 
     val layout =
-        Input(2)           ::
-        Hidden(3, Sigmoid) ::
-        Hidden(4, Sigmoid) ::
-        Hidden(5, Sigmoid) ::
-        Hidden(6, Sigmoid) ::
-        Hidden(5, Sigmoid) ::
-        Hidden(4, Sigmoid) ::
-        Hidden(3, Sigmoid) ::
-        Output(2, Sigmoid) :: HNil
+        Input(2)     ::
+        Hidden(3, f) ::
+        Hidden(4, f) ::
+        Hidden(5, f) ::
+        Hidden(6, f) ::
+        Hidden(5, f) ::
+        Hidden(4, f) ::
+        Hidden(3, f) ::
+        Output(2, f) :: HNil
 
-    val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1, approximation = Some(Approximation(1E-5))))
-    val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1))
+    val rand = fullyConnected(layout.toList, random(-1, 1))
+
+    implicit val wp = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = rand
+    }
+
+    val netA = Network(layout, Settings(learningRate = { case _ => 0.1 }, iterations = 10, approximation = Some(Approximation(1E-10))))
+    val netB = Network(layout, Settings(learningRate = { case _ => 0.1 }, iterations = 10))
 
     val xs = Seq(Vector(0.5, 0.5).dv, Vector(1.0, 1.0).dv)
+
+    println(netA)
+    println(netB)
 
     netA.train(xs, xs)
     netB.train(xs, xs)
@@ -49,7 +63,7 @@ class DefaultNetworkNumTest extends Specification {
     println(netA)
     println(netB)
 
-    val tolerance = 1E-3
+    val tolerance = 1E-10
 
     val equal = netA.weights.zip(netB.weights).map {
       case (a, b) =>
