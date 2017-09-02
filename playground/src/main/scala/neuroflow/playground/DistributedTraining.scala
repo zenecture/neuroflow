@@ -1,5 +1,6 @@
 package neuroflow.playground
 
+import breeze.linalg.DenseVector
 import breeze.stats.distributions.Gaussian
 import neuroflow.common.Logs
 import neuroflow.core.Activator._
@@ -18,7 +19,7 @@ import scala.util.Random
 
 object DistributedTraining extends Logs {
 
-  val nodesC = 5
+  val nodesC = 3
   val nodes  = (1 to nodesC).map(i => Node("localhost", 2552 + i)).toSet
   val dim    = 12000
   val out    = 210
@@ -36,7 +37,7 @@ object DistributedTraining extends Logs {
         Output(dim, f)            :: HNil,
         Settings(
           coordinator  = Node("localhost", 2552),
-          learningRate = { case _ => 1E-10 },
+          learningRate = { case _ => 1E-11 },
           iterations   = 2000,
           prettyPrint  = true
         )
@@ -49,14 +50,14 @@ object DistributedTraining extends Logs {
 
   def executors = {
 
-    val xs = (1 to samples).toArray.map { i =>
-      Array.fill(dim)(Gaussian.distribution((0.0, i.toDouble / samples.toDouble)).draw().abs)
+    val xs = (1 to samples).map { i =>
+      DenseVector(Array.fill(dim)(Gaussian.distribution((0.0, i.toDouble / samples.toDouble)).draw().abs))
     }
 
-    val ys = (1 to samples).toArray.map { i =>
+    val ys = (1 to samples).map { i =>
       val a = Array.fill(dim)(0.0)
       a.update(Random.nextInt(dim), 1.0)
-      a
+      DenseVector(a)
     }
 
     (1 to nodesC).par.foreach(i => DefaultExecutor(Node("localhost", 2552 + i), xs, ys))

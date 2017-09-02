@@ -38,7 +38,7 @@ object IO extends Logs {
     /**
       * Serializes weights of `network` to json string
       */
-    def write(network: Network[_]): String = network.weights.toArray.map(m => RawMatrix(m.rows, m.cols, m.toArray)).asJson.noSpaces
+    def write(network: Network[_, _]): String = network.weights.map(m => RawMatrix(m.rows, m.cols, m.toArray)).asJson.noSpaces
   }
 
 
@@ -51,7 +51,7 @@ object IO extends Logs {
     /**
       * Serializes weights of `network` to `file` as json
       */
-    def write(network: Network[_], file: String): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(network))) io (_.close)
+    def write(network: Network[_, _], file: String): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(network))) io (_.close)
   }
 
 }

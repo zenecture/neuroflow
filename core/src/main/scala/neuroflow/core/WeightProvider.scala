@@ -32,8 +32,19 @@ trait BaseOps {
       case (layer, index) =>
         val (neuronsLeft, neuronsRight) = (layer.neurons, layers(index + 1).neurons)
         val product = neuronsLeft * neuronsRight
-        val initialWeights = (1 to product).map(_ => seed.apply).toArray
-        DenseMatrix.create[Double](neuronsLeft, neuronsRight, initialWeights)
+        DenseMatrix.create[Double](neuronsLeft, neuronsRight, Array.fill(product)(seed()))
+    }
+
+  def convoluted(layers: Seq[Layer], seed: () => Double): Weights =
+    layers.zipWithIndex.toArray.map {
+      case (Convolution(dimIn, filter, filters, _, _, _), _) =>
+        val depth = dimIn._3
+        val field = filter._1 * filter._2 * depth
+        DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))
+      case (layer, idx)  =>
+        val (neuronsLeft, neuronsRight) = (layers(idx - 1).neurons, layer.neurons)
+        val product = neuronsLeft * neuronsRight
+        DenseMatrix.create[Double](neuronsLeft, neuronsRight, Array.fill(product)(seed()))
     }
 
   /**
@@ -91,6 +102,26 @@ object FFN extends BaseOps {
 }
 
 
+object CNN extends BaseOps {
+
+  object WeightProvider {
+
+    /**
+      * Gives a weight provider with random weights in range `r`.
+      */
+    def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
+      def apply(layers: Seq[Layer]): Weights = {
+        convoluted(layers, random(r))
+      }
+    }
+
+    implicit val randomWeights: WeightProvider = apply(-1, 1)
+
+  }
+
+}
+
+
 object RNN extends BaseOps {
 
   object WeightProvider {
@@ -102,26 +133,6 @@ object RNN extends BaseOps {
       def apply(layers: Seq[Layer]): Weights = {
         val fc = fullyConnected(layers, random(r))
         fc ++ recurrentEnrichment(layers, fc, random(r))
-      }
-    }
-
-    implicit val randomWeights: WeightProvider = apply(-1, 1)
-
-  }
-
-}
-
-
-object CNN extends BaseOps {
-
-  object WeightProvider {
-
-    /**
-      * Gives a weight provider with random weights in range `r`.
-      */
-    def apply(r: (Double, Double)): WeightProvider = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = {
-        ???
       }
     }
 

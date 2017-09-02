@@ -23,7 +23,7 @@ trait Regularization extends Serializable
   * If the error moves too far away from the best result, measured in terms of a distance `factor`,
   * the training process will stop early to avoid over-training.
   */
-case class EarlyStopping(xs: Seq[Vector], ys: Seq[Vector], factor: Double) extends Regularization
+case class EarlyStopping(xs: Vectors, ys: Vectors, factor: Double) extends Regularization
 
 /**
   * The KeepBest regularization strategy takes weights, which led to the least error during training.
@@ -32,12 +32,12 @@ case class EarlyStopping(xs: Seq[Vector], ys: Seq[Vector], factor: Double) exten
 case object KeepBest extends Regularization
 
 
-trait EarlyStoppingLogic { self: Network[_] =>
+trait EarlyStoppingLogic { self: Network[_, _] =>
 
   private var best = Double.PositiveInfinity
   import settings._
 
-  def shouldStopEarly[N <: Network[_]](implicit k: CanAverage[N]): Boolean = regularization match {
+  def shouldStopEarly[N <: Network[_, _]](implicit k: CanAverage[N]): Boolean = regularization match {
     case Some(EarlyStopping(xs, ys, f)) =>
       val averaged = k.averagedError(xs, ys)
       if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
@@ -56,13 +56,13 @@ trait EarlyStoppingLogic { self: Network[_] =>
 object EarlyStoppingLogic {
 
   /** Type-Class for concrete net impl of error averaging. */
-  trait CanAverage[N <: Network[_]] {
-    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double
+  trait CanAverage[N <: Network[_, _]] {
+    def averagedError(xs: Vectors, Array: Vectors): Double
   }
 
 }
 
-trait KeepBestLogic { self: Network[_] =>
+trait KeepBestLogic { self: Network[_, _] =>
 
   import scala.concurrent.ExecutionContext.Implicits.global
 

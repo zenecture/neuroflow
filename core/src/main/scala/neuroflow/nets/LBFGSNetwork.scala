@@ -60,12 +60,12 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Array[Data], ys: Array[Data]): Unit = {
+  def train(xs: Vectors, ys: Vectors): Unit = {
 
     import settings._
 
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
-    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
+    val in = xs.map(x => x.asDenseMatrix)
+    val out = ys.map(y => y.asDenseMatrix)
     val neuronProduct = (0 until fastLayerSize1).map(i => (i, i + 1) -> fastLayers(i).neurons * fastLayers(i + 1).neurons).toMap
 
     /**

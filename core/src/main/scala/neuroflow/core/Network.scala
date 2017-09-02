@@ -20,7 +20,7 @@ object Network extends TypeAliases {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[T <: Network[_], L <: HList](ls: L, settings: Settings = Settings())
+  def apply[T <: Network[_, _], L <: HList](ls: L, settings: Settings = Settings())
                                      (implicit
                                       startsWith: L StartsWith In,
                                       endsWith: L EndsWith Out,
@@ -36,19 +36,19 @@ object Network extends TypeAliases {
 /** For the sake of beauty. */
 trait TypeAliases {
 
-  type Data     = scala.Array[Double]
   type SVector  = scala.Vector[Double]
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
-  type Matrices = Array[Matrix]
-  type Weights  = Array[Matrix]
+  type Vectors  = Seq[Vector]
+  type Matrices = Seq[Matrix]
+  type Weights  = IndexedSeq[Matrix]
 
 }
 
 
 /** A minimal constructor for a [[Network]]. */
 @implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
-trait Constructor[+T <: Network[_]] {
+trait Constructor[+T <: Network[_, _]] {
   def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
 }
 
@@ -91,7 +91,7 @@ case class Settings(verbose: Boolean                            = true,
                     specifics: Option[Map[String, Double]]      = None) extends Serializable
 
 
-trait IllusionBreaker { self: Network[_] =>
+trait IllusionBreaker { self: Network[_, _] =>
 
   /**
     * Checks if the [[Settings]] are properly defined for this network.
@@ -109,7 +109,7 @@ object IllusionBreaker {
 }
 
 
-trait Network[M] extends (M => M) with Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
+trait Network[In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
 
   checkSettings()
 
@@ -130,14 +130,14 @@ trait Network[M] extends (M => M) with Logs with ErrorFuncGrapher with IllusionB
     * Computes output for given input `m`.
     * Alias for `net(x)` syntax.
     */
-  def evaluate(m: M): M = apply(m)
+  def evaluate(in: In): Out = apply(in)
 
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
 }
 
 
-trait FeedForwardNetwork extends Network[Vector] {
+trait FeedForwardNetwork extends Network[Vector, Vector] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -148,13 +148,12 @@ trait FeedForwardNetwork extends Network[Vector] {
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Array[Network.Data], ys: Array[Network.Data]): Unit
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = train(xs.toArray.map(_.data), ys.toArray.map(_.data))
+  def train(xs: Vectors, ys: Vectors): Unit
 
 }
 
 
-trait DistributedFeedForwardNetwork extends Network[Vector] {
+trait DistributedFeedForwardNetwork extends Network[Vector, Vector] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -169,25 +168,24 @@ trait DistributedFeedForwardNetwork extends Network[Vector] {
 }
 
 
-trait ConvolutionalNetwork extends Network[Matrices] {
+trait ConvolutionalNetwork extends Network[Matrices, Vector] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
       warn("CNNs don't support partitions. This setting has no effect.")
   }
 
-  def train(xs: Array[Matrices]): Unit
+  def train(xs: Seq[Matrices], ys: Vectors): Unit
 
 }
 
 
-trait RecurrentNetwork extends Network[Seq[Vector]] {
+trait RecurrentNetwork extends Network[Vectors, Vectors] {
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Array[Network.Data], ys: Array[Network.Data]): Unit
-  def train(xs: Seq[Vector], ys: Seq[Vector]): Unit = train(xs.map(_.data).toArray, ys.map(_.data).toArray)
+  def train(xs: Vectors, ys: Vectors): Unit
 
 }

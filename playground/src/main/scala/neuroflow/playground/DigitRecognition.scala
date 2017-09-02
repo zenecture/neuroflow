@@ -39,8 +39,8 @@ object DigitRecognition {
         learningRate = { case _ => 0.05 },
         precision = 0.1, iterations = 5000,
         regularization = Some(KeepBest))
-      val xs = sets.dropRight(1).flatMap { s => (0 to 9) map { digit => s(digit)(segment) } }
-      val ys = sets dropRight 1 flatMap { m => (0 to 9) map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }
+      val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
+      val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
       val net = Network(Input(xs.head.size) :: Hidden(50, fn) :: Output(10, fn) :: HNil, settings)
       net.train(xs.map(_.dv), ys.map(_.dv))
       net
