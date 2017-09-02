@@ -36,21 +36,17 @@ class DefaultNetworkNumTest extends Specification {
         Input(2)     ::
         Hidden(3, f) ::
         Hidden(4, f) ::
-        Hidden(5, f) ::
-        Hidden(6, f) ::
-        Hidden(5, f) ::
-        Hidden(4, f) ::
         Hidden(3, f) ::
         Output(2, f) :: HNil
 
     val rand = fullyConnected(layout.toList, random(-1, 1))
 
     implicit val wp = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = rand
+      def apply(layers: Seq[Layer]): Weights = rand.map(_.copy)
     }
 
-    val netA = Network(layout, Settings(learningRate = { case _ => 0.1 }, iterations = 10, approximation = Some(Approximation(1E-10))))
-    val netB = Network(layout, Settings(learningRate = { case _ => 0.1 }, iterations = 10))
+    val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1, approximation = Some(Approximation(1E-5))))
+    val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1))
 
     val xs = Seq(Vector(0.5, 0.5).dv, Vector(1.0, 1.0).dv)
 
@@ -63,7 +59,7 @@ class DefaultNetworkNumTest extends Specification {
     println(netA)
     println(netB)
 
-    val tolerance = 1E-10
+    val tolerance = 1E-1
 
     val equal = netA.weights.zip(netB.weights).map {
       case (a, b) =>
