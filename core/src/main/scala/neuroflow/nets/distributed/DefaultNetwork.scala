@@ -58,7 +58,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private val _lastWlayerIdx  = weights.size - 1
   private def _weightsWi      = weights.map(_.data.zipWithIndex.grouped(settings.transport.messageGroupSize)).zipWithIndex
   private val _weightsRoCo    = weights.map(w => w.rows -> w.cols)
-  private val _outputDim      = layers.last.neurons
+  private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
+  private val _outputDim      = _layers.last.neurons
 
   private val _akka = ActorSystem("NeuroFlow", ConfigFactory.parseString(
     s"""
@@ -94,7 +95,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     """.stripMargin))
 
   private implicit object Average extends CanAverage[DefaultNetwork] {
-    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
+    def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).toVector.map {
         case (a, b) => mean(abs(a - b))
       }
@@ -141,9 +142,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     layers.collect {
       case c: Cluster => c
     }.headOption.map { cl =>
-      flow(input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
+      flow(input, layers.indexOf(cl) - 1).toDenseVector
     }.getOrElse {
-      flow(input, 0, layers.size - 1).toDenseVector
+      flow(input, _lastWlayerIdx).toDenseVector
     }
   }
 
@@ -164,20 +165,19 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     }
   }
 
-    /**
-    * Computes the network recursively from `cursor` until `target`.
+  /**
+    * Computes the network recursively.
     */
-  @tailrec private def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
-    if (target < 0) in
-    else {
-      val processed = _layers(cursor) match {
-        case h: HasActivator[Double] =>
-          if (cursor <= _lastWlayerIdx) in.map(h.activator) * weights(cursor)
-          else in.map(h.activator)
-        case _ => in * weights(cursor)
-      }
-      if (cursor < target) flow(processed, cursor + 1, target) else processed
+  private def flow(in: Matrix, outLayer: Int): Matrix = {
+    val fa  = collection.mutable.Map.empty[Int, Matrix]
+    @tailrec def forward(in: Matrix, i: Int): Unit = {
+      val p = in * weights(i)
+      val a = p.map(_layersNI(i).activator)
+      fa += i -> a
+      if (i < _lastWlayerIdx) forward(a, i + 1)
     }
+    forward(in, 0)
+    fa(outLayer)
   }
 
   /**
@@ -214,8 +214,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
 }
 
-class ProcessorActor(x: ActorSelection, stepSize: Double, _weightsRoCo: Array[(Int, Int)],
-                     _outputDim: Int, _weightsWi: Array[(Iterator[Array[(Double, Int)]], Int)],
+class ProcessorActor(x: ActorSelection, stepSize: Double, _weightsRoCo: IndexedSeq[(Int, Int)],
+                     _outputDim: Int, _weightsWi: IndexedSeq[(Iterator[Array[(Double, Int)]], Int)],
                      layers: Seq[Layer], settings: Settings) extends Actor with Logs {
 
   import context.dispatcher

@@ -7,7 +7,7 @@ import java.text.NumberFormat.{ getIntegerInstance => formatter }
   * @since 09.07.16
   */
 
-trait Welcoming { self: Network[_] =>
+trait Welcoming { self: Network[_, _] =>
 
   private val welcome =
     f"""
@@ -34,7 +34,7 @@ trait Welcoming { self: Network[_] =>
 
   private def buildString(l: Layer): String =
     l match {
-      case c: Convolution    =>  s"${c.widthIn} * ${c.heightIn} * ${c.depthIn} ≈> ${c.widthOut} * ${c.heightOut} * ${c.depthOut} (${c.neurons} | ${c.activator.symbol})"
+      case c: Convolution     => s"${c.dimIn._1}*${c.dimIn._2}*${c.dimIn._3} ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
       case h: HasActivator[_] => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
       case _                  => s"${l.neurons} ${l.symbol}"
     }

@@ -55,7 +55,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
   private implicit object Average extends CanAverage[DefaultNetwork] {
-    def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
+    def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).toVector.map {
         case (a, b) => mean(abs(a - b))
       }
@@ -81,10 +81,10 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Array[Data], ys: Array[Data]): Unit = {
+  def train(xs: Vectors, ys: Vectors): Unit = {
     import settings._
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
-    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
+    val in = xs.map(x => x.asDenseMatrix)
+    val out = ys.map(y => y.asDenseMatrix)
     if (settings.verbose) info(s"Training with ${in.size} samples ...")
     run(in, out, learningRate(0), precision, 1, iterations)
   }
@@ -97,9 +97,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     layers.collect {
       case c: Cluster => c
     }.headOption.map { cl =>
-      flow(input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
+      flow(input, layers.indexOf(cl) - 1).toDenseVector
     }.getOrElse {
-      flow(input, 0, layers.size - 1).toDenseVector
+      flow(input, _lastWlayerIdx).toDenseVector
     }
   }
 
@@ -122,28 +122,18 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Evaluates the error function in parallel.
+    * Computes the network recursively.
     */
-  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
-    val xsys = xs.zip(ys).par
-    xsys.tasksupport = _forkJoinTaskSupport
-    xsys.map { xy => 0.5 * pow(xy._1 - flow(xy._2, 0, _lastLayerIdx), 2) }.reduce(_ + _)
-  }
-
-    /**
-    * Computes the network recursively from `cursor` until `target`.
-    */
-  @tailrec private def flow(in: Matrix, cursor: Int, target: Int): Matrix = {
-    if (target < 0) in
-    else {
-      val processed = _layers(cursor) match {
-        case h: HasActivator[Double] =>
-          if (cursor <= _lastWlayerIdx) in.map(h.activator) * weights(cursor)
-          else in.map(h.activator)
-        case _ => in * weights(cursor)
-      }
-      if (cursor < target) flow(processed, cursor + 1, target) else processed
+  private def flow(in: Matrix, outLayer: Int): Matrix = {
+    val fa  = collection.mutable.Map.empty[Int, Matrix]
+    @tailrec def forward(in: Matrix, i: Int): Unit = {
+      val p = in * weights(i)
+      val a = p.map(_layersNI(i).activator)
+      fa += i -> a
+      if (i < outLayer) forward(a, i + 1)
     }
+    forward(in, 0)
+    fa(outLayer)
   }
 
   /**
@@ -174,7 +164,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
       xsys.map { xy =>
         val (x, y) = xy
-        val ps  = collection.mutable.Map.empty[Int, Matrix]
         val fa  = collection.mutable.Map.empty[Int, Matrix]
         val fb  = collection.mutable.Map.empty[Int, Matrix]
         val dws = collection.mutable.Map.empty[Int, Matrix]
@@ -185,7 +174,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
           val p = in * weights(i)
           val a = p.map(_layersNI(i).activator)
           val b = p.map(_layersNI(i).activator.derivative)
-          ps += i -> p
           fa += i -> a
           fb += i -> b
           if (i < _lastWlayerIdx) forward(a, i + 1)
@@ -241,6 +229,15 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       }
       _errSum
     }
+
+  /**
+    * Evaluates the error function in parallel.
+    */
+  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
+    val xsys = xs.zip(ys).par
+    xsys.tasksupport = _forkJoinTaskSupport
+    xsys.map { xy => 0.5 * pow(xy._1 - flow(xy._2, _lastWlayerIdx), 2) }.reduce(_ + _)
+  }
 
   /**
     * Approximates the gradient based on finite central differences.

@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
   */
 
 object DefaultExecutor extends Logs {
-  def apply(node: Node, xs: Array[Data], ys: Array[Data], settings: Settings = Settings()): Unit = {
+  def apply(node: Node, xs: Vectors, ys: Vectors, settings: Settings = Settings()): Unit = {
 
     info(s"Booting DefaultExecutor ${node.host}:${node.port} ...")
 
@@ -76,7 +76,7 @@ object DefaultExecutor extends Logs {
   }
 }
 
-class DefaultExecutor(xs: Array[Data], ys: Array[Data], settings: Settings) extends Actor with Logs {
+class DefaultExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends Actor with Logs {
 
   import context.dispatcher
 
@@ -136,8 +136,8 @@ class DefaultExecutor(xs: Array[Data], ys: Array[Data], settings: Settings) exte
       val isComplete = _batchCount >= _job.batches
       if (isComplete) {
         info(s"Executing job with ${xs.size} samples and ${_weights.map(_.size).sum} weights ...")
-        val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
-        val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
+        val in = xs.map(x => x.asDenseMatrix)
+        val out = ys.map(y => y.asDenseMatrix)
         val (weights, error) = compute(in, out, _job.layers, _weights, _job.learningRate, _job.parallelism)
         info("... done. Sending back ...")
         sendResults(_job, weights, error, _request)
@@ -196,7 +196,6 @@ class DefaultExecutor(xs: Array[Data], ys: Array[Data], settings: Settings) exte
 
     _xsys.map { xy =>
       val (x, y) = xy
-      val ps  = collection.mutable.Map.empty[Int, Matrix]
       val fa  = collection.mutable.Map.empty[Int, Matrix]
       val fb  = collection.mutable.Map.empty[Int, Matrix]
       val dws = collection.mutable.Map.empty[Int, Matrix]
@@ -207,7 +206,6 @@ class DefaultExecutor(xs: Array[Data], ys: Array[Data], settings: Settings) exte
         val p = in * weights(i)
         val a = p.map(_layersNI(i).activator)
         val b = p.map(_layersNI(i).activator.derivative)
-        ps += i -> p
         fa += i -> a
         fb += i -> b
         if (i < _lastWlayerIdx) forward(a, i + 1)
@@ -257,7 +255,7 @@ class DefaultExecutor(xs: Array[Data], ys: Array[Data], settings: Settings) exte
       }
     }
 
-    (_ds.values.toArray, _errSum)
+    (_ds.values.toIndexedSeq, _errSum)
 
   }
 

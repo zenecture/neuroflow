@@ -69,20 +69,20 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   /**
     * Computes output sequence for `xs`.
     */
-  def apply(xs: Seq[Vector]): Seq[Vector] = {
-    val in = xs.map(x => x.toDenseMatrix).toArray
+  def apply(xs: Vectors): Vectors = {
+    val in = xs.map(x => x.asDenseMatrix)
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
-    ~> (reset) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toDenseVector).toSeq)
+    ~> (reset) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toDenseVector))
   }
 
   /**
     * Takes a sequence of input vectors `xs` and trains this
     * network against the corresponding output vectors `ys`.
     */
-  def train(xs: Array[Data], ys: Array[Data]): Unit = {
+  def train(xs: Vectors, ys: Vectors): Unit = {
     import settings._
-    val in = xs.map(x => DenseMatrix.create[Double](1, x.size, x))
-    val out = ys.map(y => DenseMatrix.create[Double](1, y.size, y))
+    val in = xs.map(x => x.asDenseMatrix).toArray
+    val out = ys.map(y => y.asDenseMatrix).toArray
     noTargets = ys.zipWithIndex.filter { case (vec, idx) => vec.forall(_ == Double.PositiveInfinity) }.map(_._2).toSet
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
     yIndices = out.map(identityHashCode).zipWithIndex.toMap

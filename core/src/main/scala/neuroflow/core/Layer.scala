@@ -38,14 +38,15 @@ case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
 }
 
 
-case class Convolution(widthIn: Int, heightIn: Int, depthIn: Int,
-                      filters: Int, fieldWidth: Int, fieldHeight: Int,
-                      stride: Int, padding: Int, activator: Activator[Double]) extends In with HasActivator[Double] with Layer {
+case class Convolution(dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,
+                       stride: Int, padding: (Int, Int), activator: Activator[Double])
+  extends In with HasActivator[Double] with Layer {
   val symbol: String = "Conv"
-  val widthOut: Int = (widthIn - fieldWidth + 2 * padding) / stride + 1
-  val heightOut: Int = (heightIn - fieldHeight + 2 * padding) / stride + 1
-  val depthOut: Int = filters
-  val neurons: Int = widthOut * heightOut * depthOut
+  val dimOut: (Int, Int, Int) =
+    ((dimIn._1 - field._1 + 2 * padding._1) / stride + 1,
+     (dimIn._2 - field._2 + 2 * padding._2) / stride + 1,
+      filters)
+  val neurons: Int = dimOut._1 * dimOut._2 * dimOut._3
 }
 
 
