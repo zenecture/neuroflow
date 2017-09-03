@@ -174,7 +174,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       val p = in * weights(i)
       val a = p.map(_layersNI(i).activator)
       fa += i -> a
-      if (i < _lastWlayerIdx) forward(a, i + 1)
+      if (i < outLayer) forward(a, i + 1)
     }
     forward(in, 0)
     fa(outLayer)
