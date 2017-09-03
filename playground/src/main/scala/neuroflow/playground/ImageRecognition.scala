@@ -38,7 +38,7 @@ object ImageRecognition {
     val nets = training.par.map {
       case (((p, h), r), pr) =>
         val settings = Settings(iterations = 1000, learningRate = { case i if i < 100 => 0.5 case _ => 0.1 })
-        val net = Network(Input(p.size) :: Hidden(20, fn) :: Hidden(10, fn) :: Output(3, fn) :: HNil, settings)
+        val net = Network(Input(p.size) :: Dense(20, fn) :: Dense(10, fn) :: Output(3, fn) :: HNil, settings)
         net.train(Seq(p.dv, h.dv, r.dv, pr.dv), Seq(->(1.0, 0.0, 0.0), ->(0.0, 1.0, 0.0), ->(0.0, 0.0, 1.0), ->(1.0, 0.0, 0.0)))
         net
     }

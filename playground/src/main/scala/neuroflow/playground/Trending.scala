@@ -50,7 +50,7 @@ object Trending {
 
     val fn = Sigmoid
     val settings = Settings(learningRate = { case _ => 0.5 }, precision = 1E-4, iterations = 10000)
-    val net = Network(Input(trend.size) :: Hidden(25, fn) :: Output(1, fn) :: HNil, settings)
+    val net = Network(Input(trend.size) :: Dense(25, fn) :: Output(1, fn) :: HNil, settings)
 
     import Notation.Implicits.toVector
 

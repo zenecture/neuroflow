@@ -40,7 +40,7 @@ object AudioRecognition {
 
     val nets = ((a zip b) zip c).par.map {
       case ((x, y), z) =>
-        val net = Network(Input(x.size) :: Hidden(20, fn) :: Output(2, fn) :: HNil, sets)
+        val net = Network(Input(x.size) :: Dense(20, fn) :: Output(2, fn) :: HNil, sets)
         net.train(Array(x.dv, y.dv, z.dv), Array(->(1.0, -1.0), ->(-1.0, 1.0), ->(1.0, -1.0)))
         (net, x, y, z)
     }
