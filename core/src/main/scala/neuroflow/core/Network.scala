@@ -56,6 +56,7 @@ trait Constructor[+T <: Network[_, _]] {
 /** Distributed training node */
 case class Node(host: String, port: Int)
 
+
 /**
   * The `messageGroupSize` controls how many weights per batch will be sent.
   * The `frameSize` is the maximum message size for inter-node communication.
@@ -100,6 +101,7 @@ trait IllusionBreaker { self: Network[_, _] =>
   def checkSettings(): Unit = ()
 
 }
+
 
 object IllusionBreaker {
 
@@ -153,12 +155,19 @@ trait FeedForwardNetwork extends Network[Vector, Vector] {
 }
 
 
-trait DistributedFeedForwardNetwork extends Network[Vector, Vector] {
+trait ConvolutionalNetwork extends Network[Matrices, Vector] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
-      warn("FFNs don't support partitions. This setting has no effect.")
+      warn("CNNs don't support partitions. This setting has no effect.")
   }
+
+  def train(xs: Seq[Matrices], ys: Vectors): Unit
+
+}
+
+
+trait DistributedTraining {
 
   /**
     * Triggers execution of training for nodes `ns`.
@@ -168,14 +177,22 @@ trait DistributedFeedForwardNetwork extends Network[Vector, Vector] {
 }
 
 
-trait ConvolutionalNetwork extends Network[Matrices, Vector] {
+trait DistributedFeedForwardNetwork extends Network[Vector, Vector] with DistributedTraining {
+
+  override def checkSettings(): Unit = {
+    if (settings.partitions.isDefined)
+      warn("FFNs don't support partitions. This setting has no effect.")
+  }
+
+}
+
+
+trait DistributedConvolutionalNetwork extends Network[Matrices, Vector] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
       warn("CNNs don't support partitions. This setting has no effect.")
   }
-
-  def train(xs: Seq[Matrices], ys: Vectors): Unit
 
 }
 

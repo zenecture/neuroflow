@@ -23,7 +23,7 @@ trait Regularization extends Serializable
   * If the error moves too far away from the best result, measured in terms of a distance `factor`,
   * the training process will stop early to avoid over-training.
   */
-case class EarlyStopping(xs: Vectors, ys: Vectors, factor: Double) extends Regularization
+case class EarlyStopping[In, Out](xs: Seq[In], ys: Seq[Out], factor: Double) extends Regularization
 
 /**
   * The KeepBest regularization strategy takes weights, which led to the least error during training.
@@ -37,15 +37,15 @@ trait EarlyStoppingLogic { self: Network[_, _] =>
   private var best = Double.PositiveInfinity
   import settings._
 
-  def shouldStopEarly[N <: Network[_, _]](implicit k: CanAverage[N]): Boolean = regularization match {
-    case Some(EarlyStopping(xs, ys, f)) =>
-      val averaged = k.averagedError(xs, ys)
+  def shouldStopEarly[N <: Network[_, _], In, Out](implicit k: CanAverage[N, In, Out]): Boolean = regularization match {
+    case Some(es: EarlyStopping[In, Out]) =>
+      val averaged = k.averagedError(es.xs, es.ys)
       if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
       if (averaged < best) {
         best = averaged
         false
-      } else if ((averaged / best) > f) {
-        info(f"Early Stopping: ($averaged%.6g / $best%.6g) > $f.")
+      } else if ((averaged / best) > es.factor) {
+        info(f"Early Stopping: ($averaged%.6g / $best%.6g) > ${es.factor}.")
         true
       } else false
     case _ => false
@@ -56,8 +56,8 @@ trait EarlyStoppingLogic { self: Network[_, _] =>
 object EarlyStoppingLogic {
 
   /** Type-Class for concrete net impl of error averaging. */
-  trait CanAverage[N <: Network[_, _]] {
-    def averagedError(xs: Vectors, Array: Vectors): Double
+  trait CanAverage[N <: Network[_, _], In, Out] {
+    def averagedError(xs: Seq[In], ys: Seq[Out]): Double
   }
 
 }

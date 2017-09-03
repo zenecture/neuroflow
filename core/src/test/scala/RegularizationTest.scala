@@ -40,7 +40,7 @@ class RegularizationTest extends Specification {
     val net = Network(Input(1) :: Hidden(3, Linear) :: Output(1, Linear) :: HNil,
       Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
 
-    implicit object KBL extends CanAverage[DefaultNetwork] {
+    implicit object KBL extends CanAverage[DefaultNetwork, Vector, Vector] {
       def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
         val errors = xs.map(net.evaluate).zip(ys).toVector.map {
           case (a, b) => mean(abs(a - b))
