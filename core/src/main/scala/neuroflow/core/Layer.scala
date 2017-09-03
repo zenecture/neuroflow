@@ -33,7 +33,7 @@ case class Dense(neurons: Int, activator: Activator[Double]) extends Layer with 
 }
 
 /**
-  * A [[Cluster]] wrapper is used, if the desired model output
+  * A [[Cluster]] wrapper is used if the desired model output
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
   */
 case class Cluster(inner: Layer with HasActivator[Double]) extends Layer {
