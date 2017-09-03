@@ -93,7 +93,7 @@ net.train(xs, ys) // it's the XOR-Function :-)
 
 The training progress will appear on console so we can track it. 
 If you want to visualize the error function graph during training, 
-you can pipe the `ErrorFuncOutput` to any `file` like this:
+you can pipe the errors to any `file` like this:
 
 ```scala
   Settings(
@@ -103,7 +103,7 @@ you can pipe the `ErrorFuncOutput` to any `file` like this:
   )
 ```
 
-Let's use beloved gnuplot to come up with a plot of our error function over time:
+We can use beloved gnuplot to come up with a nice plot of our error function over time:
 
 ```bash
 gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
@@ -113,8 +113,8 @@ gnuplot> plot '~/NF/errorFunc.txt' with linespoints ls 1
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph2.png" width=494 height=339 />
 
 If you want to be more flexible, e.g. piping the error over the wire to a real-time dashboard, 
-you can provide a `closure` of type `Double => Unit` that gets asynchronously executed 
-with the respective error as input after each training epoch.
+you can provide a function `closure` of type `Double => Unit` which gets executed in the background after each training epoch, 
+using the respective error as input.
 
 # Distributed Training
 
