@@ -51,7 +51,8 @@ val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
 The architecture of the net is expressed as a list. We use sigmoid activation functions `g` and `h` for hidden and output layer. 
-A little more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
+A little deeper net, with some rates and rules defined, like precision or maximum iterations, through a `Settings` instance, 
+could look like this:
 
 ```scala
 val (e, f) = (Linear, Sigmoid)
