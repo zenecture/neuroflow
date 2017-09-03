@@ -57,8 +57,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   }
 
   /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
+    * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Vectors, ys: Vectors): Unit = {
 

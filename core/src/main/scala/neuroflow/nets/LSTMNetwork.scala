@@ -76,8 +76,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
+    * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Vectors, ys: Vectors): Unit = {
     import settings._

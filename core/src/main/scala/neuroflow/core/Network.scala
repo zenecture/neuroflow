@@ -147,8 +147,7 @@ trait FeedForwardNetwork extends Network[Vector, Vector] {
   }
 
   /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
+    * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Vectors, ys: Vectors): Unit
 
@@ -163,8 +162,7 @@ trait ConvolutionalNetwork extends Network[Matrices, Vector] {
   }
 
   /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
+    * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Seq[Matrices], ys: Vectors): Unit
 
@@ -204,8 +202,7 @@ trait DistributedConvolutionalNetwork extends Network[Matrices, Vector] with Dis
 trait RecurrentNetwork extends Network[Vectors, Vectors] {
 
   /**
-    * Takes a sequence of input vectors `xs` and trains this
-    * network against the corresponding output vectors `ys`.
+    * Takes input `xs` and trains this network against output `ys`.
     */
   def train(xs: Vectors, ys: Vectors): Unit
 

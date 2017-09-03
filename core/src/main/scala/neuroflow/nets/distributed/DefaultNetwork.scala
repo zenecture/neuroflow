@@ -122,7 +122,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   }
 
   /**
-    * Triggers execution of training for `ns`.
+    * Triggers execution of training for nodes `ns`.
     */
   def train(ns: collection.Set[Node]): Unit = {
     import settings._
