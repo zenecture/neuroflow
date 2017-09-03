@@ -21,7 +21,7 @@ object DistributedTraining extends Logs {
 
   val nodesC = 3
   val nodes  = (1 to nodesC).map(i => Node("localhost", 2552 + i)).toSet
-  val dim    = 12000
+  val dim    = 1200
   val out    = 210
 
   def coordinator = {
@@ -37,6 +37,7 @@ object DistributedTraining extends Logs {
         Output(dim, f)            :: HNil,
         Settings(
           coordinator  = Node("localhost", 2552),
+          transport    = Transport(100000, "128 MiB"),
           learningRate = { case _ => 1E-11 },
           iterations   = 2000,
           prettyPrint  = true
