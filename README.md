@@ -57,7 +57,7 @@ A little more complex net could look like this, with some rates and rules being 
 val (e, f) = (Linear, Sigmoid)
 val complexNet = Network(
   Input(50)               ::  
-  Cluster(Hidden(10, e))  :: 
+  Cluster(Dense(10, e))   :: 
   Dense(20, f)            ::
   Dense(30, f)            ::
   Dense(40, f)            :: 
