@@ -1,8 +1,9 @@
 package neuroflow.core
 
+import java.lang.Math.{exp, log, pow, tanh}
+
 import breeze.generic._
 import breeze.linalg.max
-import Math.{pow, exp, log}
 
 
 /**
@@ -68,8 +69,8 @@ object Activator {
 
   object Tanh extends Activator[Double] {
     val symbol = "φ"
-    def apply(x: Double): Double = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
-    def derivative(x: Double): Double = 4 * exp(2 * x) / pow(exp(2 * x) + 1, 2)
+    def apply(x: Double): Double = tanh(x)
+    def derivative(x: Double): Double = 1 - pow(tanh(x), 2)
   }
 
   object Linear extends Activator[Double] {

@@ -110,7 +110,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
                            iteration: Int, maxIterations: Int): Unit = {
     val error =
       if (settings.approximation.isDefined)
-        adaptWeightsApprox(xs, ys, settings.approximation.get.Δ)
+        adaptWeightsApprox(xs, ys, stepSize)
       else adaptWeights(xs, ys, stepSize)
     val errorMean = mean(error)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
@@ -211,18 +211,19 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       while (i <= _lastWlayerIdx) {
         val m = _ds(i)
         val n = ab._1(i)
-        m += (n *= stepSize)
+        m += n
         i += 1
       }
     }
     var i = 0
     while (i <= _lastWlayerIdx) {
-      weights(i) -= _ds(i)
+      weights(i) -= (_ds(i) *= stepSize)
       i += 1
     }
     _errSum
   }
 
+  /** Approximates the gradient based on finite central differences. (For debugging) */
   private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
 
     def errorFunc(): Matrix = {
@@ -231,7 +232,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       xsys.map { case (x, y) => 0.5 * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
     }
 
-    /** Approximates the gradient based on finite central differences. */
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
@@ -239,18 +239,26 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       val a = errorFunc()
       weights(weightLayer).update(weight, v + Δ)
       val b = errorFunc()
+      weights(weightLayer).update(weight, v)
       (b - a) / (2 * Δ)
     }
+
+    var updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
 
     weights.zipWithIndex.foreach {
       case (l, idx) =>
         l.foreachPair { (k, v) =>
           val grad = sum(approximateErrorFuncDerivative(idx, k))
-          l.update(k, v - stepSize * grad)
+          updates += (idx, k) -> (v - (stepSize * grad))
         }
     }
 
+    updates.foreach {
+      case ((wl, k), v) => weights(wl).update(k, v)
+    }
+
     errorFunc()
+
   }
 
 }
