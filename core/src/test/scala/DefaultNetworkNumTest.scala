@@ -59,12 +59,12 @@ class DefaultNetworkNumTest extends Specification {
     println(netA)
     println(netB)
 
-    val tolerance = 1E-1
+    val tolerance = 1E-10
 
     val equal = netA.weights.zip(netB.weights).map {
       case (a, b) =>
         (a - b).forall { (w, v) =>
-          println(s"dw($w) - approx(dw($w)): " + v.abs)
+          println(s"approx. dw($w) - dw($w): " + v.abs)
           v.abs < tolerance
         }
     }.reduce { (l, r) => l && r }
