@@ -162,6 +162,10 @@ trait ConvolutionalNetwork extends Network[Matrices, Vector] {
       warn("CNNs don't support partitions. This setting has no effect.")
   }
 
+  /**
+    * Takes a sequence of input vectors `xs` and trains this
+    * network against the corresponding output vectors `ys`.
+    */
   def train(xs: Seq[Matrices], ys: Vectors): Unit
 
 }

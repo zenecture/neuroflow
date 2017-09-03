@@ -55,6 +55,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     case layer: Layer   => layer
   }.toArray
 
+  private val _clusterLayer   = layers.collect { case c: Cluster => c }.headOption
+
   private val _lastWlayerIdx  = weights.size - 1
   private def _weightsWi      = weights.map(_.data.zipWithIndex.grouped(settings.transport.messageGroupSize)).zipWithIndex
   private val _weightsRoCo    = weights.map(w => w.rows -> w.cols)
@@ -96,7 +98,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
   private implicit object Average extends CanAverage[DefaultNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).toVector.map {
+      val errors = xs.map(evaluate).zip(ys).map {
         case (a, b) => mean(abs(a - b))
       }
       mean(errors)
@@ -139,9 +141,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     */
   def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    layers.collect {
-      case c: Cluster => c
-    }.headOption.map { cl =>
+    _clusterLayer.map { cl =>
       flow(input, layers.indexOf(cl) - 1).toDenseVector
     }.getOrElse {
       flow(input, _lastWlayerIdx).toDenseVector

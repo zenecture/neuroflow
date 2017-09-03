@@ -42,9 +42,9 @@ class RegularizationTest extends Specification {
 
     implicit object KBL extends CanAverage[DefaultNetwork, Vector, Vector] {
       def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
-        val errors = xs.map(net.evaluate).zip(ys).toVector.map {
+        val errors = xs.map(net.evaluate).zip(ys).map {
           case (a, b) => mean(abs(a - b))
-        }.dv
+        }
         mean(errors)
       }
     }
