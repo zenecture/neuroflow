@@ -1,14 +1,13 @@
 package neuroflow.nets
 
+import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
+import neuroflow.core.FFN.{fullyConnected, random}
+import neuroflow.core.Network.Weights
 import neuroflow.core._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
-import neuroflow.common.VectorTranslation._
-import neuroflow.core
-import neuroflow.core.FFN.{fullyConnected, random}
-import neuroflow.core.Network.Weights
 
 
 /**

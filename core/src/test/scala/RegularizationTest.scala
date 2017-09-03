@@ -1,17 +1,16 @@
 package neuroflow.nets
 
-import breeze.linalg.DenseVector
+import breeze.numerics._
+import breeze.stats._
 import neuroflow.core.Activator.Linear
 import neuroflow.core.EarlyStoppingLogic.CanAverage
-import neuroflow.core._
 import neuroflow.core.FFN.WeightProvider.oneWeights
 import neuroflow.core.Network.Vector
+import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
-import breeze.numerics._
-import breeze.stats._
 
 import scala.collection.Seq
 
