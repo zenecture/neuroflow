@@ -18,8 +18,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.901",
-  "com.zenecture" %% "neuroflow-application" % "0.901"
+  "com.zenecture" %% "neuroflow-core" % "0.902",
+  "com.zenecture" %% "neuroflow-application" % "0.902"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -47,20 +47,20 @@ This gives us a fully connected net, which is initialized with random weights in
 
 ```scala
 val (g, h) = (Sigmoid, Sigmoid)
-val net = Network(Input(2) :: Hidden(3, g) :: Output(1, h) :: HNil)
+val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
 The architecture of the net is expressed as a list. We use sigmoid activation functions `g` and `h` for hidden and output layer. 
-A more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
+A little more complex net could look like this, with some rates and rules being defined, like precision or maximum iterations, through a `Settings` instance:
 
 ```scala
 val (e, f) = (Linear, Sigmoid)
 val complexNet = Network(
   Input(50)               ::  
   Cluster(Hidden(10, e))  :: 
-  Hidden(20, f)           ::
-  Hidden(30, f)           ::
-  Hidden(40, f)           :: 
+  Dense(20, f)            ::
+  Dense(30, f)            ::
+  Dense(40, f)            :: 
   Output(50, f)           :: HNil, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case iter if iter < 100 => 1E-4 case _ => 1E-5 },

@@ -36,7 +36,7 @@ class RegularizationTest extends Specification {
 
     val (xs, ys) = (Vector(Vector(1.0).dv, Vector(2.0).dv, Vector(3.0).dv), Vector(Vector(3.2).dv, Vector(5.8).dv, Vector(9.2).dv))
 
-    val net = Network(Input(1) :: Hidden(3, Linear) :: Output(1, Linear) :: HNil,
+    val net = Network(Input(1) :: Dense(3, Linear) :: Output(1, Linear) :: HNil,
       Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
 
     implicit object KBL extends CanAverage[DefaultNetwork, Vector, Vector] {

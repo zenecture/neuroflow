@@ -67,7 +67,7 @@ object ParityCluster {
 
     val net = Network(
         Input(dimension + 1)            ::
-        Cluster(Hidden(3, Linear))      ::
+        Cluster(Dense(3, Linear))      ::
         Output(dimension + 1, Sigmoid)  :: HNil,
         Settings(iterations = 20, learningRate = { case _ => 1E-4 })
       )
@@ -104,7 +104,7 @@ object ParityCluster {
 
              Identifier: N1
              Network: neuroflow.nets.DefaultNetwork
-             Layout: [251 In, 3 Cluster(Hidden(x)), 251 Out (σ)]
+             Layout: [251 In, 3 Cluster(Dense(x)), 251 Out (σ)]
              Number of Weights: 1506
 
 

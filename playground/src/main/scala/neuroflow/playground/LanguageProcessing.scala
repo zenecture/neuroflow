@@ -75,7 +75,7 @@ object LanguageProcessing {
 
     println("No. of samples: " + allTrain.size)
 
-    val net = Network(Input(20) :: Hidden(40, Tanh) :: Hidden(40, Tanh) :: Output(2, Tanh) :: HNil,
+    val net = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
       Settings(iterations = 500, specifics = Some(Map("m" -> 7))))
 
     net.train(allTrain.map(_._1.dv), allTrain.map(_._2))
@@ -88,7 +88,7 @@ object LanguageProcessing {
 
     val net = {
       implicit val wp = IO.File.read(netFile)
-      Network(Input(20) :: Hidden(40, Tanh) :: Hidden(40, Tanh) :: Output(2, Tanh) :: HNil, Settings())
+      Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil, Settings())
     }
 
     val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))

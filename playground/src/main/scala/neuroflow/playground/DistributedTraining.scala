@@ -31,9 +31,9 @@ object DistributedTraining extends Logs {
     val net =
       Network(
         Input (dim)               ::
-        Hidden(out, f)            ::
-        Hidden(out, f)            ::
-        Hidden(out, f)            ::
+        Dense(out, f)             ::
+        Dense(out, f)             ::
+        Dense(out, f)             ::
         Output(dim, f)            :: HNil,
         Settings(
           coordinator  = Node("localhost", 2552),
