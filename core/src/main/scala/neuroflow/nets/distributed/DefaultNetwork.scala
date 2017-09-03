@@ -94,7 +94,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       |}
     """.stripMargin))
 
-  private implicit object Average extends CanAverage[DefaultNetwork] {
+  private implicit object Average extends CanAverage[DefaultNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).toVector.map {
         case (a, b) => mean(abs(a - b))
@@ -114,7 +114,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     if (settings.approximation.isDefined)
       throw new SettingsNotSupportedException("Doesn't work in distributed mode.")
     settings.regularization.foreach {
-      case _: EarlyStopping | KeepBest =>
+      case _: EarlyStopping[_, _] | KeepBest =>
       case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
     }
   }

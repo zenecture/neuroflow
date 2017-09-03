@@ -54,7 +54,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
-  private implicit object Average extends CanAverage[DefaultNetwork] {
+  private implicit object Average extends CanAverage[DefaultNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).toVector.map {
         case (a, b) => mean(abs(a - b))
@@ -72,7 +72,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
-      case _: EarlyStopping | KeepBest =>
+      case _: EarlyStopping[_, _] | KeepBest =>
       case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
     }
   }
