@@ -33,9 +33,9 @@ class DefaultNetworkNumTest extends Specification {
 
     val layout =
         Input(2)     ::
-        Dense(3, f) ::
-        Dense(4, f) ::
-        Dense(3, f) ::
+        Dense(3, f)  ::
+        Dense(4, f)  ::
+        Dense(3, f)  ::
         Output(2, f) :: HNil
 
     val rand = fullyConnected(layout.toList, random(-1, 1))
