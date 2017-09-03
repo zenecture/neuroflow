@@ -131,7 +131,7 @@ we can spread the load across several machines instead of batching it.
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
 
 Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
-In our example, the overhead is 4,5 MB network traffic per node and iteration, while gaining computational parallelism.
+In our example, the overhead is 2*4,5=9 MB network traffic per node and iteration, while gaining computational parallelism.
 
 ```scala
 import neuroflow.nets.distributed.DefaultNetwork._
