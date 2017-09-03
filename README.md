@@ -56,7 +56,7 @@ could look like this:
 
 ```scala
 val (e, f) = (Linear, Sigmoid)
-val complexNet = Network(
+val deeperNet = Network(
   Input(50)               ::  
   Cluster(Dense(10, e))   :: 
   Dense(20, f)            ::
