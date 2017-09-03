@@ -116,6 +116,16 @@ If you want to be more flexible, e.g. piping the error over the wire to a real-t
 you can provide a function `closure` of type `Double => Unit` which gets executed in the background after each training epoch, 
 using the respective error as input.
 
+After work is done, the trained net can be evaluated like a regular function:
+
+```scala
+val x = ->(0.0, 1.0)
+val result = net(x)
+// result: Vector(0.980237270455592)
+```
+
+The resulting vector has dimension = 1, as specified for the XOR-example.
+
 # Distributed Training
 
 Let's consider this fully connected FFN:
@@ -170,18 +180,6 @@ object Executor extends App {
 ```
 
 The `Executor`, a single node, loads the local data source, boots the networking subsystem and listens for incoming jobs.
-
-# Evaluation
-
-A net can be evaluated like a regular function:
-
-```scala
-val x = ->(0.0, 1.0)
-val result = net(x)
-// result: Vector(0.980237270455592)
-```
-
-The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # IO
 
