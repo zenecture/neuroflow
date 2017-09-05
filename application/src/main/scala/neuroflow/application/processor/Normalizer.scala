@@ -43,9 +43,9 @@ object Normalizer {
 
   object ScaledVectorSpace {
     /**
-      * Scales all components to be in range [-1; 1].
+      * Scales all components in `xs` by max length vector division.
       */
-    def apply(xs: Array[Vector]): Array[Vector] = {
+    def apply(xs: Vectors): Vectors = {
       val max = xs.map(x => VectorLength(x)).max
       xs.map(x => x.map(_ / max))
     }
@@ -62,7 +62,7 @@ object Normalizer {
     /**
       * Extracts the original hot vectors from horizontally merged `x`.
       */
-    def apply(x: Vector): Array[Vector] = x.data.zipWithIndex.flatMap {
+    def apply(x: Vector): Vectors = x.data.zipWithIndex.flatMap {
       case (v, i) if v >= 1.0 => Some({ val m = ζ(x.size); m.update(i, 1.0); m })
       case (v, i) if v == 0.0 => None
       case (v, i) if v  < 0.0 => Some({ val m = ζ(x.size); m.update(i, -1.0); m })
