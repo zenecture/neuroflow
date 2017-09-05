@@ -18,16 +18,6 @@ object Normalizer {
     def apply(x: Vector): Vector = x.map(_ / max(x))
   }
 
-  object UnitVector {
-    /**
-      * Normalizes `x` such that all components are <= 1.
-      */
-    def apply(x: Vector): Vector = {
-      val length = math.sqrt(sum(x.map(x => x * x)))
-      x.map(_ / length)
-    }
-  }
-
   object Binary {
     /**
       * Turns `x` into a binary representation, where
