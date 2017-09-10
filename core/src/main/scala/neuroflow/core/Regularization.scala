@@ -19,7 +19,7 @@ trait Regularization extends Serializable
 
 
 /**
-  * Continuously computes the average error for given test input and output vectors `xs`, `ys`.
+  * Continuously computes the average error for given test input and output `xs`, `ys`.
   * If the error moves too far away from the best result, measured in terms of a distance `factor`,
   * the training process will stop early to avoid over-training.
   */

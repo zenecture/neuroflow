@@ -43,11 +43,11 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   import neuroflow.core.Network._
 
   private val _layers = layers.map {
-    case Cluster(inner) => inner
+    case Focus(inner) => inner
     case layer: Layer   => layer
   }.toArray
 
-  private val _clusterLayer   = layers.collect { case c: Cluster => c }.headOption
+  private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
 
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
   private val _outputDim      = _layers.last.neurons
@@ -216,7 +216,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     }
     var i = 0
     while (i <= _lastWlayerIdx) {
-      weights(i) -= (_ds(i) *= stepSize)
+      settings.updateRule(weights(i), _ds(i), stepSize, i)
       i += 1
     }
     _errSum
@@ -224,6 +224,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
   private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
+
+    require(settings.updateRule.isInstanceOf[Debuggable])
+    val _rule: Debuggable = settings.updateRule.asInstanceOf[Debuggable]
 
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par
@@ -242,19 +245,31 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       (b - a) / (2 * Δ)
     }
 
-    var updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
+    val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
+    val grads   = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
+    val debug   = collection.mutable.HashMap.empty[Int, Matrix]
 
     weights.zipWithIndex.foreach {
       case (l, idx) =>
+        debug += idx -> l.copy
         l.foreachPair { (k, v) =>
           val grad = sum(approximateErrorFuncDerivative(idx, k))
           updates += (idx, k) -> (v - (stepSize * grad))
+          grads += (idx, k) -> grad
         }
     }
 
     updates.foreach {
-      case ((wl, k), v) => weights(wl).update(k, v)
+      case ((wl, k), v) =>
+        weights(wl).update(k, v)
     }
+
+    grads.foreach {
+      case ((wl, k), v) =>
+        debug(wl).update(k, v)
+    }
+
+    _rule.lastGradients = debug
 
     errorFunc()
 

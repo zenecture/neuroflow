@@ -40,16 +40,16 @@ object Image {
   def extractRgb3d(file: File): Matrices = {
     val img = ImageIO.read(file)
     val (w, h) = (img.getWidth, img.getHeight)
-    val out = Array.fill(3)(DenseMatrix.zeros[Double](w, h))
+    val out = Array.fill(3)(DenseMatrix.zeros[Double](h, w))
     (0 until h).foreach { _h =>
       (0 until w).foreach { _w =>
         val c = new Color(img.getRGB(_w, _h))
-        val r = c.getRed    / 255.0
-        val g = c.getGreen  / 255.0
-        val b = c.getBlue   / 255.0
-        out(0).update(_w, _h, r)
-        out(1).update(_w, _h, g)
-        out(2).update(_w, _h, b)
+        val r = c.getRed   / 255.0
+        val g = c.getGreen / 255.0
+        val b = c.getBlue  / 255.0
+        out(0).update(_h, _w, r)
+        out(1).update(_h, _w, g)
+        out(2).update(_h, _w, b)
       }
     }
     out
