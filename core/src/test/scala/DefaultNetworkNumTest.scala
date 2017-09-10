@@ -44,8 +44,11 @@ class DefaultNetworkNumTest extends Specification {
       def apply(layers: Seq[Layer]): Weights = rand.map(_.copy)
     }
 
-    val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1, approximation = Some(Approximation(1E-5))))
-    val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, iterations = 1))
+    val debuggableA = Debuggable()
+    val debuggableB = Debuggable()
+
+    val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
+    val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, updateRule = debuggableB, iterations = 1))
 
     val xs = Seq(Vector(0.5, 0.5).dv, Vector(1.0, 1.0).dv)
 
@@ -58,17 +61,21 @@ class DefaultNetworkNumTest extends Specification {
     println(netA)
     println(netB)
 
-    val tolerance = 1E-10
+    val tolerance = 1E-7
 
-    val equal = netA.weights.zip(netB.weights).map {
-      case (a, b) =>
+    val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
+      case ((i, a), (_, b)) =>
         (a - b).forall { (w, v) =>
-          println(s"approx. dw($w) - dw($w): " + v.abs)
-          v.abs < tolerance
+          val x = debuggableA.lastGradients(i)(w)
+          val y = debuggableB.lastGradients(i)(w)
+          val m = math.max(x, y)
+          val r = v.abs / m
+          r < tolerance
         }
     }.reduce { (l, r) => l && r }
 
     if (equal) success else failure
+
   }
 
 }

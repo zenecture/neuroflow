@@ -67,7 +67,7 @@ object ParityCluster {
 
     val net = Network(
         Input(dimension + 1)            ::
-        Cluster(Dense(3, Linear))      ::
+        Focus(Dense(3, Linear))         ::
         Output(dimension + 1, Sigmoid)  :: HNil,
         Settings(iterations = 20, learningRate = { case _ => 1E-4 })
       )

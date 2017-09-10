@@ -51,11 +51,11 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   import neuroflow.core.Network._
 
   private val _layers = layers.map {
-    case Cluster(inner) => inner
+    case Focus(inner) => inner
     case layer: Layer   => layer
   }.toArray
 
-  private val _clusterLayer   = layers.collect { case c: Cluster => c }.headOption
+  private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
 
   private val _lastWlayerIdx  = weights.size - 1
   private def _weightsWi      = weights.map(_.data.zipWithIndex.grouped(settings.transport.messageGroupSize)).zipWithIndex

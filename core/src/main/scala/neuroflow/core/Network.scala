@@ -53,20 +53,10 @@ trait Constructor[+T <: Network[_, _]] {
 }
 
 
-/** Distributed training node */
-case class Node(host: String, port: Int)
-
-
-/**
-  * The `messageGroupSize` controls how many weights per batch will be sent.
-  * The `frameSize` is the maximum message size for inter-node communication.
-  */
-case class Transport(messageGroupSize: Int, frameSize: String)
-
-
 /**
   * The `verbose` flag indicates logging behavior.
   * The `learningRate` is a function from current iteration to learning rate, enabling dynamic rates.
+  * The `updateRule` defines the relationship between gradient, weights and learning rate during training.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
   * The level of `parallelism` controls how many threads will be used for training.
@@ -79,6 +69,7 @@ case class Transport(messageGroupSize: Int, frameSize: String)
   */
 case class Settings(verbose: Boolean                            = true,
                     learningRate: PartialFunction[Int, Double]  = { case _ => 1E-4 },
+                    updateRule: Update                          = Vanilla,
                     precision: Double                           = 1E-5,
                     iterations: Int                             = 100,
                     prettyPrint: Boolean                        = false,

@@ -18,8 +18,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "0.902",
-  "com.zenecture" %% "neuroflow-application" % "0.902"
+  "com.zenecture" %% "neuroflow-core" % "1.00.0",
+  "com.zenecture" %% "neuroflow-application" % "1.00.0"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -58,7 +58,7 @@ could look like this:
 val (e, f) = (Linear, Sigmoid)
 val deeperNet = Network(
   Input(50)               ::  
-  Cluster(Dense(10, e))   :: 
+  Focus(Dense(10, e))     :: 
   Dense(20, f)            ::
   Dense(30, f)            ::
   Dense(40, f)            :: 

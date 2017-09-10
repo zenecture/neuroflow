@@ -1,5 +1,6 @@
 package neuroflow.playground
 
+import breeze.linalg.DenseVector
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.application.processor.Util._
@@ -10,6 +11,8 @@ import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
 import neuroflow.nets.DefaultNetwork._
 import shapeless._
+
+import scala.collection.immutable
 
 /**
   * @author bogdanski
@@ -25,9 +28,10 @@ object DigitRecognition {
 
   */
 
-  def getDigitSet(path: String) = {
+
+  def getDigitSet(path: String): immutable.IndexedSeq[Vector[Array[Double]]] = {
     val selector: Int => Boolean = _ < 255
-    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).grouped(100).toVector)
+    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).data.grouped(100).toVector)
   }
 
   def apply = {
@@ -36,17 +40,18 @@ object DigitRecognition {
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid
       val settings = Settings(
-        learningRate = { case _ => 0.05 },
-        precision = 0.1, iterations = 5000,
+        learningRate = { case _ => 1E-3 },
+        updateRule = Momentum(0.9),
+        precision = 0.01, iterations = 5000,
         regularization = Some(KeepBest))
       val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
       val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
       val net = Network(Input(xs.head.size) :: Dense(50, fn) :: Output(10, fn) :: HNil, settings)
-      net.train(xs.map(_.dv), ys.map(_.dv))
+      net.train(xs.map(l => DenseVector(l)), ys.map(_.dv))
       net
     }
 
-    val setsResult = sets map { set => set map { d => d flatMap { xs => nets map { _.evaluate(xs.dv) } } reduce(_ + _) map (end => end / nets.size) } }
+    val setsResult = sets map { set => set map { d => d flatMap { xs => nets map { _.evaluate(DenseVector(xs)) } } reduce(_ + _) map (end => end / nets.size) } }
 
     ('a' to 'h') zip setsResult foreach {
       case (char, res) =>

@@ -24,8 +24,9 @@ trait WeightProvider extends (Seq[Layer] => Weights)
 trait BaseOps {
 
   /**
-    * Fully connected means all `layers` are connected such that their weight matrices can
-    * flow from left to right by regular matrix multiplication. The `seed` determines the initial weight values.
+    * All `layers` are fully connected such that their weight matrices can
+    * flow from left to right by regular matrix multiplication.
+    * The `seed` determines the initial weight values.
     */
   def fullyConnected(layers: Seq[Layer], seed: () => Double): Weights =
     layers.dropRight(1).zipWithIndex.toArray.map {
@@ -35,12 +36,26 @@ trait BaseOps {
         DenseMatrix.create[Double](neuronsLeft, neuronsRight, Array.fill(product)(seed()))
     }
 
+  /**
+    * Convolutional layers produce im2col-ready weight matrices.
+    */
   def convoluted(layers: Seq[Layer], seed: () => Double): Weights =
     layers.zipWithIndex.toArray.map {
-      case (Convolution(dimIn, filter, filters, _, _, _), _) =>
+      case (Convolution(dimIn, filter, filters, _, _, _), idx) =>
         val depth = dimIn._3
-        val field = filter._1 * filter._2 * depth
+        val field = filter * filter * depth
         DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))
+      case (Focus(inner), idx) =>
+        inner match {
+          case Convolution(dimIn, filter, filters, _, _, _) =>
+            val depth = dimIn._3
+            val field = filter * filter * depth
+            DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))
+          case layer =>
+            val (neuronsLeft, neuronsRight) = (layers(idx - 1).neurons, layer.neurons)
+            val product = neuronsLeft * neuronsRight
+            DenseMatrix.create[Double](neuronsLeft, neuronsRight, Array.fill(product)(seed()))
+        }
       case (layer, idx)  =>
         val (neuronsLeft, neuronsRight) = (layers(idx - 1).neurons, layer.neurons)
         val product = neuronsLeft * neuronsRight

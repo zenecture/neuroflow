@@ -38,7 +38,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   import neuroflow.core.Network._
 
   private val fastLayers = layers.map {
-    case Cluster(inner) => inner
+    case Focus(inner) => inner
     case layer: Layer   => layer
   }.toArray
   private val fastLayerSize1 = layers.size - 1
@@ -128,7 +128,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     layers.collect {
-      case c: Cluster => c
+      case c: Focus => c
     }.headOption.map { cl =>
       flow(weights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
     }.getOrElse {
