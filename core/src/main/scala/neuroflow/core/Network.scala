@@ -160,6 +160,16 @@ trait ConvolutionalNetwork extends Network[Matrices, Vector] {
 }
 
 
+trait RecurrentNetwork extends Network[Vectors, Vectors] {
+
+  /**
+    * Takes input `xs` and trains this network against output `ys`.
+    */
+  def train(xs: Vectors, ys: Vectors): Unit
+
+}
+
+
 trait DistributedTraining {
 
   /**
@@ -186,15 +196,5 @@ trait DistributedConvolutionalNetwork extends Network[Matrices, Vector] with Dis
     if (settings.partitions.isDefined)
       warn("CNNs don't support partitions. This setting has no effect.")
   }
-
-}
-
-
-trait RecurrentNetwork extends Network[Vectors, Vectors] {
-
-  /**
-    * Takes input `xs` and trains this network against output `ys`.
-    */
-  def train(xs: Vectors, ys: Vectors): Unit
 
 }
