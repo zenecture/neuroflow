@@ -7,23 +7,23 @@ package neuroflow.core
 
 
 /** Base-label for all layers. */
-trait Layer extends Serializable {
+sealed trait Layer extends Serializable {
   val neurons: Int
   val symbol: String
 }
 
-trait In
-trait Out
-trait Hidden
+sealed trait In
+sealed trait Out
+sealed trait Hidden
 
 
 /** Dense input layer carrying `neurons`. */
-case class Input(neurons: Int) extends In with Layer {
+case class Input(neurons: Int) extends Layer with In {
   val symbol: String = "In"
 }
 
 /** Dense output layer carrying `neurons` with `activator` function. */
-case class Output(neurons: Int, activator: Activator[Double]) extends Out with Layer with HasActivator[Double] {
+case class Output(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] with Out {
   val symbol: String = "Out"
 }
 
@@ -43,7 +43,7 @@ case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
 
 case class Convolution(dimIn: (Int, Int, Int), field: Int, filters: Int,
                        stride: Int, padding: Int, activator: Activator[Double])
-  extends In with Hidden with HasActivator[Double] with Layer {
+  extends Hidden with HasActivator[Double] with Layer with In {
 
   val symbol: String = "Conv"
   val dimOut: (Int, Int, Int) =
