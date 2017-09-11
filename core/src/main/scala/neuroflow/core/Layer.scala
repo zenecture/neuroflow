@@ -48,7 +48,7 @@ case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
   *   The receptive `field` as (width, height).
   *   How many independent `filters` are attached to the input.
   *   Sliding over the input volume using a `stride`.
-  *   Adds a `padding` to the input volume, both width and height.
+  *   Adds a `padding` to the input volume, width and height.
   *   Applying the `activator` function element-wise.
   *
   */
