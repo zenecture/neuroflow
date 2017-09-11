@@ -171,8 +171,8 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
         (w1, e1 += e2)
     }
 
-    weights.zip(newWeights).foreach {
-      case (o, n) => o -= n
+    weights.zip(newWeights).zipWithIndex.foreach {
+      case ((o, n), i) => settings.updateRule(o, n, stepSize, i)
     }
 
     error

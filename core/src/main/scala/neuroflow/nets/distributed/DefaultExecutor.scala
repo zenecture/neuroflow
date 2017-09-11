@@ -119,7 +119,7 @@ class DefaultExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends Exec
       while (i <= _lastWlayerIdx) {
         val m = _ds(i)
         val n = ab._1(i)
-        m += (n *= learningRate)
+        m += n
         i += 1
       }
     }
