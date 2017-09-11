@@ -8,8 +8,6 @@ import akka.util.Timeout
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import com.typesafe.config.ConfigFactory
-import neuroflow.common.Logs
 import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
@@ -63,38 +61,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
   private val _outputDim      = _layers.last.neurons
 
-  private val _akka = ActorSystem("NeuroFlow", ConfigFactory.parseString(
-    s"""
-      |akka {
-      |  log-dead-letters = 0
-      |  extensions = ["com.romix.akka.serialization.kryo.KryoSerializationExtension$$"]
-      |  actor {
-      |    provider = remote
-      |    kryo {
-      |      type = "nograph"
-      |      idstrategy = "incremental"
-      |      implicit-registration-logging = true
-      |    }
-      |    serializers {
-      |      kryo = "com.twitter.chill.akka.AkkaSerializer"
-      |    }
-      |    serialization-bindings {
-      |       "neuroflow.nets.distributed.Message" = kryo
-      |    }
-      |  }
-      |  remote {
-      |    artery {
-      |      enabled = on
-      |      canonical.hostname = "${settings.coordinator.host}"
-      |      canonical.port = ${settings.coordinator.port}
-      |      advanced {
-      |        maximum-frame-size = ${settings.transport.frameSize}
-      |        maximum-large-frame-size = ${settings.transport.frameSize}
-      |      }
-      |    }
-      |  }
-      |}
-    """.stripMargin))
+  private val _akka = ActorSystem("NeuroFlow", Configuration(settings.coordinator, settings))
 
   private implicit object Average extends CanAverage[DefaultNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
@@ -210,77 +177,6 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
     error
 
-  }
-
-}
-
-class ProcessorActor(x: ActorSelection, stepSize: Double, _weightsRoCo: IndexedSeq[(Int, Int)],
-                     _outputDim: Int, _weightsWi: IndexedSeq[(Iterator[Array[(Double, Int)]], Int)],
-                     layers: Seq[Layer], settings: Settings) extends Actor with Logs {
-
-  import context.dispatcher
-
-  private val _weights = _weightsRoCo.map {
-    case (rows, cols) => DenseMatrix.create[Double](rows, cols, Array.fill(rows * cols)(0.0))
-  }
-  private val _error   = DenseMatrix.zeros[Double](1, _outputDim)
-  private val _id      = UUID.randomUUID.toString
-  private val _batches = _weightsWi.flatMap {
-    case (wi, j) => wi.map { d => WeightBatch(UUID.randomUUID.toString, _id, d, j) }
-  }
-
-  private val _scheduler  = context.system.scheduler
-
-  private val _acks       = collection.mutable.HashMap.empty[String, Message]
-
-  private val _batchC_T   = _batches.length
-  private val _batchE_T   = _error.data.zipWithIndex.grouped(settings.transport.messageGroupSize).size
-  private var _batchC     = 0
-  private var _batchE     = 0
-
-  private var _request: ActorRef = _
-
-  def receive: Receive = {
-    case 'Execute =>
-      _request = sender()
-      _scheduler.schedule(1 minute, 10 seconds, self, 'Resend)
-      x ! Job(_id, _batches.length, layers, _weightsRoCo, stepSize, settings.parallelism)
-      _batches.foreach { wb =>
-        _acks += wb.id -> wb
-        x ! wb
-      }
-
-    case 'Resend =>
-      debug(s"Resending ${_acks.size} batches ...")
-      _acks.values.foreach(x ! _)
-
-    case Ack(id) =>
-      debug(s"Got ack $id")
-      _acks -= id
-
-    case b @ WeightBatch(id, jobId, _, position) if position < 0 =>
-      debug(s"Got malformed WeightBatch $b. Discarding it ...")
-
-    case WeightBatch(id, jobId, data, position) =>
-      debug(s"Got WeightBatch for jobId = $jobId")
-      sender ! Ack(id)
-      _batchC += 1
-      data.foreach { case (v, i) => _weights(position).data.update(i, v) }
-      maybeComplete()
-
-    case ErrorBatch(id, jobId, data) =>
-      debug(s"Got ErrorBatch for jobId = $jobId")
-      sender ! Ack(id)
-      _batchE += 1
-      data.foreach { case (v, i) => _error.data.update(i, v) }
-      maybeComplete()
-
-  }
-
-  private def maybeComplete(): Unit =
-    if ((_batchC >= _batchC_T) && (_batchE >= _batchE_T)) {
-    _request ! (_weights, _error)
-    self ! PoisonPill
   }
 
 }

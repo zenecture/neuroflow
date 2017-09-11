@@ -1,18 +1,14 @@
 package neuroflow.nets.distributed
 
-import java.util.UUID
-
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import breeze.linalg.DenseMatrix
-import com.typesafe.config.ConfigFactory
 import neuroflow.common.Logs
 import neuroflow.core.Network.{Matrix, _}
-import neuroflow.core.{HasActivator, Layer, Node, Settings}
+import neuroflow.core._
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.parallel.ForkJoinTaskSupport
-import scala.concurrent.duration._
 import scala.concurrent.forkjoin.ForkJoinPool
 import scala.util.{Failure, Success}
 
@@ -22,43 +18,12 @@ import scala.util.{Failure, Success}
   */
 
 object DefaultExecutor extends Logs {
+
   def apply(node: Node, xs: Vectors, ys: Vectors, settings: Settings = Settings()): Unit = {
 
     info(s"Booting DefaultExecutor ${node.host}:${node.port} ...")
 
-    val _akka = ActorSystem("NeuroFlow", ConfigFactory.parseString(
-      s"""
-         |akka {
-         |  log-dead-letters = 0
-         |  extensions = ["com.romix.akka.serialization.kryo.KryoSerializationExtension$$"]
-         |  actor {
-         |    provider = remote
-         |    kryo {
-         |      type = "nograph"
-         |      idstrategy = "incremental"
-         |      implicit-registration-logging = true
-         |    }
-         |    serializers {
-         |      kryo = "com.twitter.chill.akka.AkkaSerializer"
-         |    }
-         |    serialization-bindings {
-         |      "neuroflow.nets.distributed.Message" = kryo
-         |    }
-         |  }
-         |  remote {
-         |    artery {
-         |      enabled = on
-         |      canonical.hostname = "${node.host}"
-         |      canonical.port = ${node.port}
-         |      advanced {
-         |        maximum-frame-size = ${settings.transport.frameSize}
-         |        maximum-large-frame-size = ${settings.transport.frameSize}
-         |      }
-         |    }
-         |  }
-         |}
-      """.stripMargin))
-
+    val _akka = ActorSystem("NeuroFlow", Configuration(node, settings))
     _akka.actorOf(Props(new DefaultExecutor(xs, ys, settings)), "executor")
 
     info("Up and running.")
@@ -74,112 +39,16 @@ object DefaultExecutor extends Logs {
     }
 
   }
+
 }
 
-class DefaultExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends Actor with Logs {
 
-  import context.dispatcher
+class DefaultExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends ExecutorActor[Vectors, Vectors](xs, ys, settings) {
 
-  private val _scheduler  = context.system.scheduler
-  private var _resender   = _scheduler.schedule(1 minute, 10 seconds, self, 'Resend)
-
-  private val _MSGGS      = settings.transport.messageGroupSize
-
-  private val _weights    = ArrayBuffer.empty[Matrix]
-  private var _job: Job   = _
-  private var _batchCount = 0
-  private val _buffer     = ArrayBuffer.empty[WeightBatch]
-
-  private val _acks       = collection.mutable.HashMap.empty[String, Message]
-  private var _request: ActorRef = _
-
-  def receive = {
-
-    case Heartbeat =>
-      info(s"Connected to $sender.")
-      sender ! Heartbeat
-
-    case job @ Job(id, _, _, weightDims, _, _) =>
-      resetState()
-      _job = job
-      _request = sender
-      weightDims.foreach {
-        case (rows, cols) =>
-          _weights += DenseMatrix.create[Double](rows, cols, Array.fill(rows * cols)(0.0))
-      }
-
-    case 'Resend =>
-      debug(s"Resending ${_acks.size} batches ...")
-      _acks.values.foreach(_request ! _)
-
-    case Ack(id) =>
-      debug(s"Got ack $id")
-      _acks -= id
-
-    case batch @ WeightBatch(id, jobId, _, _) if _job == null =>
-      debug(s"Got batch, but no job for id = $jobId. Buffering ...")
-      sender ! Ack(id)
-      _buffer += batch
-      _scheduler.scheduleOnce(3 seconds, self, 'ReprocessBuffer)
-
-    case b @ WeightBatch(id, jobId, _, position) if position < 0 =>
-      debug(s"Got malformed WeightBatch $b. Discarding it ...")
-
-    case WeightBatch(id, jobId, _, _) if jobId != _job.id =>
-      debug(s"Got batch for old job with id = $jobId. Discarding it ...")
-
-    case WeightBatch(id, jobId, data, position) if jobId == _job.id =>
-      debug(s"Got WeightBatch for jobId = $jobId")
-      sender ! Ack(id)
-      _batchCount += 1
-      data.foreach { case (v, i) => _weights(position).data.update(i, v) }
-      val isComplete = _batchCount >= _job.batches
-      if (isComplete) {
-        info(s"Executing job with ${xs.size} samples and ${_weights.map(_.size).sum} weights ...")
-        val in = xs.map(x => x.asDenseMatrix)
-        val out = ys.map(y => y.asDenseMatrix)
-        val (weights, error) = compute(in, out, _job.layers, _weights, _job.learningRate, _job.parallelism)
-        info("... done. Sending back ...")
-        sendResults(_job, weights, error, _request)
-        resetState()
-      }
-
-    case 'ReprocessBuffer =>
-      _buffer.foreach(self ! _)
-      _buffer.clear()
-
-  }
-
-  private def resetState(): Unit = {
-    _job = null
-    _batchCount = 0
-    _weights.clear()
-  }
-
-  private def sendResults(job: Job, weights: Weights, error: Matrix, sender: ActorRef): Unit = {
-    val weightsWi = weights.map(_.data.zipWithIndex.grouped(_MSGGS)).zipWithIndex
-    val errorWi   = error.data.zipWithIndex.grouped(_MSGGS)
-    weightsWi.foreach {
-      case (wi, j) => wi.foreach {
-        d =>
-          val b = WeightBatch(UUID.randomUUID.toString, job.id, d, j)
-          _acks += b.id -> b
-          sender ! b
-      }
-    }
-    errorWi.foreach {
-      d =>
-        val b = ErrorBatch(UUID.randomUUID.toString, job.id, d)
-        _acks += b.id -> b
-        sender ! b
-    }
-
-  }
-
-  private def compute(xs: Matrices, ys: Matrices, layers: Seq[Layer], weights: ArrayBuffer[Matrix],
+  protected def compute(xs: Vectors, ys: Vectors, layers: Seq[Layer], weights: ArrayBuffer[Matrix],
                       learningRate: Double, parallelism: Int): (Weights, Matrix) = {
 
-    val _xsys = xs.par.zip(ys)
+    val _xsys = xs.par.zip(ys).map { case (a, b) => (a.asDenseMatrix, b.asDenseMatrix)}
     _xsys.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(parallelism))
 
     val _layersNI       = layers.tail.map { case h: HasActivator[Double] => h }
