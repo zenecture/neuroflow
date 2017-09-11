@@ -154,7 +154,7 @@ object Coordinator extends App {
     val f   = ReLU
     val net =
       Network(
-        Input (1200) :: Hidden(210, f) :: Hidden(210, f) :: Hidden(210, f) :: Output(1200, f) :: HNil,
+        Input (1200) :: Dense(210, f) :: Dense(210, f) :: Dense(210, f) :: Output(1200, f) :: HNil,
         Settings(
           coordinator  = Node("localhost", 2552),
           transport    = Transport(messageGroupSize = 100000, frameSize = "128 MiB")
