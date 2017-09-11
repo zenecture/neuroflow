@@ -42,7 +42,6 @@ case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
 }
 
 /**
-  *
   * Convolutes the input volume. Where:
   *   Input dimension `dimIn` as (width, height, depth).
   *   The receptive `field` as (width, height).
@@ -50,7 +49,6 @@ case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
   *   Sliding over the input volume using a `stride`.
   *   Adds a `padding` to the input volume, width and height.
   *   Applying the `activator` function element-wise.
-  *
   */
 case class Convolution(dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,
                        stride: Int, padding: Int, activator: Activator[Double])
