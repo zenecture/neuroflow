@@ -66,6 +66,11 @@ case class Convolution(dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,
   private val _d1 = dimIn._1 + (2 * padding) - field._1
   private val _d2 = dimIn._2 + (2 * padding) - field._2
 
+  assert(filters > 0, "Filters must be positive!")
+  assert(stride  > 0, "Stride must be positive!")
+  assert(padding > 0, "Padding must be positive!")
+  assert(field._1 > 0 && field._2 > 0, "Field must be positive!")
+  assert(dimIn._1 > 0 && dimIn._2 > 0 && dimIn._3 > 0, "Input dimension must be positive!")
   assert(_d1 >= 0, s"Field $field is too big for input width ${dimIn._1 + (2 * padding)}!")
   assert(_d2 >= 0, s"Field $field is too big for input height ${dimIn._2 + (2 * padding)}!")
   assert(_d1 % stride == 0, s"Width ${_d1} doesn't match stride $stride!")
