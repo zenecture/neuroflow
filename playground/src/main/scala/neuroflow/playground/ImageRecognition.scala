@@ -6,9 +6,9 @@ import java.io.File
 import breeze.linalg.max
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
-import neuroflow.application.processor.Util._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
+import neuroflow.core.Convolution.IntTupler
 import neuroflow.core._
 import neuroflow.nets.ConvNetwork._
 import shapeless._
@@ -43,10 +43,9 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val a = Convolution((32, 32, 3), field = 3, filters = 4, stride = 1, 0, f)
-    val b = Convolution(a.dimOut, field = 4, filters = 4, stride = 1, 0, f)
-    val c = Convolution(b.dimOut, field = 4, filters = 4, stride = 1, 0, f)
-    val d = Convolution(c.dimOut, field = 3, filters = 4, stride = 1, 0, f)
+    val a = Convolution((32, 32, 3), field = 3`²`, filters = 4, stride = 1, 0, f)
+    val b = Convolution( a.dimOut,   field = 4`²`, filters = 4, stride = 1, 0, f)
+    val c = Convolution( b.dimOut,   field = 4`²`, filters = 4, stride = 1, 0, f)
 
     val convs = a :: b :: c :: HNil
     val fully = Output(classes.size, f) :: HNil
@@ -57,7 +56,7 @@ object ImageRecognition {
         learningRate = { case x if x < 400 => 1E-4 case _ => 1E-5 },
         updateRule = Momentum(μ = 0.9),
         iterations = 5000,
-        parallelism = 20
+        parallelism = 1
       )
     )
 

@@ -43,13 +43,13 @@ trait BaseOps {
     layers.zipWithIndex.toArray.map {
       case (Convolution(dimIn, filter, filters, _, _, _), idx) =>
         val depth = dimIn._3
-        val field = filter * filter * depth
+        val field = filter._1 * filter._2 * depth
         DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))
       case (Focus(inner), idx) =>
         inner match {
           case Convolution(dimIn, filter, filters, _, _, _) =>
             val depth = dimIn._3
-            val field = filter * filter * depth
+            val field = filter._1 * filter._2 * depth
             DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))
           case layer =>
             val (neuronsLeft, neuronsRight) = (layers(idx - 1).neurons, layer.neurons)

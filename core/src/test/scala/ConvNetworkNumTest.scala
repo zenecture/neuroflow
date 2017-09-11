@@ -29,7 +29,7 @@ class ConvNetworkNumTest  extends Specification {
 
   def gradCheck = {
 
-    val dim = (20, 20, 3)
+    val dim = (50, 25, 5)
     val out = 2
 
     val f = ReLU
@@ -37,8 +37,8 @@ class ConvNetworkNumTest  extends Specification {
     val debuggableA = Debuggable()
     val debuggableB = Debuggable()
 
-    val a = Convolution(dimIn = dim,      field = 4, filters = 4, stride = 2, padding = 0, f)
-    val b = Convolution(dimIn = a.dimOut, field = 4, filters = 2, stride = 1, padding = 0, f)
+    val a = Convolution(dimIn = dim,      field = (6, 3), filters = 4, stride = 2, padding = 0, f)
+    val b = Convolution(dimIn = a.dimOut, field = (2, 4), filters = 2, stride = 1, padding = 0, f)
 
     val convs = a :: b :: HNil
     val fullies = Output(out, f) :: HNil

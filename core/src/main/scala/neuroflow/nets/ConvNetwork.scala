@@ -29,6 +29,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
                                      identifier: String = Registry.register()) extends ConvolutionalNetwork with KeepBestLogic {
 
   import Network._
+  import Convolution.IntTupler
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
@@ -103,7 +104,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
 
     @tailrec def conv(_in: Matrices, i: Int): Unit = {
       val l = _convLayers(i)
-      val p = weights(i) * im2col(_in, l.field, l.stride)._1
+      val p = weights(i) * im2col(_in, l.field, l.stride`²`)._1
       val a = p.map(l.activator)
       _fa += a
       if (i < _lastC) conv(col2im(a, l.dimOut), i + 1)
@@ -124,24 +125,24 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
 
   }
 
-  private def im2col(ms: Matrices, field: Int, stride: Int, withIndices: Boolean = false): (Matrix, Indices) = {
+  private def im2col(ms: Matrices, field: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
     val dim = (ms.head.rows, ms.head.cols, ms.size)
-    val dimOut = ((dim._1 - field) / stride + 1, (dim._2 - field) / stride + 1)
-    val fieldSq = field * field
+    val dimOut = ((dim._1 - field._1) / stride._1 + 1, (dim._2 - field._2) / stride._2 + 1)
+    val fieldSq = field._1 * field._2
     val out = DenseMatrix.zeros[Double](fieldSq * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
-        k -> DenseMatrix.zeros[Double](field, field)
+        k -> DenseMatrix.zeros[Double](field._1, field._2)
       }.toMap
     } else null
     var (w, h, i) = (0, 0, 0)
-    while (w < ((dim._1 - field) / stride) + 1) {
-      while (h < ((dim._2 - field) / stride) + 1) {
+    while (w < ((dim._1 - field._1) / stride._1) + 1) {
+      while (h < ((dim._2 - field._2) / stride._2) + 1) {
         var (x, y, z, wi) = (0, 0, 0, 0)
-        while (x < field) {
-          while (y < field) {
+        while (x < field._1) {
+          while (y < field._2) {
             while (z < dim._3) {
-              val (a, b, c) = (x + (w * stride), y + (h * stride), z * fieldSq)
+              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
               val value = ms(z)(a, b)
               val lin = c + wi
               out.update(lin, i, value)
@@ -210,7 +211,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
         val seen = _indices.isDefinedAt(i)
-        val (c, x) = im2col(_in, l.field, l.stride, withIndices = !seen)
+        val (c, x) = im2col(_in, l.field, l.stride`²`, withIndices = !seen)
         val p = weights(i) * c
         var a = p.map(l.activator)
         var b = p.map(l.activator.derivative)
@@ -267,12 +268,12 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
           val ep = new Array[Matrix](de.rows)
           var f = 0
           while (f < de.rows) {
-            val out = DenseMatrix.zeros[Double](l2.dimIn._1 * l2.field, l2.dimIn._2 * l2.field)
+            val out = DenseMatrix.zeros[Double](l2.dimIn._1 * l2.field._1, l2.dimIn._2 * l2.field._2)
             var (x, y) = (0, 0)
             while (x < l2.dimIn._1) {
               while (y < l2.dimIn._2) {
                 id(x, y).foreachPair { (k, v) =>
-                  val t = (x * l2.field + k._1, y * l2.field + k._2)
+                  val t = (x * l2.field._1 + k._1, y * l2.field._2 + k._2)
                   out.update(t, if (v > 0.0) de(f, v.toInt - 1) else 0.0)
                 }
                 y += 1
@@ -284,7 +285,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
             f += 1
           }
           val dc = im2col(ep, l2.field, l2.field)._1
-          val _fieldSq = l2.field * l2.field
+          val _fieldSq = l2.field._1 * l2.field._2
           val _WW = DenseMatrix.zeros[Double](l.filters, l2.filters * _fieldSq)
           var (filter, depth) = (0, 0)
           while (filter < l2.filters) {
