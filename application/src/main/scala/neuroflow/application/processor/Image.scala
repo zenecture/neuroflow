@@ -39,9 +39,9 @@ object Image {
 
 
   /**
-    * Loads image from `url`, `path`, `file` and returns a 3d rgb-volume,
-    * where values are normalized to be <= 1.0. Optionally, a `dimension`
-    * can be enforced through zero-padding.
+    * Loads image from `url`, `path` or `file` and returns a 3d rgb-volume,
+    * where color channel values are normalized to be <= 1.0.
+    * Optionally, a `dimension` can be enforced through zero-padding.
     */
 
   def extractRgb3d(url: URL, dimension: Option[(Int, Int)]): Matrices =
