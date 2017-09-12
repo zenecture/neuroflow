@@ -11,6 +11,7 @@ import neuroflow.common.Logs
 import neuroflow.core.Network._
 
 import scala.io.Source
+import scala.util.Try
 
 /**
   * @author bogdanski
@@ -69,67 +70,17 @@ object Image extends Logs {
       }
     }
     dimension match {
-
-      case Some((x, y)) if x == w && y == w => out
-
-      case Some((x, y)) if x == w && y  > h =>
-        val (_x, _y) = (x.toDouble, y.toDouble)
-        val dY1 = math.floor((_y - h) / 2.0).toInt
-        val dY2 =  math.ceil((_y - h) / 2.0).toInt
-        val mY1 = DenseMatrix.zeros[Double](dY1, x)
-        val mY2 = DenseMatrix.zeros[Double](dY2, x)
-
+      case Some((x, y))
+        if x == w && y == h => out
+      case None             => out
+      case Some((x, y))     =>
         out.map { m =>
-          DenseMatrix.vertcat(mY1, m, mY2)
+          val t = DenseMatrix.zeros[Double](y, x)
+          t.foreachPair {
+            case ((r, c), _) => Try { t.update(r, c, m(r, c)) }
+          }
+          t
         }
-
-      case Some((x, y)) if x  > w && y == h =>
-        val (_x, _y) = (x.toDouble, y.toDouble)
-        val dX1 = math.floor((_x - w) / 2.0).toInt
-        val dX2 =  math.ceil((_x - w) / 2.0).toInt
-        val mX1 = DenseMatrix.zeros[Double](y, dX1)
-        val mX2 = DenseMatrix.zeros[Double](y, dX2)
-
-        out.map { m =>
-          DenseMatrix.horzcat(mX1, m, mX2)
-        }
-
-      case Some((x, y)) if x  > w && y  < h =>
-        val (_x, _y) = (x.toDouble, y.toDouble)
-        val dX1 = math.floor((_x - w) / 2.0).toInt
-        val dX2 =  math.ceil((_x - w) / 2.0).toInt
-        val mX1 = DenseMatrix.zeros[Double](y, dX1)
-        val mX2 = DenseMatrix.zeros[Double](y, dX2)
-
-        out.map { m =>
-          DenseMatrix.horzcat(mX1, m(0 until (h - 1), 0 until (w - 1)), mX2)
-        }
-
-      case Some((x, y)) if x  > w && y  > h =>
-        val (_x, _y) = (x.toDouble, y.toDouble)
-        val dX1 = math.floor((_x - w) / 2.0).toInt
-        val dX2 =  math.ceil((_x - w) / 2.0).toInt
-        val dY1 = math.floor((_y - h) / 2.0).toInt
-        val dY2 =  math.ceil((_y - h) / 2.0).toInt
-
-        val mX1 = DenseMatrix.zeros[Double](h, dX1)
-        val mX2 = DenseMatrix.zeros[Double](h, dX2)
-        val mY1 = DenseMatrix.zeros[Double](dY1, dX1 + w + dX2)
-        val mY2 = DenseMatrix.zeros[Double](dY2, dX1 + w + dX2)
-
-        out.map { m =>
-          DenseMatrix.vertcat(mY1, DenseMatrix.horzcat(mX1, m, mX2), mY2)
-        }
-
-      case Some((x, y)) if x <= w && y <= h =>
-        out.map { m => m(0 until (y - 1), 0 until (x - 1)) }
-
-      case Some((x, y))                     =>
-        info (s"Can't resize image. (x, y, h, w) = ($x, $y, $h, $w)")
-        out
-
-      case None                             => out
-
     }
   }
 
