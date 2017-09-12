@@ -33,12 +33,12 @@ object ImageRecognition {
 
     val train = new File(path + "/train").list().take(50).map { s =>
       val c = classes.find(z => s.contains(z)).get
-      extractRgb3d(path + "/train/" + s) -> classVecs(c)
+      extractRgb3d(path + "/train/" + s, None) -> classVecs(c)
     }
 
     val test = new File(path + "/test").list().take(0).map { s =>
       val c = classes.find(z => s.contains(z)).get
-      extractRgb3d(path + "/test/" + s) -> classVecs(c)
+      extractRgb3d(path + "/test/" + s, None) -> classVecs(c)
     }
 
     val f = ReLU

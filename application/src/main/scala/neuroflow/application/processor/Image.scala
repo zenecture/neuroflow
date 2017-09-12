@@ -1,7 +1,9 @@
 package neuroflow.application.processor
 
-import java.awt.Color
+import java.awt.image.BufferedImage
+import java.awt.{Color, Image}
 import java.io.File
+import java.net.URL
 import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
@@ -15,11 +17,14 @@ import scala.io.Source
   */
 object Image {
 
+
   /**
     * Loads image from `file` or `path` and returns flattened sequence
     * of all color channels and pixels, where values are normalized to be <= 1.0.
     */
+
   def extractRgb(path: String): Vector = extractRgb(new File(path))
+
   def extractRgb(file: File): Vector = {
     val img = ImageIO.read(file)
     val res =
@@ -32,13 +37,23 @@ object Image {
     DenseVector(res.toArray)
   }
 
+
   /**
-    * Loads image from `file` or `path` and returns a 3d rgb-volume,
-    * where values are normalized to be <= 1.0.
+    * Loads image from `url`, `path`, `file` and returns a 3d rgb-volume,
+    * where values are normalized to be <= 1.0. Optionally, a `dimension`
+    * can be enforced through zero-padding.
     */
-  def extractRgb3d(path: String): Matrices = extractRgb3d(new File(path))
-  def extractRgb3d(file: File): Matrices = {
-    val img = ImageIO.read(file)
+
+  def extractRgb3d(url: URL, dimension: Option[(Int, Int)]): Matrices =
+    extractRgb3d(ImageIO.read(url), dimension)
+
+  def extractRgb3d(path: String, dimension: Option[(Int, Int)]): Matrices =
+    extractRgb3d(new File(path), dimension)
+
+  def extractRgb3d(file: File, dimension: Option[(Int, Int)]): Matrices =
+    extractRgb3d(ImageIO.read(file), dimension)
+
+  def extractRgb3d(img: BufferedImage, dimension: Option[(Int, Int)]): Matrices = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = Array.fill(3)(DenseMatrix.zeros[Double](h, w))
     (0 until h).foreach { _h =>
@@ -52,10 +67,36 @@ object Image {
         out(2).update(_h, _w, b)
       }
     }
-    out
+    dimension match {
+      case Some((x, y))
+        if x <= w && y <= h => out
+
+      case Some((x, y))     =>
+        val dX1 = math.floor((x - w) / 2).toInt
+        val dX2 =  math.ceil((x - w) / 2).toInt
+        val dY1 = math.floor((y - h) / 2).toInt
+        val dY2 =  math.ceil((y - h) / 2).toInt
+
+        val mX1 = DenseMatrix.zeros[Double](h, dX1)
+        val mX2 = DenseMatrix.zeros[Double](h, dX2)
+        val mY1 = DenseMatrix.zeros[Double](dY1, dX1 + w + dX2)
+        val mY2 = DenseMatrix.zeros[Double](dY2, dX1 + w + dX2)
+
+        out.map { m =>
+          DenseMatrix.vertcat(mY1, DenseMatrix.horzcat(mX1, m, mX2), mY2)
+        }
+
+      case None             => out
+    }
   }
 
+
+  /**
+    * Loads portable gray map as flat vector
+    */
+
   def extractPgm(path: String): Vector = extractPgm(new File(path))
+
   def extractPgm(file: File): Vector = {
     val raw = Source.fromFile(file).getLines.drop(2).toArray // P2, width, height
     val max = raw.head.toDouble
@@ -63,11 +104,14 @@ object Image {
     DenseVector(img)
   }
 
+
   /**
     * Loads image from `file` or `path` and returns flattened sequence of pixels,
     * activated based on `selector` result
     */
+
   def extractBinary(path: String, selector: Int => Boolean): Vector = extractBinary(new File(path), selector)
+
   def extractBinary(file: File, selector: Int => Boolean): Vector = {
     val img = ImageIO.read(file)
     val res =

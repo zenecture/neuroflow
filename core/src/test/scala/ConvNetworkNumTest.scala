@@ -20,8 +20,8 @@ class ConvNetworkNumTest  extends Specification {
   def is: SpecStructure =
     s2"""
 
-    This spec will test the gradients from ConvNetwork by comparison of the derived values with
-    the approximated ones.
+    This spec will test the gradients from ConvNetwork by comparison of
+    analytical gradients with the approximated ones.
 
       - Check the gradients                                $gradCheck
 
