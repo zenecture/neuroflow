@@ -7,6 +7,7 @@ import java.net.URL
 import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
+import neuroflow.common.Logs
 import neuroflow.core.Network._
 
 import scala.io.Source
@@ -15,7 +16,7 @@ import scala.io.Source
   * @author bogdanski
   * @since 03.01.16
   */
-object Image {
+object Image extends Logs {
 
 
   /**
@@ -41,7 +42,7 @@ object Image {
   /**
     * Loads image from `url`, `path` or `file` and returns a 3d rgb-volume,
     * where color channel values are normalized to be <= 1.0.
-    * Optionally, a `dimension` can be enforced through zero-padding.
+    * Optionally, a `dimension` can be enforced through zero-padding and cut-off.
     */
 
   def extractRgb3d(url: URL, dimension: Option[(Int, Int)]): Matrices =
@@ -68,14 +69,48 @@ object Image {
       }
     }
     dimension match {
-      case Some((x, y))
-        if x <= w && y <= h => out
 
-      case Some((x, y))     =>
-        val dX1 = math.floor((x - w) / 2).toInt
-        val dX2 =  math.ceil((x - w) / 2).toInt
-        val dY1 = math.floor((y - h) / 2).toInt
-        val dY2 =  math.ceil((y - h) / 2).toInt
+      case Some((x, y)) if x == w && y == w => out
+
+      case Some((x, y)) if x == w && y  > h =>
+        val (_x, _y) = (x.toDouble, y.toDouble)
+        val dY1 = math.floor((_y - h) / 2.0).toInt
+        val dY2 =  math.ceil((_y - h) / 2.0).toInt
+        val mY1 = DenseMatrix.zeros[Double](dY1, x)
+        val mY2 = DenseMatrix.zeros[Double](dY2, x)
+
+        out.map { m =>
+          DenseMatrix.vertcat(mY1, m, mY2)
+        }
+
+      case Some((x, y)) if x  > w && y == h =>
+        val (_x, _y) = (x.toDouble, y.toDouble)
+        val dX1 = math.floor((_x - w) / 2.0).toInt
+        val dX2 =  math.ceil((_x - w) / 2.0).toInt
+        val mX1 = DenseMatrix.zeros[Double](y, dX1)
+        val mX2 = DenseMatrix.zeros[Double](y, dX2)
+
+        out.map { m =>
+          DenseMatrix.horzcat(mX1, m, mX2)
+        }
+
+      case Some((x, y)) if x  > w && y  < h =>
+        val (_x, _y) = (x.toDouble, y.toDouble)
+        val dX1 = math.floor((_x - w) / 2.0).toInt
+        val dX2 =  math.ceil((_x - w) / 2.0).toInt
+        val mX1 = DenseMatrix.zeros[Double](y, dX1)
+        val mX2 = DenseMatrix.zeros[Double](y, dX2)
+
+        out.map { m =>
+          DenseMatrix.horzcat(mX1, m(0 until (h - 1), 0 until (w - 1)), mX2)
+        }
+
+      case Some((x, y)) if x  > w && y  > h =>
+        val (_x, _y) = (x.toDouble, y.toDouble)
+        val dX1 = math.floor((_x - w) / 2.0).toInt
+        val dX2 =  math.ceil((_x - w) / 2.0).toInt
+        val dY1 = math.floor((_y - h) / 2.0).toInt
+        val dY2 =  math.ceil((_y - h) / 2.0).toInt
 
         val mX1 = DenseMatrix.zeros[Double](h, dX1)
         val mX2 = DenseMatrix.zeros[Double](h, dX2)
@@ -86,7 +121,15 @@ object Image {
           DenseMatrix.vertcat(mY1, DenseMatrix.horzcat(mX1, m, mX2), mY2)
         }
 
-      case None             => out
+      case Some((x, y)) if x <= w && y <= h =>
+        out.map { m => m(0 until (y - 1), 0 until (x - 1)) }
+
+      case Some((x, y))                     =>
+        info (s"Can't resize image. (x, y, h, w) = ($x, $y, $h, $w)")
+        out
+
+      case None                             => out
+
     }
   }
 
