@@ -64,7 +64,7 @@ object PokeMonCluster {
         Focus(Dense(3, Linear))     ::
         Dense(dim / 2, ReLU)        ::
         Output(dim, ReLU)           :: HNil,
-        Settings(iterations = 5000, prettyPrint = true, learningRate = { case _ => 1E-5 })
+        Settings(iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
       )
 
     val xz = xs.map(_._2)

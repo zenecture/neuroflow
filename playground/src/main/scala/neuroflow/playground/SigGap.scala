@@ -23,7 +23,7 @@ object SigGap {
 
   def apply = {
 
-    val settings = Settings(learningRate = { case _ => 0.1 }, precision = 1E-20, iterations = 100000)
+    val settings = Settings(learningRate = { case (_, _) => 0.1 }, precision = 1E-20, iterations = 100000)
     val net = Network(Input(2) :: Output(1, Sigmoid) :: HNil, settings)
     net.train(Seq(->(0.3, 0.3)), Seq(->(0.5)))
 

@@ -59,7 +59,7 @@ object MovieCluster {
 
     println("Training samples: " + topByUser.size)
 
-    val net = Network(layout, Settings(iterations = 500, learningRate = { case _ => 1E-4 }))
+    val net = Network(layout, Settings(iterations = 500, learningRate = { case (_, _) => 1E-4 }))
 
     net.train(topByUser.map(_._1), topByUser.map(_._2))
 

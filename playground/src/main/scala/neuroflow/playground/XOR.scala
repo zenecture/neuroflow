@@ -32,7 +32,7 @@ object XOR {
     val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
     val settings = Settings(
-      learningRate = { case _ => 1.0 },
+      learningRate = { case (_, _) => 1.0 },
       iterations = 10000,
       errorFuncOutput = Some(ErrorFuncOutput(Some("/Users/felix/github/unversioned/errorFunc.txt"), None)))
     val net = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)

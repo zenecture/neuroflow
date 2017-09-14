@@ -44,7 +44,7 @@ object Sequences {
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
     val f = Tanh
     val net = Network(Input(1) :: Dense(5, f) :: Output(1, f) :: HNil,
-      Settings(iterations = 5000, learningRate = { case _ => 0.2 }, approximation = Some(Approximation(1E-9))))
+      Settings(iterations = 5000, learningRate = { case (_, _) => 0.2 }, approximation = Some(Approximation(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 

@@ -38,7 +38,7 @@ object DefaultNetwork {
 
 private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                         identifier: String = Registry.register())
-  extends FeedForwardNetwork with EarlyStoppingLogic with KeepBestLogic {
+  extends FeedForwardNetwork with EarlyStoppingLogic with KeepBestLogic with WaypointLogic {
 
   import neuroflow.core.Network._
 
@@ -87,7 +87,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     val in = xs.map(x => x.asDenseMatrix)
     val out = ys.map(y => y.asDenseMatrix)
     if (settings.verbose) info(s"Training with ${in.size} samples ...")
-    run(in, out, learningRate(0), precision, 1, iterations)
+    run(in, out, learningRate(0 -> 1.0), precision, 1, iterations)
   }
 
   /**
@@ -115,8 +115,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
+    waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xs, ys, settings.learningRate(iteration + 1), precision, iteration + 1, maxIterations)
+      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()

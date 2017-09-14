@@ -38,7 +38,7 @@ object DistributedTraining extends Logs {
         Settings(
           coordinator  = Node("localhost", 2552),
           transport    = Transport(100000, "128 MiB"),
-          learningRate = { case _ => 1E-11 },
+          learningRate = { case (_, _) => 1E-11 },
           iterations   = 2000,
           prettyPrint  = true
         )

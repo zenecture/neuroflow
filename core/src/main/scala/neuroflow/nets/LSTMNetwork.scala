@@ -39,7 +39,7 @@ object LSTMNetwork {
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                      identifier: String = Registry.register())
-  extends RecurrentNetwork with KeepBestLogic {
+  extends RecurrentNetwork with KeepBestLogic with WaypointLogic {
 
   import neuroflow.core.Network._
 
@@ -85,7 +85,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
     noTargets = ys.zipWithIndex.filter { case (vec, idx) => vec.forall(_ == Double.PositiveInfinity) }.map(_._2).toSet
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
     yIndices = out.map(identityHashCode).zipWithIndex.toMap
-    run(in, out, learningRate(0), precision, 0, iterations)
+    run(in, out, learningRate(0 -> 1.0), precision, 0, iterations)
   }
 
   /**
@@ -100,7 +100,8 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, wei
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       keepBest(errorMean, weights)
-      run(xs, ys, settings.learningRate(iteration + 1), precision, iteration + 1, maxIterations)
+      waypoint(iteration)
+      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.3g")
       takeBest()
