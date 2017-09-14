@@ -16,7 +16,7 @@ trait ErrorFuncGrapher { self: Network[_, _] =>
 
   /**
     * Appends the `error` to the specified output file, if any,
-    * and executes the given closure, if any. This does not block.
+    * and executes given `action`, if any. This does not block.
     */
   def maybeGraph(error: Double): Unit =
     self.settings.errorFuncOutput.foreach {
@@ -27,11 +27,11 @@ trait ErrorFuncGrapher { self: Network[_, _] =>
               .map(f => new PrintWriter(new FileOutputStream(new File(f), true)))
             handleOpt.foreach(_.println(error))
             handleOpt.foreach(_.close())
-            efo.closure.foreach(_ (error))
+            efo.action.foreach(_ (error))
           }
         }
     }
 
 }
 
-case class ErrorFuncOutput(file: Option[String] = None, closure: Option[Double => Unit] = None)
+case class ErrorFuncOutput(file: Option[String] = None, action: Option[Double => Unit] = None)

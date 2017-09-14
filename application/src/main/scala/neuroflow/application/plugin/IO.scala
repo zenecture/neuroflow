@@ -15,7 +15,7 @@ import scala.io.Source
   */
 object IO extends Logs {
 
-  case class RawMatrix(rows: Int, cols: Int, data: Array[Double]) {
+  private case class RawMatrix(rows: Int, cols: Int, data: Array[Double]) {
     def toDenseMatrix = DenseMatrix.create[Double](rows, cols, data)
   }
 
@@ -38,7 +38,8 @@ object IO extends Logs {
     /**
       * Serializes weights of `network` to json string
       */
-    def write(network: Network[_, _]): String = network.weights.map(m => RawMatrix(m.rows, m.cols, m.toArray)).asJson.noSpaces
+    def write(network: Network[_, _]): String = write(network.weights)
+    def write(weights: Weights): String = weights.map(m => RawMatrix(m.rows, m.cols, m.toArray)).asJson.noSpaces
   }
 
 
@@ -51,7 +52,8 @@ object IO extends Logs {
     /**
       * Serializes weights of `network` to `file` as json
       */
-    def write(network: Network[_, _], file: String): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(network))) io (_.close)
+    def write(network: Network[_, _], file: String): Unit = write(network.weights, file)
+    def write(weights: Weights, file: String): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
   }
 
 }

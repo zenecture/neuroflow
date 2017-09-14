@@ -26,7 +26,7 @@ object ConvNetwork {
 }
 
 private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                     identifier: String = Registry.register()) extends ConvolutionalNetwork with KeepBestLogic {
+                                     identifier: String = Registry.register()) extends ConvolutionalNetwork with KeepBestLogic with WaypointLogic {
 
   import Network._
   import Convolution.IntTupler
@@ -74,7 +74,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
   def train(xs: Seq[Matrices], ys: Vectors): Unit = {
     import settings._
     if (settings.verbose) info(s"Training with ${xs.size} samples ...")
-    run(xs, ys.map(_.asDenseMatrix), learningRate(0), precision, 1, iterations)
+    run(xs, ys.map(_.asDenseMatrix), learningRate(0 -> 1.0), precision, 1, iterations)
   }
 
   /**
@@ -90,8 +90,9 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
+    waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
-      run(xs, ys, settings.learningRate(iteration + 1), precision, iteration + 1, maxIterations)
+      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()
@@ -123,6 +124,15 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
 
     _fa(target)
 
+  }
+
+  private def padm(ms: Matrices, p: Int): Matrices = if (p == 0) ms else ms.map { m =>
+    val t = DenseMatrix.zeros[Double](m.rows + 2 * p, m.cols + 2 * p)
+    m.foreachPair { (k, v) =>
+      val n = (k._1 + p, k._2 + p)
+      t.update(n, v)
+    }
+    t
   }
 
   private def im2col(ms: Matrices, field: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
@@ -260,13 +270,13 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
           ds += i -> d
           if (i > 0) derive(i - 1)
         } else {
-          val l = _convLayers(i)
+          val l  = _convLayers(i)
           val l2 = _convLayers(i + 1)
           val id = _indices(i + 1)
           val de = ds(i + 1)
           val wr = weights(i + 1)
           val ep = new Array[Matrix](de.rows)
-          var f = 0
+          var f  = 0
           while (f < de.rows) {
             val out = DenseMatrix.zeros[Double](l2.dimIn._1 * l2.field._1, l2.dimIn._2 * l2.field._2)
             var (x, y) = (0, 0)
@@ -285,23 +295,23 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
             f += 1
           }
           val dc = im2col(ep, l2.field, l2.field)._1
-          val _fieldSq = l2.field._1 * l2.field._2
-          val _WW = DenseMatrix.zeros[Double](l.filters, l2.filters * _fieldSq)
+          val fieldSq = l2.field._1 * l2.field._2
+          val ww = DenseMatrix.zeros[Double](l.filters, l2.filters * fieldSq)
           var (filter, depth) = (0, 0)
           while (filter < l2.filters) {
             while (depth < l.filters) {
-              val ws = wr(filter, (depth * _fieldSq) until ((depth * _fieldSq) + _fieldSq))
+              val ws = wr(filter, (depth * fieldSq) until ((depth * fieldSq) + fieldSq))
               var i = 0
-              while (i < _fieldSq) {
-                _WW.update(depth, filter * _fieldSq + i, ws(i))
+              while (i < fieldSq) {
+                ww.update(depth, filter * fieldSq + i, ws(i))
                 i += 1
               }
               depth += 1
             }
             depth = 0
-            filter +=1
+            filter += 1
           }
-          val d = _WW * dc *:* fb(i)
+          val d = ww * dc *:* fb(i)
           val dw = d * fc(i).t
           dws += i -> dw
           ds += i -> d

@@ -69,7 +69,7 @@ object ParityCluster {
         Input(dimension + 1)            ::
         Focus(Dense(3, Linear))         ::
         Output(dimension + 1, Sigmoid)  :: HNil,
-        Settings(iterations = 20, learningRate = { case _ => 1E-4 })
+        Settings(iterations = 20, learningRate = { case (_, _) => 1E-4 })
       )
 
     net.train(xsys.map(_._1.dv), xsys.map(_._2.dv))

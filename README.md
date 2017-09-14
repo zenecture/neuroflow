@@ -18,8 +18,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "1.00.6",
-  "com.zenecture" %% "neuroflow-application" % "1.00.6"
+  "com.zenecture" %% "neuroflow-core" % "1.00.7",
+  "com.zenecture" %% "neuroflow-application" % "1.00.7"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -64,12 +64,12 @@ val deeperNet = Network(
   Dense(40, f)            :: 
   Output(50, f)           :: HNil, 
   Settings(precision = 1E-5, iterations = 250, 
-    learningRate { case iter if iter < 100 => 1E-4 case _ => 1E-5 },
+    learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
     regularization = Some(KeepBest), parallelism = 8)
 )
 ```
 
-The learning rate is a partial function from iteration to step size for nets which use gradient descent.
+The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
@@ -99,7 +99,7 @@ you can pipe the errors to any `file` like this:
   Settings(
     errorFuncOutput = Some(ErrorFuncOutput(
       file = Some("~/NF/errorFunc.txt"), 
-      closure = Some(error => proceed(error))))
+      action = Some(error => proceed(error))))
   )
 ```
 
@@ -113,7 +113,7 @@ gnuplot> plot '~/NF/errorFunc.txt' with linespoints ls 1
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph2.png" width=494 height=339 />
 
 If you want to be more flexible, e.g. piping the error over the wire to a real-time dashboard, 
-you can provide a function `closure` of type `Double => Unit` which gets executed in the background after each training epoch, 
+you can provide a function closure `action` of type `Double => Unit` which gets executed in the background after each training epoch, 
 using the respective error as input.
 
 After work is done, the trained net can be evaluated like a regular function:

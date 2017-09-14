@@ -99,7 +99,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
       Await.result(x ? Heartbeat, atMost = 120 seconds)
       if (verbose) info(s"Connected to $x.")
     }
-    run(xs, learningRate(0), precision, 1, iterations)
+    run(xs, learningRate(0 -> 1.0), precision, 1, iterations)
   }
 
 
@@ -125,7 +125,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xs, settings.learningRate(iteration + 1), precision, iteration + 1, maxIterations)
+      run(xs, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()

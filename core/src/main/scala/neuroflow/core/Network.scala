@@ -42,6 +42,7 @@ trait TypeAliases {
   type Vectors  = Seq[Vector]
   type Matrices = Seq[Matrix]
   type Weights  = IndexedSeq[Matrix]
+  type Learning = PartialFunction[(Int, Double), Double]
 
 }
 
@@ -55,7 +56,7 @@ trait Constructor[+T <: Network[_, _]] {
 
 /**
   * The `verbose` flag indicates logging behavior.
-  * The `learningRate` is a function from current iteration to learning rate, enabling dynamic rates.
+  * The `learningRate` is a function from current iteration and learning rate, producing a new learning rate.
   * The `updateRule` defines the relationship between gradient, weights and learning rate during training.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
@@ -63,12 +64,13 @@ trait Constructor[+T <: Network[_, _]] {
   * For distributed training, `coordinator` and `transport` specific settings may be configured.
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
+  * A `waypoint` closure can be specified, e.g. saving the weights along the way.
   * With `approximation`  the gradients will be approximated numerically.
   * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
   * Some nets use specific parameters set in the `specifics` map.
   */
 case class Settings(verbose: Boolean                            = true,
-                    learningRate: PartialFunction[Int, Double]  = { case _ => 1E-4 },
+                    learningRate: Learning                      = { case (_, _) => 1E-4 },
                     updateRule: Update                          = Vanilla,
                     precision: Double                           = 1E-5,
                     iterations: Int                             = 100,
@@ -78,6 +80,7 @@ case class Settings(verbose: Boolean                            = true,
                     transport: Transport                        = Transport(100000, "128 MiB"),
                     errorFuncOutput: Option[ErrorFuncOutput]    = None,
                     regularization: Option[Regularization]      = None,
+                    waypoint: Option[Waypoint]                  = None,
                     approximation: Option[Approximation]        = None,
                     partitions: Option[Set[Int]]                = None,
                     specifics: Option[Map[String, Double]]      = None) extends Serializable

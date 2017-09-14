@@ -47,8 +47,8 @@ class DefaultNetworkNumTest extends Specification {
     val debuggableA = Debuggable()
     val debuggableB = Debuggable()
 
-    val netA = Network(layout, Settings(learningRate = { case _ => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
-    val netB = Network(layout, Settings(learningRate = { case _ => 1.0 }, updateRule = debuggableB, iterations = 1))
+    val netA = Network(layout, Settings(learningRate = { case (_, _) => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
+    val netB = Network(layout, Settings(learningRate = { case (_, _) => 1.0 }, updateRule = debuggableB, iterations = 1))
 
     val xs = Seq(Vector(0.5, 0.5).dv, Vector(1.0, 1.0).dv)
 
@@ -65,11 +65,15 @@ class DefaultNetworkNumTest extends Specification {
 
     val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
       case ((i, a), (_, b)) =>
+        println("i " + i)
         (a - b).forall { (w, v) =>
+          val e = v.abs
           val x = debuggableA.lastGradients(i)(w)
           val y = debuggableB.lastGradients(i)(w)
-          val m = math.max(x, y)
-          val r = v.abs / m
+          val m = math.max(x.abs, y.abs)
+          val r = e / m.abs
+          println(s"e = $e")
+          println(s"r = $r")
           r < tolerance
         }
     }.reduce { (l, r) => l && r }

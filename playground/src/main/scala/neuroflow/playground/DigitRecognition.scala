@@ -40,7 +40,7 @@ object DigitRecognition {
     val nets = sets.head.head.indices.par.map { segment =>
       val fn = Sigmoid
       val settings = Settings(
-        learningRate = { case _ => 1E-3 },
+        learningRate = { case (_, _) => 1E-3 },
         updateRule = Momentum(0.9),
         precision = 0.01, iterations = 5000,
         regularization = Some(KeepBest))
