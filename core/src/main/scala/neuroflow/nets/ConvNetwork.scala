@@ -54,7 +54,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
   private val _lastC     = _convLayers.maxBy(_._1)._1
   private val _lastL     = _allLayers.indices.last
 
-  private type Indices   = Map[(Int, Int), Matrix]
+  private type Indices   = Map[(Int, Int), DenseMatrix[Int]]
   private val _indices   = collection.mutable.Map.empty[Int, Indices]
 
   /**
@@ -133,7 +133,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
     val out = DenseMatrix.zeros[Double](fieldSq * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
-        k -> DenseMatrix.zeros[Double](field._1, field._2)
+        k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
     var (w, h, i) = (0, 0, 0)
@@ -275,7 +275,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
               while (y < l2.dimIn._2) {
                 id(x, y).foreachPair { (k, v) =>
                   val t = (x * l2.field._1 + k._1, y * l2.field._2 + k._2)
-                  out.update(t, if (v > 0.0) de(f, v.toInt - 1) else 0.0)
+                  out.update(t, if (v > 0.0) de(f, v - 1) else 0.0)
                 }
                 y += 1
               }
