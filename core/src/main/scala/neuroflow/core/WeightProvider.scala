@@ -41,13 +41,13 @@ trait BaseOps {
     */
   def convoluted(layers: Seq[Layer], seed: () => Double): Weights =
     layers.zipWithIndex.toArray.map {
-      case (Convolution(dimIn, filter, filters, _, _, _), idx) =>
+      case (Convolution(dimIn, filter, filters, _, _), idx) =>
         val depth = dimIn._3
         val field = filter._1 * filter._2 * depth
         DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))
       case (Focus(inner), idx) =>
         inner match {
-          case Convolution(dimIn, filter, filters, _, _, _) =>
+          case Convolution(dimIn, filter, filters, _, _) =>
             val depth = dimIn._3
             val field = filter._1 * filter._2 * depth
             DenseMatrix.create[Double](filters, field, Array.fill(field * filters)(seed()))

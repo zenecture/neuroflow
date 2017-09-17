@@ -29,14 +29,14 @@ class DefaultNetworkNumTest extends Specification {
   def gradCheck = {
     import neuroflow.nets.DefaultNetwork._
     
-    val f = Sigmoid
+    val f = Tanh
 
     val layout =
-        Input(2)     ::
-        Dense(3, f)  ::
-        Dense(4, f)  ::
-        Dense(3, f)  ::
-        Output(2, f) :: HNil
+        Input(2)      ::
+        Dense(7, f)   ::
+        Dense(8, f)   ::
+        Dense(7, f)   ::
+        Output(2, f)  :: HNil
 
     val rand = fullyConnected(layout.toList, random(-1, 1))
 
