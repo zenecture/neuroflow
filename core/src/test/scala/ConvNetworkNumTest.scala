@@ -37,9 +37,9 @@ class ConvNetworkNumTest  extends Specification {
     val debuggableA = Debuggable()
     val debuggableB = Debuggable()
 
-    val a = Convolution(in = dim,      field = (6, 3), filters = 16, stride = 2, padding = 0, f)
-    val b = Convolution(in = a.dimOut, field = (2, 4), filters = 8, stride = 1, padding = 0, f)
-    val c = Convolution(in = b.dimOut, field = (1, 1), filters = 12, stride = 1, padding = 0, f)
+    val a = Convolution(dimIn = dim,      field = (6, 3), filters = 16, stride = 2, f)
+    val b = Convolution(dimIn = a.dimOut, field = (2, 4), filters = 8, stride = 1, f)
+    val c = Convolution(dimIn = b.dimOut, field = (1, 1), filters = 12, stride = 1, f)
 
     val convs = a :: b :: c :: HNil
     val fullies = Output(out, f) :: HNil

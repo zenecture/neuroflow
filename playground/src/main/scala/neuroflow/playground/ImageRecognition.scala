@@ -49,9 +49,9 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val a = Convolution((32, 32, 3), field = 3`²`, filters = 32, stride = 1, 0, f)
-    val b = Convolution( a.dimOut,   field = 4`²`, filters = 32, stride = 1, 0, f)
-    val c = Convolution( b.dimOut,   field = 4`²`, filters = 8, stride = 1, 0, f)
+    val a = Convolution((32, 32, 3), field = 3`²`, filters = 32, stride = 1, f)
+    val b = Convolution( a.dimOut,   field = 4`²`, filters = 32, stride = 1, f)
+    val c = Convolution( b.dimOut,   field = 4`²`, filters = 8, stride = 1, f)
 
     val convs = a :: b :: c :: HNil
     val fully = Output(classes.size, f) :: HNil
