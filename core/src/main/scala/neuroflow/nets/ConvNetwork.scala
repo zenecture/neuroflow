@@ -126,15 +126,6 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
 
   }
 
-  private def padm(ms: Matrices, p: Int): Matrices = if (p == 0) ms else ms.map { m =>
-    val t = DenseMatrix.zeros[Double](m.rows + 2 * p, m.cols + 2 * p)
-    m.foreachPair { (k, v) =>
-      val n = (k._1 + p, k._2 + p)
-      t.update(n, v)
-    }
-    t
-  }
-
   private def im2col(ms: Matrices, field: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
     val dim = (ms.head.rows, ms.head.cols, ms.size)
     val dimOut = ((dim._1 - field._1) / stride._1 + 1, (dim._2 - field._2) / stride._2 + 1)
