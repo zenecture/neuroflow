@@ -15,7 +15,7 @@ class ImageTest extends Specification {
   def is: SpecStructure =
     s2"""
 
-    This spec will test IO related functionality.
+    This spec will test image processor related functionality.
 
     It should:
       - Load a 3d rgb volume and pad it             $rgbvolpad
