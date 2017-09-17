@@ -12,7 +12,7 @@ class PostProcessorTests extends Specification {
   def is: SpecStructure =
     s2"""
 
-    This spec will test IO related functionality.
+    This spec will test post processor related functionality.
 
     It should:
       - Normalize a vector to max = 1.0            $max
