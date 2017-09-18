@@ -1,5 +1,6 @@
 package neuroflow.nets
 
+import breeze.linalg._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
 import neuroflow.core.FFN.{fullyConnected, random}
@@ -50,7 +51,7 @@ class DefaultNetworkNumTest extends Specification {
     val netA = Network(layout, Settings(learningRate = { case (_, _) => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
     val netB = Network(layout, Settings(learningRate = { case (_, _) => 1.0 }, updateRule = debuggableB, iterations = 1))
 
-    val xs = Seq(Vector(0.5, 0.5).dv, Vector(1.0, 1.0).dv)
+    val xs = Seq(DenseVector(0.5, 0.5), DenseVector(1.0, 1.0))
 
     println(netA)
     println(netB)

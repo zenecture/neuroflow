@@ -62,9 +62,10 @@ trait Constructor[+T <: Network[_, _]] {
   * If `prettyPrint` is true, the layout will be rendered graphically.
   * The level of `parallelism` controls how many threads will be used for training.
   * For distributed training, `coordinator` and `transport` specific settings may be configured.
+  * The `batchSize` controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
-  * A `waypoint` closure can be specified, e.g. saving the weights along the way.
+  * A `waypoint` action can be specified, e.g. saving the weights along the way.
   * With `approximation`  the gradients will be approximated numerically.
   * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
   * Some nets use specific parameters set in the `specifics` map.
@@ -78,6 +79,7 @@ case class Settings(verbose: Boolean                            = true,
                     parallelism: Int                            = Runtime.getRuntime.availableProcessors,
                     coordinator: Node                           = Node("0.0.0.0", 2552),
                     transport: Transport                        = Transport(100000, "128 MiB"),
+                    batchSize: Option[Int]                      = None,
                     errorFuncOutput: Option[ErrorFuncOutput]    = None,
                     regularization: Option[Regularization]      = None,
                     waypoint: Option[Waypoint]                  = None,
@@ -188,6 +190,8 @@ trait DistributedFeedForwardNetwork extends Network[Vector, Vector] with Distrib
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
       warn("FFNs don't support partitions. This setting has no effect.")
+    if (settings.batchSize.isDefined)
+      warn("Setting the batch size has no effect in distributed training.")
   }
 
 }
@@ -198,6 +202,8 @@ trait DistributedConvolutionalNetwork extends Network[Matrices, Vector] with Dis
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
       warn("CNNs don't support partitions. This setting has no effect.")
+    if (settings.batchSize.isDefined)
+      warn("Setting the batch size has no effect in distributed training.")
   }
 
 }

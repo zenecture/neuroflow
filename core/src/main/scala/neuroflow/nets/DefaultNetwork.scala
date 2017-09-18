@@ -86,8 +86,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     import settings._
     val in = xs.map(x => x.asDenseMatrix)
     val out = ys.map(y => y.asDenseMatrix)
+    val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${in.size} samples ...")
-    run(in, out, learningRate(0 -> 1.0), precision, 1, iterations)
+    run(in, out, learningRate(0 -> 1.0), batchSize, precision, 1, iterations)
   }
 
   /**
@@ -105,19 +106,25 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * The training loop.
     */
-  @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
+  @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, batchSize: Int, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val error =
-      if (settings.approximation.isDefined)
-        adaptWeightsApprox(xs, ys, stepSize)
-      else adaptWeights(xs, ys, stepSize)
-    val errorMean = mean(error)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
+
+    val _xs = xs.zip(ys).grouped(batchSize)
+    val _em = _xs.map { batch =>
+      val (x, y) = (batch.map(_._1), batch.map(_._2))
+      val error =
+        if (settings.approximation.isDefined)
+          adaptWeightsApprox(x, y, stepSize)
+        else adaptWeights(x, y, stepSize)
+      error
+    }.reduce(_ + _)
+    val errorMean = mean(_em)
+    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector ${_em}")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
+      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()
