@@ -26,16 +26,18 @@ object ImageRecognition {
     val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
-    implicit val wp = neuroflow.core.CNN.WeightProvider(0.001, 0.01)
+    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
 //    implicit val wp = IO.File.read(wps)
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
           "dog", "frog", "horse", "ship", "truck")
 
-    val classVecs = classes.zipWithIndex.map { case (c, i) => c -> ~>(ζ(classes.size)).io(_.update(i, 1.0)).t }.toMap
+    val classVecs = classes.zipWithIndex.map { case (c, i) => 
+      c -> ~>(ζ(classes.size)).io(_.update(i, 1.0)).t 
+    }.toMap
 
-    val train = new File(path + "/train").list().take(1000).map { s =>
+    val train = new File(path + "/train").list().take(10000).map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/train/" + s, None) -> classVecs(c)
     }
@@ -51,18 +53,21 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val a = Convolution((32, 32, 3), field = 3`²`, filters = 96, stride = 1, f)
+    val a = Convolution((32, 32, 3), field = 1`²`, filters = 96, stride = 1, f)
     val b = Convolution( a.dimOut,   field = 4`²`, filters = 64, stride = 2, f)
-    val c = Convolution( b.dimOut,   field = 4`²`, filters = 32, stride = 2, f)
+    val c = Convolution( b.dimOut,   field = 6`²`, filters = 32, stride = 1, f)
 
     val convs = a :: b :: c :: HNil
-    val fully = Dense(20, f) :: Output(classes.size, f) :: HNil
+    val fully =
+      Dense(200, f)           ::
+      Dense(100, f)           ::
+      Output(classes.size, f) :: HNil
 
     val net = Network(convs ::: fully,
       Settings(
         prettyPrint = true,
-        learningRate = { case (_, _) => 1E-5 },
-        updateRule = Vanilla,
+        learningRate = { case (_, _) => 1E-3 },
+        updateRule = Momentum(μ = 0.9),
         iterations = 1000,
         parallelism = 8,
         batchSize = Some(8),
