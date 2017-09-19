@@ -87,7 +87,7 @@ class ConvNetworkNumTest  extends Specification {
           val x = debuggableA.lastGradients(i)(w)
           val y = debuggableB.lastGradients(i)(w)
           val m = math.max(x.abs, y.abs)
-          val r = e / m.abs
+          val r = e / m
           println(s"e = $e")
           println(s"r = $r")
           r < tolerance
