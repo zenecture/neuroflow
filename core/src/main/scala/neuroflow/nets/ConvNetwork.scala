@@ -28,8 +28,8 @@ object ConvNetwork {
 private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
                                      identifier: String = Registry.register()) extends ConvolutionalNetwork with KeepBestLogic with WaypointLogic {
 
-  import Network._
   import Convolution.IntTupler
+  import Network._
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
@@ -72,19 +72,20 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
     * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Seq[Matrices], ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     if (settings.verbose) info(s"Training with ${xs.size} samples ...")
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    run(xs, ys.map(_.asDenseMatrix), learningRate(0 -> 1.0), batchSize, precision, 1, iterations)
+    val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    run(xsys, learningRate(0 -> 1.0), batchSize, precision, 1, iterations)
   }
 
   /**
     * The training loop.
     */
-  @tailrec private def run(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Double, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Double, batchSize: Int, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val _xs = xs.zip(ys).grouped(batchSize)
-    val _em = _xs.map { batch =>
+    val _em = xsys.map { batch =>
       val (x, y) = (batch.map(_._1), batch.map(_._2))
       val error =
         if (settings.approximation.isDefined)
@@ -98,7 +99,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
     keepBest(errorMean, weights)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
-      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), batchSize, precision, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()

@@ -83,12 +83,12 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Vectors, ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
-    val in = xs.map(x => x.asDenseMatrix)
-    val out = ys.map(y => y.asDenseMatrix)
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${in.size} samples ...")
-    run(in, out, learningRate(0 -> 1.0), batchSize, precision, 1, iterations)
+    if (settings.verbose) info(s"Training with ${xs.size} samples ...")
+    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    run(xsys, learningRate(0 -> 1.0), batchSize, precision, 1, iterations)
   }
 
   /**
@@ -106,11 +106,9 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
   /**
     * The training loop.
     */
-  @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[Seq[(Matrix, Matrix)]], stepSize: Double, batchSize: Int, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-
-    val _xs = xs.zip(ys).grouped(batchSize)
-    val _em = _xs.map { batch =>
+    val _em = xsys.map { batch =>
       val (x, y) = (batch.map(_._1), batch.map(_._2))
       val error =
         if (settings.approximation.isDefined)
@@ -124,7 +122,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
     keepBest(errorMean, weights)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), batchSize, precision, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()
