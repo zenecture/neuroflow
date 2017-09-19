@@ -125,7 +125,7 @@ trait Network[In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with 
   val weights: Weights
 
   /**
-    * Computes output for given input `m`.
+    * Computes output for given input `in`.
     * Alias for `net(x)` syntax.
     */
   def evaluate(in: In): Out = apply(in)

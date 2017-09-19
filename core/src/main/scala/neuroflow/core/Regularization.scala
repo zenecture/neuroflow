@@ -27,7 +27,7 @@ case class EarlyStopping[In, Out](xs: Seq[In], ys: Seq[Out], factor: Double) ext
 
 /**
   * The KeepBest regularization strategy takes weights, which led to the least error during training.
-  * In particular, this is useful for RNNs, as the error can oscillate heavily during training.
+  * In particular, this is useful for nets whose gradients oscillate heavily during training.
   */
 case object KeepBest extends Regularization
 
