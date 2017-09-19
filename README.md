@@ -65,7 +65,7 @@ val deeperNet = Network(
   Output(50, f)           :: HNil, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
-    regularization = Some(KeepBest), parallelism = 8)
+    regularization = Some(KeepBest), batchSize = Some(8), parallelism = 8)
 )
 ```
 
