@@ -70,7 +70,9 @@ val deeperNet = Network(
 )
 ```
 
-The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent.
+The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent. 
+The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
+since a batch will be processed in parallel. Have a look at the `Settings` class for the full list of options.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
@@ -131,11 +133,11 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 Let's consider this fully connected FFN:
 
-    Layout: [1200 In, 210 Hidden (ReLU), 210 Hidden (ReLU), 210 Hidden (ReLU), 1200 Out (ReLU)]
+    Layout: [1200 In, 210 Dense (R), 210 Dense (R), 210 Dense (R), 1200 Out (R)]
     Number of Weights: 592.200 (≈ 4,51813 MB)
 
 On the JVM, a `Double` takes 8 bytes, meaning the derivative of this network requires roughly 4,5 MB per sample. Training with,
-let's say, 1 million samples would require ≈ 4,5 TB of RAM for gradient descent. Luckily, the error function `Σ1/2(t - net(x))²` 
+let's say, 1 million samples would require ≈ 4,5 TB of RAM for vanilla gradient descent. Luckily, the error function `Σ1/2(t - net(x))²` 
 is parallelizable with respect to the sum operator. So, if a single machine offering this amount of memory is not available, 
 we can spread the load across several machines instead of batching it.  
 
