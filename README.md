@@ -1,6 +1,7 @@
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
 
-NeuroFlow is a library to train and evaluate Artificial Neural Networks in Scala.
+NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
+It is written in Scala, matrix and vector operations are performed with <a href="https://github.com/scalanlp/breeze">Breeze</a>.
 
 # Introduction
 
@@ -9,6 +10,8 @@ This project consists of three modules:
 - core: the building blocks to create neural network architectures
 - application: plugins, helpers, functionality related to various applications
 - playground: examples with resources
+
+
     
 # Getting Started
 
