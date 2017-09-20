@@ -77,13 +77,13 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
     if (settings.verbose) info(s"Training with ${xs.size} samples ...")
     val batchSize = settings.batchSize.getOrElse(xs.size)
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
-    run(xsys, learningRate(0 -> 1.0), batchSize, precision, 1, iterations)
+    run(xsys, learningRate(0 -> 1.0), xs.size, batchSize, precision, 1, iterations)
   }
 
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Double, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Double, sampleSize: Int, batchSize: Int, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val _em = xsys.map { batch =>
       val (x, y) = (batch.map(_._1), batch.map(_._2))
@@ -94,12 +94,13 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
       error
     }.reduce(_ + _)
     val errorMean = mean(_em)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector ${_em}")
+    val errorPs   = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
+    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorPs%.3g / Sample) - Error Vector ${_em}")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSize, precision, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()
