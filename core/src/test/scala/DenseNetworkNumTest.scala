@@ -48,8 +48,8 @@ class DenseNetworkNumTest extends Specification {
     val debuggableA = Debuggable()
     val debuggableB = Debuggable()
 
-    val netA = Network(layout, Settings(learningRate = { case (_, _) => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
-    val netB = Network(layout, Settings(learningRate = { case (_, _) => 1.0 }, updateRule = debuggableB, iterations = 1))
+    val netA = Network(layout, Settings(prettyPrint = true, learningRate = { case (_, _) => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
+    val netB = Network(layout, Settings(prettyPrint = true, learningRate = { case (_, _) => 1.0 }, updateRule = debuggableB, iterations = 1))
 
     val xs = Seq(DenseVector(0.5, 0.5), DenseVector(1.0, 1.0))
 
