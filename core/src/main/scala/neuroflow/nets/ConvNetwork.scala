@@ -193,12 +193,38 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
   }
 
   private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Double): Matrix = {
+
     val xsys = xs.par.zip(ys)
     xsys.tasksupport = _forkJoinTaskSupport
 
     val _ds = (0 to _lastWlayerIdx).map { i =>
       i -> DenseMatrix.zeros[Double](weights(i).rows, weights(i).cols)
     }.toMap
+
+    val _ww = _convLayers.map {
+      case (i, _) if i < _lastC =>
+        val l  = _convLayers(i)
+        val l2 = _convLayers(i + 1)
+        val fieldSq = l2.field._1 * l2.field._2
+        val wr = weights(i + 1)
+        val ww = DenseMatrix.zeros[Double](l.filters, l2.filters * fieldSq)
+        var (filter, depth) = (0, 0)
+        while (filter < l2.filters) {
+          while (depth < l.filters) {
+            val ws = wr(filter, (depth * fieldSq) until ((depth * fieldSq) + fieldSq))
+            var i = 0
+            while (i < fieldSq) {
+              ww.update(depth, filter * fieldSq + i, ws(i))
+              i += 1
+            }
+            depth += 1
+          }
+          depth = 0
+          filter += 1
+        }
+        i -> ww
+      case (i, _) => i -> weights(i)
+    }
 
     val _errSum  = DenseMatrix.zeros[Double](1, _outputDim)
     val _square  = DenseMatrix.zeros[Double](1, _outputDim)
@@ -265,18 +291,16 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
           ds += i -> d
           if (i > 0) derive(i - 1)
         } else {
-          val l  = _convLayers(i)
-          val l2 = _convLayers(i + 1)
+          val l1 = _convLayers(i + 1)
           val id = _indices(i + 1)
           val de = ds(i + 1)
-          val wr = weights(i + 1)
-          val fs = l2.field._1 * l2.field._2
-          val dc = DenseMatrix.zeros[Double](fs * l2.filters, l2.dimIn._1 * l2.dimIn._2)
+          val fs = l1.field._1 * l1.field._2
+          val dc = DenseMatrix.zeros[Double](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
           var f  = 0
           while (f < de.rows) {
             var (x, y, q) = (0, 0, 0)
-            while (x < l2.dimIn._1) {
-              while (y < l2.dimIn._2) {
+            while (x < l1.dimIn._1) {
+              while (y < l1.dimIn._2) {
                 var p = 0
                 id(x, y).foreachPair { (_, v) =>
                   val t = (f * fs + p, q)
@@ -292,23 +316,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
             }
             f += 1
           }
-          val fieldSq = l2.field._1 * l2.field._2
-          val ww = DenseMatrix.zeros[Double](l.filters, l2.filters * fieldSq)
-          var (filter, depth) = (0, 0)
-          while (filter < l2.filters) {
-            while (depth < l.filters) {
-              val ws = wr(filter, (depth * fieldSq) until ((depth * fieldSq) + fieldSq))
-              var i = 0
-              while (i < fieldSq) {
-                ww.update(depth, filter * fieldSq + i, ws(i))
-                i += 1
-              }
-              depth += 1
-            }
-            depth = 0
-            filter += 1
-          }
-          val d = ww * dc *:* fb(i)
+          val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
           dws += i -> dw
           ds += i -> d
@@ -331,12 +339,15 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
         i += 1
       }
     }
+
     var i = 0
     while (i <= _lastWlayerIdx) {
       settings.updateRule(weights(i), _ds(i), stepSize, i)
       i += 1
     }
+
     _errSum
+
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
