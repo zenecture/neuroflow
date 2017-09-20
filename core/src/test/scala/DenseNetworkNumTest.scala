@@ -66,7 +66,7 @@ class DenseNetworkNumTest extends Specification {
 
     val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
       case ((i, a), (_, b)) =>
-        println("i " + i)
+        println(s"i = $i")
         (a - b).forall { (w, v) =>
           val e = v.abs
           val x = debuggableA.lastGradients(i)(w)

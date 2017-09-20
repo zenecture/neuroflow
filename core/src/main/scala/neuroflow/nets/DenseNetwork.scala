@@ -117,8 +117,8 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
       error
     }.reduce(_ + _)
     val errorMean = mean(_em)
-    val errorPs   = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorPs%.3g / Sample) - Error Vector ${_em}")
+    val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
+    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
     waypoint(iteration)

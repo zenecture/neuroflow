@@ -94,8 +94,8 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
       error
     }.reduce(_ + _)
     val errorMean = mean(_em)
-    val errorPs   = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorPs%.3g / Sample) - Error Vector ${_em}")
+    val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
+    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
     maybeGraph(errorMean)
     keepBest(errorMean, weights)
     waypoint(iteration)
@@ -178,19 +178,8 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
     var i = 0
     val out = new Array[Matrix](dim._3)
     while (i < dim._3) {
-      val m = DenseMatrix.zeros[Double](dim._1, dim._2)
-      val v = matrix.t(::, i)
-      var (x, y, w) = (0, 0, 0)
-      while (x < dim._1) {
-        while (y < dim._2) {
-          m.update(x, y, v(w))
-          y += 1
-          w += 1
-        }
-        y = 0
-        x += 1
-      }
-      out(i) = m
+      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1).t
+      out(i) = v
       i += 1
     }
     out
