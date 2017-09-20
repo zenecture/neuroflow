@@ -26,8 +26,8 @@ object ImageRecognition {
     val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
-    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
-//    implicit val wp = IO.File.read(wps)
+//    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
+    implicit val wp = IO.File.read(wps)
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -42,7 +42,7 @@ object ImageRecognition {
       extractRgb3d(path + "/train/" + s, None) -> classVecs(c)
     }
 
-    val test = new File(path + "/test").list().take(10).map { s =>
+    val test = new File(path + "/test").list().take(1000).map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/test/" + s, None) -> classVecs(c)
     }
@@ -72,22 +72,23 @@ object ImageRecognition {
         parallelism = 8,
         batchSize = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
-        waypoint = Some(Waypoint(nth = 100, ws => IO.File.write(ws, wps)))
+        waypoint = Some(Waypoint(nth = 6, ws => IO.File.write(ws, wps)))
       )
     )
 
     net.train(train.map(_._1), train.map(_._2))
 
-    (train ++ test).foreach {
+    val rate = test.map {
       case (x, y) =>
         val v = net(x)
         val c = v.data.indexOf(max(v))
         val t = y.data.indexOf(max(y))
         println(s"${classes(t)} classified as ${classes(c)}")
         println(net(x))
-    }
+        if (c == t) 1.0 else 0.0
+    }.sum / test.size.toDouble
 
-    println(net)
+    println(s"Recognition rate = ${rate * 100.0} %, Error rate = ${(1.0 - rate) * 100.0} %!")
 
     val posWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ > 0.0).size)
     val negWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ < 0.0).size)

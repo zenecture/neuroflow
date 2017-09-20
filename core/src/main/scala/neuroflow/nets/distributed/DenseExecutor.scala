@@ -17,14 +17,14 @@ import scala.util.{Failure, Success}
   * @since 28.08.17
   */
 
-object DefaultExecutor extends Logs {
+object DenseExecutor extends Logs {
 
   def apply(node: Node, xs: Vectors, ys: Vectors, settings: Settings = Settings()): Unit = {
 
     info(s"Booting DefaultExecutor ${node.host}:${node.port} ...")
 
     val _akka = ActorSystem("NeuroFlow", Configuration(node, settings))
-    _akka.actorOf(Props(new DefaultExecutor(xs, ys, settings)), "executor")
+    _akka.actorOf(Props(new DenseExecutor(xs, ys, settings)), "executor")
 
     info("Up and running.")
     info("Type 'exit' to exit.")
@@ -43,7 +43,7 @@ object DefaultExecutor extends Logs {
 }
 
 
-class DefaultExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends ExecutorActor[Vectors, Vectors](xs, ys, settings) {
+class DenseExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends ExecutorActor[Vectors, Vectors](xs, ys, settings) {
 
   protected def compute(xs: Vectors, ys: Vectors, layers: Seq[Layer], weights: ArrayBuffer[Matrix],
                       learningRate: Double, parallelism: Int): (Weights, Matrix) = {
