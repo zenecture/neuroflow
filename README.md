@@ -19,8 +19,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture" %% "neuroflow-core" % "1.00.9",
-  "com.zenecture" %% "neuroflow-application" % "1.00.9"
+  "com.zenecture" %% "neuroflow-core" % "1.1.0",
+  "com.zenecture" %% "neuroflow-application" % "1.1.0"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -40,7 +40,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.DefaultNetwork._
+import neuroflow.nets.DenseNetwork._
 import shapeless._
 ```
 
@@ -147,7 +147,7 @@ Distributed gradient descent broadcasts the respective weight updates between th
 In our example, the overhead is 2*4,5=9 MB network traffic per node and iteration, while gaining computational parallelism.
 
 ```scala
-import neuroflow.nets.distributed.DefaultNetwork._
+import neuroflow.nets.distributed.DenseNetwork._
 
 object Coordinator extends App {
 
@@ -172,12 +172,12 @@ object Coordinator extends App {
 The network is defined in the `Coordinator`. The `train` method will trigger training for all `nodes`. 
 
 ```scala
-import neuroflow.nets.distributed.DefaultExecutor
+import neuroflow.nets.distributed.DenseExecutor
 
 object Executor extends App {
 
   val (xs, ys) =  (???, ???) // Local Training Data
-  DefaultExecutor(Node("localhost", 2553), xs, ys)
+  DenseExecutor(Node("localhost", 2553), xs, ys)
 
 }
 ```

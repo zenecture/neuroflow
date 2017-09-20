@@ -9,7 +9,7 @@ import neuroflow.common.~>
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.DefaultNetwork._
+import neuroflow.nets.DenseNetwork._
 import shapeless._
 
 import scala.collection.immutable

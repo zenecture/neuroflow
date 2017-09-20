@@ -27,17 +27,17 @@ import scala.concurrent.forkjoin.ForkJoinPool
   */
 
 
-object DefaultNetwork {
-  implicit val constructor: Constructor[DefaultNetwork] = new Constructor[DefaultNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): DefaultNetwork = {
-      DefaultNetwork(ls, settings, weightProvider(ls))
+object DenseNetwork {
+  implicit val constructor: Constructor[DenseNetwork] = new Constructor[DenseNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): DenseNetwork = {
+      DenseNetwork(ls, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                        identifier: String = Registry.register())
+private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
+                                      identifier: String = Registry.register())
   extends FeedForwardNetwork with EarlyStoppingLogic with KeepBestLogic with WaypointLogic {
 
   import neuroflow.core.Network._
@@ -56,7 +56,7 @@ private[nets] case class DefaultNetwork(layers: Seq[Layer], settings: Settings, 
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
-  private implicit object Average extends CanAverage[DefaultNetwork, Vector, Vector] {
+  private implicit object Average extends CanAverage[DenseNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
         case (a, b) => mean(abs(a - b))

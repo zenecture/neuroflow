@@ -15,7 +15,7 @@ import shapeless._
   * @author bogdanski
   * @since 02.08.17
   */
-class DefaultNetworkNumTest extends Specification {
+class DenseNetworkNumTest extends Specification {
 
   def is: SpecStructure =
     s2"""
@@ -28,7 +28,7 @@ class DefaultNetworkNumTest extends Specification {
   """
 
   def gradCheck = {
-    import neuroflow.nets.DefaultNetwork._
+    import neuroflow.nets.DenseNetwork._
     
     val f = Tanh
 

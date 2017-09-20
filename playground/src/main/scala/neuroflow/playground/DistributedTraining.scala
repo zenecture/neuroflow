@@ -6,8 +6,8 @@ import neuroflow.common.Logs
 import neuroflow.core.Activator._
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.distributed.DefaultExecutor
-import neuroflow.nets.distributed.DefaultNetwork._
+import neuroflow.nets.distributed.DenseExecutor
+import neuroflow.nets.distributed.DenseNetwork._
 import shapeless._
 
 import scala.util.Random
@@ -61,7 +61,7 @@ object DistributedTraining extends Logs {
       DenseVector(a)
     }
 
-    (1 to nodesC).par.foreach(i => DefaultExecutor(Node("localhost", 2552 + i), xs, ys))
+    (1 to nodesC).par.foreach(i => DenseExecutor(Node("localhost", 2552 + i), xs, ys))
 
   }
 

@@ -7,7 +7,7 @@ import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.FFN.WeightProvider.oneWeights
 import neuroflow.core.Network.Vector
 import neuroflow.core._
-import neuroflow.nets.DefaultNetwork._
+import neuroflow.nets.DenseNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
@@ -39,7 +39,7 @@ class RegularizationTest extends Specification {
     val net = Network(Input(1) :: Dense(3, Linear) :: Output(1, Linear) :: HNil,
       Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
 
-    implicit object KBL extends CanAverage[DefaultNetwork, Vector, Vector] {
+    implicit object KBL extends CanAverage[DenseNetwork, Vector, Vector] {
       def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
         val errors = xs.map(net.evaluate).zip(ys).map {
           case (a, b) => mean(abs(a - b))
