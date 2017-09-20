@@ -13,8 +13,15 @@ import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.forkjoin.ForkJoinPool
 
 /**
+  *
+  * This is a convolutional feed-forward neural network.
+  * It uses gradient descent to optimize the error function Σ1/2(y - net(x))².
+  *
+  * Use the parallelism parameter with care, as it greatly affects memory usage.
+  *
   * @author bogdanski
   * @since 31.08.17
+  *
   */
 
 object ConvNetwork {

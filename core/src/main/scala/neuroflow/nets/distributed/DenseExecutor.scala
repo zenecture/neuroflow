@@ -1,6 +1,6 @@
 package neuroflow.nets.distributed
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{ActorSystem, Props}
 import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
 import neuroflow.core.Network.{Matrix, _}
