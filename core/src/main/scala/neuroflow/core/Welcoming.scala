@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 1.1.1
+      |         Version 1.1.2
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
@@ -47,7 +47,7 @@ trait Welcoming { self: Network[_, _] =>
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
     val potency = layers.flatMap {
       case Convolution(dimIn, _, _, _, _) =>
-        val m = (1 to (dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
+        val m = (1 to math.ceil(dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
         val s = m.dropRight(1) :+ (m.last._1, m.last._2, false)
         s
       case l: Layer                       => Seq((l.neurons, false, false))
