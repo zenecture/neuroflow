@@ -1,8 +1,6 @@
 package neuroflow.nets.distributed
 
-import java.util.UUID
-
-import akka.actor.{Actor, ActorRef, ActorSelection, ActorSystem, PoisonPill, Props}
+import akka.actor.{ActorSelection, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import breeze.linalg._

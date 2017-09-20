@@ -46,7 +46,7 @@ case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
   *   Input dimension `dimIn` as (width, height, depth).
   *   The receptive `field` as (width, height).
   *   How many independent `filters` are attached to the input.
-  *   Sliding over the input volume using a `stride`.
+  *   Sliding the receptive field over the input volume with `stride`.
   *   Applying the `activator` function element-wise on the output.
   */
 case class Convolution(dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,

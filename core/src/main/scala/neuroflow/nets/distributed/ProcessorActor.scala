@@ -2,21 +2,13 @@ package neuroflow.nets.distributed
 
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef, ActorSelection, ActorSystem, PoisonPill, Props}
-import akka.pattern.ask
-import akka.util.Timeout
+import akka.actor.{Actor, ActorRef, ActorSelection, PoisonPill}
 import breeze.linalg._
-import breeze.numerics._
-import breeze.stats._
-import com.typesafe.config.ConfigFactory
 import neuroflow.common.Logs
 import neuroflow.core._
-import neuroflow.nets.Registry
 
-import scala.annotation.tailrec
 import scala.collection.Seq
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 /**
   * @author bogdanski
