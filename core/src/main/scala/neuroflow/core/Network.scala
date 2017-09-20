@@ -70,22 +70,22 @@ trait Constructor[+T <: Network[_, _]] {
   * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
   * Some nets use specific parameters set in the `specifics` map.
   */
-case class Settings(verbose: Boolean                            = true,
-                    learningRate: Learning                      = { case (_, _) => 1E-4 },
-                    updateRule: Update                          = Vanilla,
-                    precision: Double                           = 1E-5,
-                    iterations: Int                             = 100,
-                    prettyPrint: Boolean                        = false,
-                    parallelism: Int                            = Runtime.getRuntime.availableProcessors,
-                    coordinator: Node                           = Node("0.0.0.0", 2552),
-                    transport: Transport                        = Transport(100000, "128 MiB"),
-                    batchSize: Option[Int]                      = None,
-                    errorFuncOutput: Option[ErrorFuncOutput]    = None,
-                    regularization: Option[Regularization]      = None,
-                    waypoint: Option[Waypoint]                  = None,
-                    approximation: Option[Approximation]        = None,
-                    partitions: Option[Set[Int]]                = None,
-                    specifics: Option[Map[String, Double]]      = None) extends Serializable
+case class Settings(verbose           :  Boolean                      =  true,
+                    learningRate      :  Learning                     =  { case (_, _) => 1E-4 },
+                    updateRule        :  Update                       =  Vanilla,
+                    precision         :  Double                       =  1E-5,
+                    iterations        :  Int                          =  100,
+                    prettyPrint       :  Boolean                      =  false,
+                    parallelism       :  Int                          =  Runtime.getRuntime.availableProcessors,
+                    coordinator       :  Node                         =  Node("0.0.0.0", 2552),
+                    transport         :  Transport                    =  Transport(100000, "128 MiB"),
+                    batchSize         :  Option[Int]                  =  None,
+                    errorFuncOutput   :  Option[ErrorFuncOutput]      =  None,
+                    regularization    :  Option[Regularization]       =  None,
+                    waypoint          :  Option[Waypoint]             =  None,
+                    approximation     :  Option[Approximation]        =  None,
+                    partitions        :  Option[Set[Int]]             =  None,
+                    specifics         :  Option[Map[String, Double]]  =  None) extends Serializable
 
 
 trait IllusionBreaker { self: Network[_, _] =>
