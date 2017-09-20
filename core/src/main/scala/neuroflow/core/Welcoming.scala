@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 1.1.0
+      |         Version 1.1.1
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}
@@ -40,19 +40,33 @@ trait Welcoming { self: Network[_, _] =>
     }
 
   private def prettyPrint(): Unit = {
-    val max = layers.map(_.neurons).max.toDouble
+    val max = layers.map {
+      case Convolution(dimIn, _, _, _, _) => math.max(dimIn._1, dimIn._2)
+      case l: Layer                       => l.neurons
+    }.max
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
+    val potency = layers.flatMap {
+      case Convolution(dimIn, _, _, _, _) =>
+        val m = (1 to (dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
+        val s = m.dropRight(1) :+ (m.last._1, m.last._2, false)
+        s
+      case l: Layer                       => Seq((l.neurons, false, false))
+    }
     val center = math.ceil(((max * f) - 1.0) / 2.0)
-    val cols = layers.map(l => (l.neurons - 1).toDouble * f).map { l =>
+    val cols = potency.map(p => ((p._1 - 1).toDouble * f, p._2, p._3)).map { l =>
       val col = (0 until (max * f).toInt) map { _ => " " }
       col.zipWithIndex.map {
-        case (c, i) if i <= center && i >= (center - math.ceil (l / 2.0))   => "O"
-        case (c, i) if i >= center && i <= (center + math.floor(l / 2.0))   => "O"
-        case (c, i)                                                         =>  c
+        case (c, i) if i <= center && i >= (center - math.ceil (l._1 / 2.0))   => ("O", l._2, l._3)
+        case (c, i) if i >= center && i <= (center + math.floor(l._1 / 2.0))   => ("O", l._2, l._3)
+        case (c, i)                                                            => ( c , l._2, l._3)
       }
     }
 
-    cols.reduce((l, r) => l.zip(r).map { case (a, b) => a + "         " + b }).foreach(l => println("         " + l))
+    cols.reduce((l, r) => l.zip(r).map {
+      case ((a, true, true), (b, true, true))   => (a + " " + b,           true,  true)
+      case ((a, true, true), (b, true, false))  => (a + " " + b + "     ", true,  true)
+      case ((a, _, _), (b, _, _))               => (a + "     " + b,       false, false)
+    }).foreach(l => println("         " + l._1))
 
     println()
     println()

@@ -270,26 +270,28 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
           val id = _indices(i + 1)
           val de = ds(i + 1)
           val wr = weights(i + 1)
-          val ep = new Array[Matrix](de.rows)
+          val fs = l2.field._1 * l2.field._2
+          val dc = DenseMatrix.zeros[Double](fs * l2.filters, l2.dimIn._1 * l2.dimIn._2)
           var f  = 0
           while (f < de.rows) {
-            val out = DenseMatrix.zeros[Double](l2.dimIn._1 * l2.field._1, l2.dimIn._2 * l2.field._2)
-            var (x, y) = (0, 0)
+            var (x, y, q) = (0, 0, 0)
             while (x < l2.dimIn._1) {
               while (y < l2.dimIn._2) {
-                id(x, y).foreachPair { (k, v) =>
-                  val t = (x * l2.field._1 + k._1, y * l2.field._2 + k._2)
-                  out.update(t, if (v > 0.0) de(f, v - 1) else 0.0)
+                var p = 0
+                id(x, y).foreachPair { (_, v) =>
+                  val t = (f * fs + p, q)
+                  val d = if (v > 0) de(f, v - 1) else 0.0
+                  dc.update(t, d)
+                  p += 1
                 }
                 y += 1
+                q += 1
               }
               y = 0
               x += 1
             }
-            ep.update(f, out)
             f += 1
           }
-          val dc = im2col(ep, l2.field, l2.field)._1
           val fieldSq = l2.field._1 * l2.field._2
           val ww = DenseMatrix.zeros[Double](l.filters, l2.filters * fieldSq)
           var (filter, depth) = (0, 0)
