@@ -71,7 +71,8 @@ val deeperNet = Network(
   bottleNeck ::: fullies, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
-    regularization = Some(KeepBest), batchSize = Some(8), parallelism = 8)
+    regularization = Some(KeepBest), batchSize = Some(8), parallelism = 8
+  )
 )
 ```
 
@@ -105,13 +106,16 @@ you can pipe the errors to any `file` like this:
 
 ```scala
   Settings(
-    errorFuncOutput = Some(ErrorFuncOutput(
-      file = Some("~/NF/errorFunc.txt"), 
-      action = Some(error => proceed(error))))
+    errorFuncOutput = Some(
+      ErrorFuncOutput(
+        file = Some("~/NF/errorFunc.txt"), 
+        action = Some(error => sendToDashboard(error))
+      )
+    )
   )
 ```
 
-We can use beloved gnuplot to come up with a nice plot of our error function over time:
+We can use beloved gnuplot to plot the error during training:
 
 ```bash
 gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
