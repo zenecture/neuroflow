@@ -5,13 +5,11 @@ It is written in Scala, matrix and vector operations are performed with <a href=
 
 # Introduction
 
-This project consists of three modules:
+There are three modules:
 
 - core: the building blocks to create neural network architectures
 - application: plugins, helpers, functionality related to various applications
 - playground: examples with resources
-
-
     
 # Getting Started
 
@@ -44,26 +42,33 @@ import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 ```
 
-This gives us a fully connected net, which is initialized with random weights in supervised training mode. 
+This gives us a fully connected `DenseNetwork` on the cpu, which is initialized with random weights by a `WeightProvider`.
+Then, we want to import all `Activator` functions so we can place a `Sigmoid` on our neurons.
 
 ```scala
 val (g, h) = (Sigmoid, Sigmoid)
 val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
-The architecture of the net is expressed as a list. We use sigmoid activation functions `g` and `h` for hidden and output layers. 
-A little deeper net, with some rates and rules defined, like precision or maximum iterations, through a `Settings` instance, 
-could look like this:
+In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
+They give type-safety and a humble ability to compose groups of layers. For instance, a little deeper net, with some 
+rates and rules defined through a `Settings` instance, could look like this:
 
 ```scala
 val (e, f) = (Linear, Sigmoid)
+val bottleNeck =
+  Input  (50)               ::
+  Focus  (Dense(10, e))     :: HNil
+val fullies    =
+  Dense  (20,  f)           ::
+  Dense  (30,  f)           ::
+  Dense  (40,  f)           ::
+  Dense  (420, f)           ::
+  Dense  (40,  f)           ::
+  Dense  (30,  f)           :: 
+  Output (20,  f)           :: HNil
 val deeperNet = Network(
-  Input(50)               ::  
-  Focus(Dense(10, e))     :: 
-  Dense(20, f)            ::
-  Dense(30, f)            ::
-  Dense(40, f)            :: 
-  Output(50, f)           :: HNil, 
+  bottleNeck ::: fullies, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
     regularization = Some(KeepBest), batchSize = Some(8), parallelism = 8)
@@ -72,7 +77,7 @@ val deeperNet = Network(
 
 The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent. 
 The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
-since a batch will be processed in parallel. Have a look at the `Settings` class for the full list of options.
+since each batch is processed in parallel. Have a look at the `Settings` class for the full list of options.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
