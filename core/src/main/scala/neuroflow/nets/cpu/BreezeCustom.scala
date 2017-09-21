@@ -1,11 +1,11 @@
-package neuroflow.nets
+package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.math._
 import breeze.optimize.FirstOrderMinimizer._
 import breeze.optimize._
 import neuroflow.common.Logs
-import neuroflow.nets.NFLBFGS.ErrorFunctionMin
+import neuroflow.nets.cpu.NFLBFGS.ErrorFunctionMin
 
 /**
   * Breeze related custom classes.

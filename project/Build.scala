@@ -1,4 +1,4 @@
-import sbt.Keys._
+import sbt.Keys.{autoCompilerPlugins, _}
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
 
@@ -15,8 +15,9 @@ object NeuroflowBuild extends Build {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
       case "reference.conf"              => MergeStrategy.concat
       case x                             => MergeStrategy.first
-    }
-
+    },
+    autoCompilerPlugins := true,
+    addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full)
   )
 
   lazy val core        = Project(id = "neuroflow-core",        base = file("core"),        settings = neuroflowSettings)

@@ -1,7 +1,7 @@
 import neuroflow.application.plugin.IO.Json
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
-import neuroflow.nets.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._

@@ -6,7 +6,7 @@ import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator.Tanh
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
 import scala.collection.immutable.Seq

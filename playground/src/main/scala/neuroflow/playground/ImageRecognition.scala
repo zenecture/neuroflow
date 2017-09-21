@@ -11,7 +11,7 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Convolution.IntTupler
 import neuroflow.core._
-import neuroflow.nets.ConvNetwork._
+import neuroflow.nets.cpu.ConvNetwork._
 import shapeless._
 
 /**
@@ -26,8 +26,8 @@ object ImageRecognition {
     val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
-    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
-//    implicit val wp = IO.File.read(wps)
+//    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
+    implicit val wp = IO.File.read(wps)
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -72,7 +72,7 @@ object ImageRecognition {
         parallelism = 8,
         batchSize = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
-        waypoint = Some(Waypoint(nth = 6, ws => IO.File.write(ws, wps)))
+        waypoint = Some(Waypoint(nth = 3, ws => IO.File.write(ws, wps)))
       )
     )
 

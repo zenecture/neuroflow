@@ -1,4 +1,4 @@
-package neuroflow.nets
+package neuroflow.nets.cpu
 
 import breeze.linalg._
 import neuroflow.common.VectorTranslation._
@@ -28,7 +28,7 @@ class DenseNetworkNumTest extends Specification {
   """
 
   def gradCheck = {
-    import neuroflow.nets.DenseNetwork._
+    import neuroflow.nets.cpu.DenseNetwork._
     
     val f = Tanh
 

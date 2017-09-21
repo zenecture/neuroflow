@@ -1,4 +1,4 @@
-package neuroflow.nets
+package neuroflow.nets.gpu
 
 import breeze.linalg._
 import breeze.numerics._
@@ -7,6 +7,7 @@ import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -22,7 +23,7 @@ import scala.concurrent.forkjoin.ForkJoinPool
   * Use the parallelism parameter with care, as it greatly affects memory usage.
   *
   * @author bogdanski
-  * @since 15.01.16
+  * @since 21.09.17
   *
   */
 

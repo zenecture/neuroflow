@@ -31,7 +31,6 @@ project/plugins/project/
 .history
 *.iml
 *.sublime*
-/core/lib/
 application/publish.sbt
 core/publish.sbt
 playground/publish.sbt

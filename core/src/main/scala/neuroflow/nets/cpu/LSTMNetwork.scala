@@ -1,4 +1,4 @@
-package neuroflow.nets
+package neuroflow.nets.cpu
 
 import java.lang.System.identityHashCode
 
@@ -9,6 +9,7 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection._

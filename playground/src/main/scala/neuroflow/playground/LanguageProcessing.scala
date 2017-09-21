@@ -8,7 +8,7 @@ import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.LBFGSNetwork._
+import neuroflow.nets.cpu.LBFGSNetwork._
 import shapeless._
 
 /**

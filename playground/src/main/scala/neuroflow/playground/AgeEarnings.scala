@@ -6,7 +6,7 @@ import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core.FFN.WeightProvider._
 import neuroflow.core._
-import neuroflow.nets.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
 
