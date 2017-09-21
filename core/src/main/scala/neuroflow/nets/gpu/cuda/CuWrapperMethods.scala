@@ -28,7 +28,7 @@ object CuWrapperMethods {
     val ctx = CuContext.ensureContext
     val module = new CUmodule()
     val zero_out = new CUfunction()
-    JCudaDriver.cuModuleLoad(module, "src/main/resources/gust/linalg/cuda/enforceLUFloat.ptx")
+    JCudaDriver.cuModuleLoad(module, "src/main/resources/cuda/enforceLUFloat.ptx")
 
     val funcName = if (fillMode == 'U') "zerosU" else "zerosL"
     JCudaDriver.cuModuleGetFunction(zero_out, module, funcName)
@@ -69,7 +69,7 @@ object CuWrapperMethods {
     implicit val dev = CuDevice(0)
     val ctx = CuContext.ensureContext
     val module = new CUmodule()
-    JCudaDriver.cuModuleLoad(module, "src/main/resources/gust/linalg/cuda/enforceLUDouble.ptx")
+    JCudaDriver.cuModuleLoad(module, "src/main/resources/cuda/enforceLUDouble.ptx")
 
     val zero_out = new CUfunction()
     val funcName = if (fillMode == 'U') "zerosU" else "zerosL"
@@ -113,7 +113,7 @@ object CuWrapperMethods {
     val ctx = CuContext.ensureContext
     val module = new CUmodule()
     val zero_out = new CUfunction()
-    JCudaDriver.cuModuleLoad(module, "src/main/resources/gust/linalg/cuda/enforceLUFloat.ptx")
+    JCudaDriver.cuModuleLoad(module, "src/main/resources/cuda/enforceLUFloat.ptx")
 
     val funcName = if (fillMode == 'U') "zerosU" else "zerosL"
     JCudaDriver.cuModuleGetFunction(zero_out, module, funcName)
@@ -155,7 +155,7 @@ object CuWrapperMethods {
     val ctx = CuContext.ensureContext
     val module = new CUmodule()
     val zero_out = new CUfunction()
-    JCudaDriver.cuModuleLoad(module, "src/main/resources/gust/linalg/cuda/enforceLUDouble.ptx")
+    JCudaDriver.cuModuleLoad(module, "src/main/resources/cuda/enforceLUDouble.ptx")
 
     val funcName = if (fillMode == 'U') "zerosU" else "zerosL"
     JCudaDriver.cuModuleGetFunction(zero_out, module, funcName)
@@ -344,12 +344,12 @@ object CuWrapperMethods {
 
   def copyFloat(m: Int, n: Int, dst: CuMatrix[Float], dst_roff: Int, dst_coff: Int,
                 src: CuMatrix[Float], src_roff: Int, src_coff: Int) {
-    copy[Float](m, n, dst, dst_roff, dst_coff, src, src_roff, src_coff, "src/main/resources/gust/linalg/cuda/elemWiseFloat.ptx")
+    copy[Float](m, n, dst, dst_roff, dst_coff, src, src_roff, src_coff, "src/main/resources/cuda/elemWiseFloat.ptx")
   }
 
   def copyDouble(m: Int, n: Int, dst: CuMatrix[Double], dst_roff: Int, dst_coff: Int,
                  src: CuMatrix[Double], src_roff: Int, src_coff: Int) {
-    copy[Double](m, n, dst, dst_roff, dst_coff, src, src_roff, src_coff, "src/main/resources/gust/linalg/cuda/elemWiseDouble.ptx")
+    copy[Double](m, n, dst, dst_roff, dst_coff, src, src_roff, src_coff, "src/main/resources/cuda/elemWiseDouble.ptx")
   }
 
   def copy[V](m: Int, n: Int, dst: CuMatrix[V], dst_roff: Int, dst_coff: Int,
@@ -598,7 +598,7 @@ object CuWrapperMethods {
     val ctx = CuContext.ensureContext
     val module = new CUmodule()
     val batchSwap = new CUfunction()
-    JCudaDriver.cuModuleLoad(module, "src/main/resources/gust/linalg/cuda/swap.ptx")
+    JCudaDriver.cuModuleLoad(module, "src/main/resources/cuda/swap.ptx")
 
     val funcName = "batch_sswap"
     JCudaDriver.cuModuleGetFunction(batchSwap, module, funcName)
@@ -647,8 +647,8 @@ object CuWrapperMethods {
     val isOfTypeD = A.elemSize == 8
     if (!(isOfTypeS || isOfTypeD)) throw new UnsupportedOperationException("Can only handle matrices with elemSizes 4 and 8")
 
-    val (moduleName, cublasOp) = if (isOfTypeS) ("src/main/resources/gust/linalg/cuda/reduceFloat.ptx", JCublas2.cublasScopy _)
-    else ("src/main/resources/gust/linalg/cuda/reduceDouble.ptx", JCublas2.cublasDcopy _)
+    val (moduleName, cublasOp) = if (isOfTypeS) ("src/main/resources/cuda/reduceFloat.ptx", JCublas2.cublasScopy _)
+    else ("src/main/resources/cuda/reduceDouble.ptx", JCublas2.cublasDcopy _)
 
     JCudaDriver.setExceptionsEnabled(true)
     implicit val dev = CuDevice(0)
