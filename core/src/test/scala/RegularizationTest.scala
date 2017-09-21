@@ -7,7 +7,8 @@ import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.FFN.WeightProvider.oneWeights
 import neuroflow.core.Network.Vector
 import neuroflow.core._
-import neuroflow.nets.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork
+import neuroflow.nets.cpu.DenseNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._

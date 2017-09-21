@@ -37,7 +37,7 @@ object Sequences {
 
   def cosine2sine = {
 
-    import neuroflow.nets.LSTMNetwork._
+    import neuroflow.nets.cpu.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-0.2, 0.2)
 
     val stepSize = 0.1
@@ -65,7 +65,7 @@ object Sequences {
 
   def linear2Step = {
 
-    import neuroflow.nets.LSTMNetwork._
+    import neuroflow.nets.cpu.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-5.0, 5.0)
 
     val stepSize = 0.01
@@ -93,7 +93,7 @@ object Sequences {
 
   def linear2cosineSine = {
 
-    import neuroflow.nets.LSTMNetwork._
+    import neuroflow.nets.cpu.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
     val stepSize = 0.1
@@ -123,7 +123,7 @@ object Sequences {
 
   def cosineSineClassifier = {
 
-    import neuroflow.nets.LSTMNetwork._
+    import neuroflow.nets.cpu.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
     val stepSize = 0.01
@@ -167,7 +167,7 @@ object Sequences {
 
   def randomPointMapping = {
 
-    import neuroflow.nets.LSTMNetwork._
+    import neuroflow.nets.cpu.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
     val xs = (1 to 9) map (_ => ρ(3))
@@ -199,7 +199,7 @@ object Sequences {
 
   def randomPointClassifier = {
 
-    import neuroflow.nets.LSTMNetwork._
+    import neuroflow.nets.cpu.LSTMNetwork._
     implicit val wp = RNN.WeightProvider(-1.0, 1.0)
 
     val (c, n, k) = (5, 5, 3)

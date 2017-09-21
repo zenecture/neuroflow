@@ -1,11 +1,11 @@
-package neuroflow.nets
+package neuroflow.nets.cpu
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.core.Activator._
 import neuroflow.core.CNN.{convoluted, random}
 import neuroflow.core.Network.Weights
 import neuroflow.core._
-import neuroflow.nets.ConvNetwork._
+import neuroflow.nets.cpu.ConvNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._

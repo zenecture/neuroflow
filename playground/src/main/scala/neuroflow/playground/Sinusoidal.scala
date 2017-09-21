@@ -3,7 +3,7 @@ package neuroflow.playground
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
 import scala.annotation.tailrec

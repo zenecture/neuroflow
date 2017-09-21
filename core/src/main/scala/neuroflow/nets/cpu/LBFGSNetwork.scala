@@ -1,4 +1,4 @@
-package neuroflow.nets
+package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.numerics._
@@ -7,6 +7,7 @@ import breeze.stats._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -16,6 +17,8 @@ import scala.collection.Seq
   *
   * This is a fully connected Neural Network that uses Breeze's LBFGS,
   * a quasi-Newton method to find optimal weights.
+  *
+  * This is a test (gradients are approximated), not intended to be used in prod.
   *
   * @author bogdanski
   * @since 12.06.16

@@ -1,10 +1,11 @@
-package neuroflow.nets
+package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection.Seq
