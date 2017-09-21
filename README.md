@@ -42,8 +42,8 @@ import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 ```
 
-This gives us a fully connected `DenseNetwork`, which is initialized with random weights by a `WeightProvider`.
-Then, we want to import all `Activator` functions so we can place a `Sigmoid` on our neurons.
+This gives a fully connected `DenseNetwork`, which is initialized with random weights by `WeightProvider`.
+We import all `Activator` functions so we can place a `Sigmoid` on the layers:
 
 ```scala
 val (g, h) = (Sigmoid, Sigmoid)
