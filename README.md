@@ -85,14 +85,8 @@ If a network doesn't follow this rule, it won't compile.
 
 # Training
 
-For feed-forward nets, the error function is defined as follows:
-
-    Σ1/2(t - net(x))²
-
-Where `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and the square `²` gives a convex functional form, which is convenient for gradient descent.
-
 Let's train our `net` with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
-For our little example, let's quickly define the training data using the vector notation:
+In NeuroFlow, you work with Breeze vectors and matrices (`DenseMatrix[Double]`, `DenseVector[Double]` or `Matrix`, `Vector` for brevity). Let's quickly define the training data using the vector notation:
 
 ```scala
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
@@ -100,9 +94,15 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys) // it's the XOR-Function :-)
 ```
 
+For feed-forward nets, the error function is defined as follows:
+
+    E(W) = Σ1/2(t - net(x))²
+
+Where `W` are all weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
+the square `²` gives a convex functional form, which is convenient for gradient descent.
+
 The training progress will appear on console so we can track it. 
-If you want to visualize the error function graph during training, 
-you can pipe the errors to any `file` like this:
+If you want to visualize the error function, you can pipe the errors to a `file` like this:
 
 ```scala
   Settings(
@@ -115,7 +115,7 @@ you can pipe the errors to any `file` like this:
   )
 ```
 
-We can use beloved gnuplot to plot the error during training:
+This way we can use beloved gnuplot to plot the error during training:
 
 ```bash
 gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
