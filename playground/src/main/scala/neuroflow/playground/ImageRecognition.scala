@@ -26,8 +26,8 @@ object ImageRecognition {
     val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
-//    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
-    implicit val wp = IO.File.read(wps)
+    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
+//    implicit val wp = IO.File.read(wps)
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -37,12 +37,12 @@ object ImageRecognition {
       c -> ~>(ζ(classes.size)).io(_.update(i, 1.0)).t 
     }.toMap
 
-    val train = new File(path + "/train").list().take(10000).map { s =>
+    val train = new File(path + "/train").list().take(50000).map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/train/" + s, None) -> classVecs(c)
     }
 
-    val test = new File(path + "/test").list().take(1000).map { s =>
+    val test = new File(path + "/test").list().take(10000).map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/test/" + s, None) -> classVecs(c)
     }
@@ -78,7 +78,7 @@ object ImageRecognition {
 
     net.train(train.map(_._1), train.map(_._2))
 
-    val rate = test.map {
+    val rate = test.par.map {
       case (x, y) =>
         val v = net(x)
         val c = v.data.indexOf(max(v))
