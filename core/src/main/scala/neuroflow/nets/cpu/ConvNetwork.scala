@@ -51,11 +51,11 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
 
   private val _lastWlayerIdx  = weights.size - 1
   private val _convLayers     = layers.zipWithIndex.map(_.swap).filter {
-    case (_, _: Convolution) => true
+    case (_, _: Convolution)        => true
     case (_, Focus(_: Convolution)) => true
-    case _ => false
+    case _                          => false
   }.toMap.mapValues {
-    case c: Convolution => c
+    case c: Convolution        => c
     case Focus(c: Convolution) => c
   }
 
