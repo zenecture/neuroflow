@@ -44,7 +44,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
   import neuroflow.core.Network._
 
   private val _layers = layers.map {
-    case Focus(inner) => inner
+    case Focus(inner)   => inner
     case layer: Layer   => layer
   }.toArray
 

@@ -42,8 +42,9 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
   private val _allLayers = layers.map {
-    case Focus(inner) => inner
-    case layer: Layer with HasActivator[Double]  => layer
+    case Focus(inner)    => inner
+    case layer: Layer with HasActivator[Double]
+                         => layer
   }.toArray
 
   private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
