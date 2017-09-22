@@ -45,7 +45,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
 
   private val _layers = layers.map {
     case Focus(inner) => inner
-    case layer: Layer   => layer
+    case layer: Layer => layer
   }.toArray
 
   private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
