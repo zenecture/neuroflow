@@ -20,14 +20,16 @@ object Network extends TypeAliases {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[T <: Network[_, _], L <: HList](ls: L, settings: Settings = Settings())
+  def apply[T <: Network[_, _], L <: HList]
+                                     (layers: L,
+                                      settings: Settings = Settings())
                                      (implicit
                                       startsWith: L StartsWith In,
                                       endsWith: L EndsWith Out,
                                       weightProvider: WeightProvider,
                                       constructor: Constructor[T],
                                       toList: L ToList Layer): T = {
-    constructor(ls.toList, settings)
+    constructor(layers.toList, settings)
   }
 
 }
