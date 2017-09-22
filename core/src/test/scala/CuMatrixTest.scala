@@ -67,6 +67,7 @@ class CuMatrixTest  extends Specification {
     c.release()
     d.release()
     e.release()
+    f.release()
     success
   }
 
