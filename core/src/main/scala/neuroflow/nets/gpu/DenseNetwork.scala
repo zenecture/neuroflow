@@ -52,7 +52,6 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
 
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
   private val _outputDim      = _layers.last.neurons
-  private val _lastLayerIdx   = _layers.size - 1
   private val _lastWlayerIdx  = weights.size - 1
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
