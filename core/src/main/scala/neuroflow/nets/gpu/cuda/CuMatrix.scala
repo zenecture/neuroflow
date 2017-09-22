@@ -37,7 +37,7 @@ class CuMatrix[V](val rows: Int,
 
   /** Calculates the index into the data array for row and column */
   final def linearIndex(row: Int, col: Int): Int = {
-    if(isTranspose)
+    if (isTranspose)
       offset + col + row * majorStride
     else
       offset + row + col * majorStride
@@ -45,7 +45,7 @@ class CuMatrix[V](val rows: Int,
 
   def repr = this
 
-  def majorSize = if(isTranspose) rows else cols
+  def majorSize = if (isTranspose) rows else cols
 
   def activeSize = size
 
@@ -58,18 +58,18 @@ class CuMatrix[V](val rows: Int,
   def offsetPointer = data.toCuPointer.withByteOffset(elemSize * offset)
 
   def writeFromDense(b: DenseMatrix[V]): Int = {
+
     require(b.rows == this.rows, "Matrices must have same number of rows")
     require(b.cols == this.cols, "Matrices must have same number of columns")
 
-    if(isTranspose) {
+    if (isTranspose) {
       return this.t.writeFromDense(b.t)
     }
 
-    val _b = if(b.isTranspose) b.copy else b
-
+    val _b = if (b.isTranspose) b.copy else b
     val bPtr = cuPointerToArray(_b.data)
 
-    val (width, height) = if(isTranspose) (cols, rows) else (rows, cols)
+    val (width, height) = if (isTranspose) (cols, rows) else (rows, cols)
 
     assert(majorStride >= width, majorStride + " " + width)
     assert(_b.majorStride >= width)
@@ -89,19 +89,19 @@ class CuMatrix[V](val rows: Int,
 
   private def isGapless = (!this.isTranspose && this.majorStride == this.rows) || (this.isTranspose && this.majorStride == this.cols)
 
-
   def writeFrom(b: CuMatrix[V])(implicit stream: CUstream = new CUstream(), blas: cublasHandle) = {
+
     require(b.rows == this.rows, "Matrices must have same number of rows")
     require(b.cols == this.cols, "Matrices must have same number of columns")
 
     val aPtr = data.toCuPointer.withByteOffset(offset * elemSize)
     val bPtr = b.data.toCuPointer.withByteOffset(offset * elemSize)
 
-    val (width, height) = if(isTranspose) (cols, rows) else (rows, cols)
+    val (width, height) = if (isTranspose) (cols, rows) else (rows, cols)
 
-    if(b.isGapless && this.isGapless && b.isTranspose == this.isTranspose)  {
+    if (b.isGapless && this.isGapless && b.isTranspose == this.isTranspose)  {
       JCuda.cudaMemcpyAsync(aPtr, bPtr, size * elemSize, cudaMemcpyKind.cudaMemcpyDeviceToDevice, new cudaStream_t(stream))
-    } else if(b.isTranspose == this.isTranspose) {
+    } else if (b.isTranspose == this.isTranspose) {
       JCuda.cudaMemcpy2DAsync(aPtr,
         majorStride * elemSize,
         bPtr,
@@ -111,16 +111,14 @@ class CuMatrix[V](val rows: Int,
         cudaMemcpyKind.cudaMemcpyDeviceToDevice,
         new cudaStream_t(stream)
       )
-
     } else {
-      val op = if(elemSize == 4) {
+      val op = if (elemSize == 4) {
         JCublas2.cublasSgeam _
-      } else if(elemSize == 8) {
+      } else if (elemSize == 8) {
         JCublas2.cublasDgeam _
       } else {
         throw new UnsupportedOperationException("can't do a copy-transpose with elems that are not of size 4 or 8")
       }
-
       blas.withStream(stream) {
         op(blas, cublasOperation.CUBLAS_OP_T, cublasOperation.CUBLAS_OP_T,
           width, height,
@@ -130,56 +128,51 @@ class CuMatrix[V](val rows: Int,
           CuMatrix.hostZero,
           bPtr, b.majorStride, aPtr, majorStride)
       }
-
-
     }
-
-
 
   }
 
-
-  private def canReshapeView = if(isTranspose) majorStride == cols else majorStride == rows
+  private def canReshapeView = if (isTranspose) majorStride == cols else majorStride == rows
 
   /** Reshapes this matrix to have the given number of rows and columns
     * If view = true (or View.Require), throws an exception if we cannot return a view. otherwise returns a view.
     * If view == false (or View.Copy) returns a copy
     * If view == View.Prefer (the default), returns a view if possible, otherwise returns a copy.
     *
-    * Views are only possible (if(isTranspose) majorStride == cols else majorStride == rows) == true
+    * Views are only possible (if (isTranspose) majorStride == cols else majorStride == rows) == true
     *
     * rows * cols must equal size, or cols < 0 && (size / rows * rows == size)
     * @param rows the number of rows
     * @param cols the number of columns, or -1 to auto determine based on size and rows
     */
-  def reshape(rows: Int, cols: Int, view: View=View.Prefer):CuMatrix[V] = {
-    val _cols = cols//if(cols < 0) size / rows else cols
-    require(rows * _cols == size, "Cannot reshape a (%d,%d) matrix to a (%d,%d) matrix!".format(this.rows, this.cols, rows, _cols))
+  def reshape(rows: Int, cols: Int, view: View = View.Prefer): CuMatrix[V] = {
+
+    require(rows * cols == size, "Cannot reshape a (%d,%d) matrix to a (%d,%d) matrix!".format(this.rows, this.cols, rows, cols))
 
     view match {
       case View.Require =>
-        if(!canReshapeView)
+        if (!canReshapeView)
           throw new UnsupportedOperationException("Cannot make a view of this matrix.")
         else
-          new CuMatrix(rows, _cols, data, offset, if(isTranspose) cols else rows, isTranspose)
+          new CuMatrix(rows, cols, data, offset, if (isTranspose) cols else rows, isTranspose)
       case View.Copy =>
         // calling copy directly gives a verify error. TODO: submit bug
         val result = copy
-        result.reshape(rows, _cols, View.Require)
+        result.reshape(rows, cols, View.Require)
       case View.Prefer =>
         reshape(rows, cols, canReshapeView)
     }
+
   }
 
   /** Forcibly releases the buffer. Note that other slices will be invalidated! */
-  def release() = {
+  def release(): Unit = {
     data.release()
   }
 
-  def toDense = {
+  def toDense: DenseMatrix[V] = {
     val arrayData = Pointer.allocateArray(data.getIO, size)
-
-    val (_r, _c) = if(isTranspose) (cols, rows) else (rows, cols)
+    val (_r, _c) = if (isTranspose) (cols, rows) else (rows, cols)
 
     JCublas2.cublasGetMatrix(_r, _c, elemSize.toInt, data.toCuPointer.withByteOffset(elemSize * offset), majorStride, arrayData.toCuPointer, _r)
 
@@ -197,7 +190,7 @@ class CuMatrix[V](val rows: Int,
   }
 
   // to make life easier when debugging
-  override def toString = this.toDense.toString + "\nPointer: " + data.toString + "\n"
+  override def toString: String = this.toDense.toString + "\nPointer: " + data.toString + "\n"
 
   /**
     * A Frobenius norm of a matrix
@@ -258,7 +251,6 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
     */
   def zeros[V](rows: Int, cols: Int)(implicit ct: ClassTag[V]): CuMatrix[V] = {
     val mat = new CuMatrix[V](rows, cols)
-
     JCuda.cudaMemset(mat.data.toCuPointer, 0, mat.size * mat.elemSize)
 
     mat
@@ -269,9 +261,7 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
     */
   def ones[V](rows: Int, cols: Int)(implicit ct: ClassTag[V], semiring: Semiring[V], canSet: OpSet.InPlaceImpl2[CuMatrix[V], V]): CuMatrix[V] = {
     val mat = new CuMatrix[V](rows, cols)
-
     mat := semiring.one
-
 
     mat
   }
@@ -295,7 +285,6 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
     mat
   }
 
-
   def rand(rows: Int, cols: Int)(implicit rand: RandBasis = Rand) = {
     import jcuda.jcurand.JCurand._
     val mat = new CuMatrix[Double](rows, cols)
@@ -308,7 +297,6 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
 
     mat
   }
-
 
   def fromDense[V<:AnyVal](mat: DenseMatrix[V])(implicit ct: ClassTag[V]) = {
     val g = new CuMatrix[V](mat.rows, mat.cols)
@@ -371,15 +359,14 @@ trait LowPriorityNativeMatrix extends LowPriorityNativeMatrix1 { this: CuMatrix.
 trait CuMatrixOps extends CuMatrixFuns { this: CuMatrix.type =>
   implicit def CuMatrixDMulCuMatrixD(implicit blas: cublasHandle): OpMulMatrix.Impl2[CuMatrix[Double], CuMatrix[Double], CuMatrix[Double]] = new OpMulMatrix.Impl2[CuMatrix[Double], CuMatrix[Double], CuMatrix[Double]] {
     def apply(_a : CuMatrix[Double], _b : CuMatrix[Double]): CuMatrix[Double] = {
-
       require(_a.cols == _b.rows, s"Dimension mismatch: ${(_a.rows, _a.cols)} ${(_b.rows, _b.cols)}")
       val rv = CuMatrix.zeros[Double](_a.rows, _b.cols)
 
-      if(_a.rows == 0 || _b.rows == 0 || _a.cols == 0 || _b.cols == 0) return rv
+      if (_a.rows == 0 || _b.rows == 0 || _a.cols == 0 || _b.cols == 0) return rv
 
       // if we have a weird stride...
-      val a:CuMatrix[Double] = if(_a.majorStride < math.max(if(_a.isTranspose) _a.cols else _a.rows, 1)) _a.copy else _a
-      val b:CuMatrix[Double] = if(_b.majorStride < math.max(if(_b.isTranspose) _b.cols else _b.rows, 1)) _b.copy else _b
+      val a:CuMatrix[Double] = if (_a.majorStride < math.max(if (_a.isTranspose) _a.cols else _a.rows, 1)) _a.copy else _a
+      val b:CuMatrix[Double] = if (_b.majorStride < math.max(if (_b.isTranspose) _b.cols else _b.rows, 1)) _b.copy else _b
 
       JCublas2.cublasDgemm(blas, transposeOp(a), transposeOp(b),
         rv.rows, rv.cols, a.cols,
@@ -392,15 +379,14 @@ trait CuMatrixOps extends CuMatrixFuns { this: CuMatrix.type =>
 
   implicit def CuMatrixFMulCuMatrixF(implicit blas: cublasHandle): OpMulMatrix.Impl2[CuMatrix[Float], CuMatrix[Float], CuMatrix[Float]] = new OpMulMatrix.Impl2[CuMatrix[Float], CuMatrix[Float], CuMatrix[Float]] {
     def apply(_a : CuMatrix[Float], _b : CuMatrix[Float]): CuMatrix[Float] = {
-
       require(_a.cols == _b.rows, s"Dimension mismatch: ${(_a.rows, _a.cols)} ${(_b.rows, _b.cols)}")
       val rv = CuMatrix.zeros[Float](_a.rows, _b.cols)
 
-      if(_a.rows == 0 || _b.rows == 0 || _a.cols == 0 || _b.cols == 0) return rv
+      if (_a.rows == 0 || _b.rows == 0 || _a.cols == 0 || _b.cols == 0) return rv
 
       // if we have a weird stride...
-      val a:CuMatrix[Float] = if(_a.majorStride < math.max(if(_a.isTranspose) _a.cols else _a.rows, 1)) _a.copy else _a
-      val b:CuMatrix[Float] = if(_b.majorStride < math.max(if(_b.isTranspose) _b.cols else _b.rows, 1)) _b.copy else _b
+      val a:CuMatrix[Float] = if (_a.majorStride < math.max(if (_a.isTranspose) _a.cols else _a.rows, 1)) _a.copy else _a
+      val b:CuMatrix[Float] = if (_b.majorStride < math.max(if (_b.isTranspose) _b.cols else _b.rows, 1)) _b.copy else _b
 
       JCublas2.cublasSgemm(blas, transposeOp(a), transposeOp(b),
         rv.rows, rv.cols, a.cols,
@@ -467,19 +453,17 @@ trait CuMatrixOps extends CuMatrixFuns { this: CuMatrix.type =>
 
   implicit def CuMatrixFAddCuMatrixF(implicit blas: cublasHandle): OpAdd.Impl2[CuMatrix[Float], CuMatrix[Float], CuMatrix[Float]] = new OpAdd.Impl2[CuMatrix[Float], CuMatrix[Float], CuMatrix[Float]] {
     def apply(a : CuMatrix[Float], b : CuMatrix[Float]): CuMatrix[Float] = {
-      if(a.majorStride < math.max(if(a.isTranspose) a.cols else a.rows, 1)
-        || b.majorStride < math.max(if(b.isTranspose) b.cols else b.rows, 1))  {
+      if (a.majorStride < math.max(if (a.isTranspose) a.cols else a.rows, 1)
+        || b.majorStride < math.max(if (b.isTranspose) b.cols else b.rows, 1))  {
         addImpl[Float].apply(a, b)
       } else {
-
         require(a.rows == b.rows, s"Row dimension mismatch for addition: ${(a.rows, a.cols)} ${(b.rows, b.cols)}")
         require(a.cols == b.cols, s"Column dimension mismatch: ${(a.rows, a.cols)} ${(b.rows, b.cols)}")
         val rv = CuMatrix.zeros[Float](a.rows, b.cols)
 
-        if(a.rows == 0 || b.rows == 0 || a.cols == 0 || b.cols == 0) return rv
+        if (a.rows == 0 || b.rows == 0 || a.cols == 0 || b.cols == 0) return rv
 
         // if we have a weird stride (mostly stride 0), switch to custom implementation
-
         JCublas2.cublasSgeam(blas, transposeOp(a), transposeOp(b),
           rv.rows, rv.cols,
           hostOne, a.data.toCuPointer.withByteOffset(a.offset * a.elemSize), a.majorStride,
@@ -493,16 +477,13 @@ trait CuMatrixOps extends CuMatrixFuns { this: CuMatrix.type =>
 
   implicit def CuMatrixFSubCuMatrixF(implicit blas: cublasHandle): OpSub.Impl2[CuMatrix[Float], CuMatrix[Float], CuMatrix[Float]] = new OpSub.Impl2[CuMatrix[Float], CuMatrix[Float], CuMatrix[Float]] {
     def apply(a : CuMatrix[Float], b : CuMatrix[Float]): CuMatrix[Float] = {
-      if(a.majorStride < math.max(if(a.isTranspose) a.cols else a.rows, 1)
-        || b.majorStride < math.max(if(b.isTranspose) b.cols else b.rows, 1))  {
+      if (a.majorStride < math.max(if (a.isTranspose) a.cols else a.rows, 1)
+        || b.majorStride < math.max(if (b.isTranspose) b.cols else b.rows, 1))  {
         subImpl[Float].apply(a, b)
       } else {
-
-
         require(a.rows == b.rows, s"Row dimension mismatch for addition: ${(a.rows, a.cols)} ${(b.rows, b.cols)}")
         require(a.cols == b.cols, s"Column dimension mismatch: ${(a.rows, a.cols)} ${(b.rows, b.cols)}")
         val rv = CuMatrix.zeros[Float](a.rows, b.cols)
-
         JCublas2.cublasSgeam(blas, transposeOp(a), transposeOp(b),
           rv.rows, rv.cols,
           hostOne, a.data.toCuPointer.withByteOffset(a.offset * a.elemSize), a.majorStride,
@@ -516,7 +497,7 @@ trait CuMatrixOps extends CuMatrixFuns { this: CuMatrix.type =>
 
   implicit def CuMatrixFAddCuMatrixFInPlace(implicit blas: cublasHandle): OpAdd.InPlaceImpl2[CuMatrix[Float], CuMatrix[Float]] = new OpAdd.InPlaceImpl2[CuMatrix[Float], CuMatrix[Float]] {
     def apply(_a : CuMatrix[Float], _b : CuMatrix[Float]):Unit = {
-      if(_a.isTranspose) apply(_a.t, _b.t)
+      if (_a.isTranspose) apply(_a.t, _b.t)
       else {
         require(_a.rows == _b.rows, s"Row dimension mismatch for addition: ${(_a.rows, _a.cols)} ${(_b.rows, _b.cols)}")
         require(_a.cols == _b.cols, s"Column dimension mismatch: ${(_a.rows, _a.cols)} ${(_b.rows, _b.cols)}")
@@ -535,13 +516,12 @@ trait CuMatrixOps extends CuMatrixFuns { this: CuMatrix.type =>
 
   implicit def CuMatrixFSubCuMatrixFInPlace(implicit blas: cublasHandle): OpSub.InPlaceImpl2[CuMatrix[Float], CuMatrix[Float]] = new OpSub.InPlaceImpl2[CuMatrix[Float], CuMatrix[Float]] {
     def apply(_a : CuMatrix[Float], _b : CuMatrix[Float]):Unit = {
-      if(_a.isTranspose) apply(_a.t, _b.t)
+      if (_a.isTranspose) apply(_a.t, _b.t)
       else {
         require(_a.rows == _b.rows, s"Row dimension mismatch for addition: ${(_a.rows, _a.cols)} ${(_b.rows, _b.cols)}")
         require(_a.cols == _b.cols, s"Column dimension mismatch: ${(_a.rows, _a.cols)} ${(_b.rows, _b.cols)}")
         require(!_a.isTranspose)
         if (_a.rows == 0 || _b.rows == 0 || _a.cols == 0 || _b.cols == 0) return
-
         JCublas2.cublasSgeam(blas, cublasOperation.CUBLAS_OP_N, transposeOp(_b),
           _a.rows, _a.cols,
           hostOne, _a.data.toCuPointer.withByteOffset(_a.offset * _a.elemSize), _a.majorStride,
@@ -559,12 +539,9 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSliceRow[V]: CanSlice2[CuMatrix[V], Int, ::.type, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], Int, ::.type, CuMatrix[V]] {
       def apply(m: CuMatrix[V], rowWNegative: Int, ignored: ::.type) = {
-
-
-        if(rowWNegative < -m.rows || rowWNegative >= m.rows) throw new ArrayIndexOutOfBoundsException("Row must be in bounds for slice!")
-        val row = if(rowWNegative<0) rowWNegative+m.rows else rowWNegative
-
-        if(!m.isTranspose)
+        if (rowWNegative < -m.rows || rowWNegative >= m.rows) throw new ArrayIndexOutOfBoundsException("Row must be in bounds for slice!")
+        val row = if (rowWNegative<0) rowWNegative+m.rows else rowWNegative
+        if (!m.isTranspose)
           new CuMatrix(1, m.cols, m.data, m.offset + row, m.majorStride)
         else
           new CuMatrix(1, m.cols, m.data, m.offset + row * m.cols, 1)
@@ -575,12 +552,9 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSliceCol[V]: CanSlice2[CuMatrix[V], ::.type, Int, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], ::.type, Int, CuMatrix[V]] {
       def apply(m: CuMatrix[V], ignored: ::.type, colWNegative: Int) = {
-
-
-        if(colWNegative < -m.cols || colWNegative >= m.cols) throw new ArrayIndexOutOfBoundsException("Column must be in bounds for slice!")
-        val col = if(colWNegative<0) colWNegative+m.cols else colWNegative
-
-        if(!m.isTranspose)
+        if (colWNegative < -m.cols || colWNegative >= m.cols) throw new ArrayIndexOutOfBoundsException("Column must be in bounds for slice!")
+        val col = if (colWNegative<0) colWNegative+m.cols else colWNegative
+        if (!m.isTranspose)
           new CuMatrix(m.rows, 1, m.data, col * m.rows + m.offset, m.majorStride)
         else
           new CuMatrix(rows=m.rows, 1, m.data, offset = m.offset + col, majorStride = m.majorStride, true)
@@ -591,16 +565,13 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSliceRows[V]: CanSlice2[CuMatrix[V], Range, ::.type, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], Range, ::.type, CuMatrix[V]] {
       def apply(m: CuMatrix[V], rowsWNegative: Range, ignored: ::.type) = {
-
-
         val rows = rowsWNegative.getRangeWithoutNegativeIndexes(m.rows)
-
-        if(rows.isEmpty) new CuMatrix(0, m.cols, m.data, 0, 0)
-        else if(!m.isTranspose) {
+        if (rows.isEmpty) new CuMatrix(0, m.cols, m.data, 0, 0)
+        else if (!m.isTranspose) {
           require(rows.step == 1, "Sorry, we can't support row ranges with step sizes other than 1")
           val first = rows.head
           require(rows.last < m.rows)
-          if(rows.last >= m.rows) {
+          if (rows.last >= m.rows) {
             throw new IndexOutOfBoundsException(s"Row slice of $rows was bigger than matrix rows of ${m.rows}")
           }
           new CuMatrix(rows.length, m.cols, m.data, m.offset + first, m.majorStride)
@@ -614,14 +585,11 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSliceCols[V]: CanSlice2[CuMatrix[V], ::.type, Range, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], ::.type, Range, CuMatrix[V]] {
       def apply(m: CuMatrix[V], ignored: ::.type, colsWNegative: Range) = {
-
-
         val cols = colsWNegative.getRangeWithoutNegativeIndexes(m.cols)
-
-        if(cols.isEmpty) new CuMatrix(m.rows, 0, m.data, 0, 1)
-        else if(!m.isTranspose) {
+        if (cols.isEmpty) new CuMatrix(m.rows, 0, m.data, 0, 1)
+        else if (!m.isTranspose) {
           val first = cols.head
-          if(cols.last >= m.cols) {
+          if (cols.last >= m.cols) {
             throw new IndexOutOfBoundsException(s"Col slice of $cols was bigger than matrix cols of ${m.cols}")
           }
           new CuMatrix(m.rows, cols.length, m.data, m.offset + first * m.majorStride, m.majorStride * cols.step)
@@ -635,19 +603,16 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSliceColsAndRows[V]: CanSlice2[CuMatrix[V], Range, Range, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], Range, Range, CuMatrix[V]] {
       def apply(m: CuMatrix[V], rowsWNegative: Range, colsWNegative: Range) = {
-
-
         val rows = rowsWNegative.getRangeWithoutNegativeIndexes(m.rows)
         val cols = colsWNegative.getRangeWithoutNegativeIndexes(m.cols)
-
-        if(rows.isEmpty || cols.isEmpty) new CuMatrix(rows.size, cols.size, m.data, 0, 1)
-        else if(!m.isTranspose) {
+        if (rows.isEmpty || cols.isEmpty) new CuMatrix(rows.size, cols.size, m.data, 0, 1)
+        else if (!m.isTranspose) {
           require(rows.step == 1, "Sorry, we can't support row ranges with step sizes other than 1 for non transposed matrices")
           val first = cols.head
-          if(rows.last >= m.rows) {
+          if (rows.last >= m.rows) {
             throw new IndexOutOfBoundsException(s"Row slice of $rows was bigger than matrix rows of ${m.rows}")
           }
-          if(cols.last >= m.cols) {
+          if (cols.last >= m.cols) {
             throw new IndexOutOfBoundsException(s"Col slice of $cols was bigger than matrix cols of ${m.cols}")
           }
           new CuMatrix(rows.length, cols.length, m.data, m.offset + first * m.rows + rows.head, m.majorStride * cols.step)
@@ -658,8 +623,6 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
       }
     }
   }
-
-
 
   implicit def negFromScale[V](implicit scale: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]], field: Ring[V]) = {
     new OpNeg.Impl[CuMatrix[V], CuMatrix[V]] {
@@ -672,17 +635,14 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSlicePartOfRow[V]: CanSlice2[CuMatrix[V], Int, Range, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], Int, Range, CuMatrix[V]] {
       def apply(m: CuMatrix[V], rowWNegative: Int, colsWNegative: Range) = {
-
-
-        if(rowWNegative < -m.rows || rowWNegative >= m.rows) throw new ArrayIndexOutOfBoundsException("Row must be in bounds for slice!")
-        val row = if(rowWNegative<0) rowWNegative + m.rows else rowWNegative
+        if (rowWNegative < -m.rows || rowWNegative >= m.rows) throw new ArrayIndexOutOfBoundsException("Row must be in bounds for slice!")
+        val row = if (rowWNegative<0) rowWNegative + m.rows else rowWNegative
         val cols = colsWNegative.getRangeWithoutNegativeIndexes(m.cols)
-
-        if(row < 0  || row > m.rows) throw new IndexOutOfBoundsException("Slice with out of bounds row! " + row)
-        if(cols.isEmpty) new CuMatrix(0, 0, m.data, 0, 1)
-        else if(!m.isTranspose) {
+        if (row < 0  || row > m.rows) throw new IndexOutOfBoundsException("Slice with out of bounds row! " + row)
+        if (cols.isEmpty) new CuMatrix(0, 0, m.data, 0, 1)
+        else if (!m.isTranspose) {
           val first = cols.head
-          if(cols.last >= m.cols) {
+          if (cols.last >= m.cols) {
             throw new IndexOutOfBoundsException(s"Col slice of $cols was bigger than matrix cols of ${m.cols}")
           }
           new CuMatrix(1, cols.length, m.data, m.offset + first * m.rows + row, m.majorStride * cols.step)
@@ -697,15 +657,12 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
   implicit def canSlicePartOfCol[V]: CanSlice2[CuMatrix[V], Range, Int, CuMatrix[V]] = {
     new CanSlice2[CuMatrix[V], Range, Int, CuMatrix[V]] {
       def apply(m: CuMatrix[V], rowsWNegative: Range, colWNegative: Int) = {
-
-
         val rows = rowsWNegative.getRangeWithoutNegativeIndexes(m.rows)
-        if(colWNegative < -m.cols || colWNegative >= m.cols) throw new ArrayIndexOutOfBoundsException("Row must be in bounds for slice!")
-        val col = if(colWNegative<0) colWNegative + m.cols else colWNegative
-
-        if(rows.isEmpty) new CuMatrix(0, 0, m.data)
-        else if(!m.isTranspose) {
-          if(rows.last >= m.rows) {
+        if (colWNegative < -m.cols || colWNegative >= m.cols) throw new ArrayIndexOutOfBoundsException("Row must be in bounds for slice!")
+        val col = if (colWNegative<0) colWNegative + m.cols else colWNegative
+        if (rows.isEmpty) new CuMatrix(0, 0, m.data)
+        else if (!m.isTranspose) {
+          if (rows.last >= m.rows) {
             throw new IndexOutOfBoundsException(s"Row slice of $rows was bigger than matrix rows of ${m.rows}")
           }
           new CuMatrix(rows.length, 1, m.data, col * m.rows + m.offset + rows.head, m.majorStride)

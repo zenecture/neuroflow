@@ -19,6 +19,7 @@ class CuMatrixTest  extends Specification {
 
       - Mult two matrices                                $mult
       - AddSub two matrices                              $addSub
+      - Convert DenseMatrix <-> CuMatrix                 $convert
       - Bench with CPU                                   $bench
 
   """
@@ -43,7 +44,9 @@ class CuMatrixTest  extends Specification {
     c.release()
     d.release()
     e.release()
+
     success
+
   }
 
   def addSub = {
@@ -68,7 +71,26 @@ class CuMatrixTest  extends Specification {
     d.release()
     e.release()
     f.release()
+
     success
+
+  }
+
+  def convert = {
+
+    implicit val handle = new cublasHandle
+    JCublas2.cublasCreate(handle)
+
+    val a = CuMatrix.ones[Double](4, 4)
+    val b = a.toDense
+    val c = CuMatrix.fromDense(b)
+
+    println(a)
+    println(b)
+    println(c)
+
+    success
+
   }
 
   def bench = {
