@@ -47,7 +47,7 @@ We import all `Activator` functions so we can place a `Sigmoid` on the layers:
 
 ```scala
 val (g, h) = (Sigmoid, Sigmoid)
-val net: FNN[Double] = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
+val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
 In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
@@ -67,9 +67,9 @@ val fullies    =
   Dense  (40,  f)           ::
   Dense  (30,  f)           :: 
   Output (20,  f)           :: HNil
-val deeperNet: FNN[Double] = Network(
+val deeperNet = Network(
   bottleNeck ::: fullies, 
-  Settings(precision = 1E-5, iterations = 250, 
+  Settings[Double](precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
     regularization = Some(KeepBest), batchSize = Some(8), parallelism = 8
   )
@@ -78,7 +78,8 @@ val deeperNet: FNN[Double] = Network(
 
 The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent. 
 The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
-since each batch is processed in parallel. Have a look at the `Settings` class for the full list of options.
+since each batch is processed in parallel. Another important aspect is the numerical type of the net, which is set by explicitly annotating
+the type `Double`. For instance, on the GPU, you might want to work with `Floats` instead. Have a look at the `Settings` class for the full list of options.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
@@ -164,10 +165,10 @@ object Coordinator extends App {
 
   def coordinator = {
     val f = ReLU
-    val net: DistFFN[Double] =
+    val net =
       Network(
         Input (1200) :: Dense(210, f) :: Dense(210, f) :: Dense(210, f) :: Output(1200, f) :: HNil,
-        Settings(
+        Settings[Double](
           coordinator  = Node("localhost", 2552),
           transport    = Transport(messageGroupSize = 100000, frameSize = "128 MiB")
         )
