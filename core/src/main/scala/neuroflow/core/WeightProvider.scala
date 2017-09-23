@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
   */
 @implicitNotFound(
   "No weight provider in scope. Import your desired provider or try: " +
-  "import import neuroflow.core.WeightProvider.Y.X._ (where X = { FFN | RNN | CNN }, Y = { Double | Float }).")
+  "import neuroflow.core.WeightProvider.Y.X._ (where X = { FFN | RNN | CNN }, Y = { Double | Float }).")
 trait WeightProvider[V] extends (Seq[Layer] => Weights[V])
 
 
