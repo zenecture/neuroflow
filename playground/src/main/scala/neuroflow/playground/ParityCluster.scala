@@ -65,7 +65,7 @@ object ParityCluster {
       }
     }
 
-    val net: FFN[Double] = Network(
+    val net = Network(
         Input(dimension + 1)            ::
         Focus(Dense(3, Linear))         ::
         Output(dimension + 1, Sigmoid)  :: HNil,

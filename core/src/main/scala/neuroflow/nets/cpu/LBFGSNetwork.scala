@@ -18,7 +18,7 @@ import scala.collection.Seq
   * This is a fully connected Neural Network that uses Breeze's LBFGS,
   * a quasi-Newton method to find optimal weights.
   *
-  * This is a test (gradients are approximated), not intended to be used in prod.
+  * Gradients are approximated, don't use it with big data.
   *
   * @author bogdanski
   * @since 12.06.16

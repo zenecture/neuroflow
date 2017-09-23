@@ -46,7 +46,7 @@ object DigitRecognition {
         regularization = Some(KeepBest))
       val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
       val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
-      val net: FFN[Double] = Network(Input(xs.head.size) :: Dense(50, fn) :: Output(10, fn) :: HNil, settings)
+      val net = Network(Input(xs.head.size) :: Dense(50, fn) :: Output(10, fn) :: HNil, settings)
       net.train(xs.map(l => DenseVector(l)), ys.map(_.dv))
       net
     }

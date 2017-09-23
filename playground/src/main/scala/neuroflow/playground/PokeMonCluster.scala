@@ -55,10 +55,10 @@ object PokeMonCluster {
              ++ ζ(gens.size).updated(gen, 1.0) ++ ->(leg) */
     }
 
-    val xs = pokemons.map(p => p -> toVector(p).dv)
+    val  xs = pokemons.map(p => p -> toVector(p).dv)
     val dim = xs.head._2.size
 
-    val net: FFN[Double] =
+    val net =
       Network(
         Input(dim)                  ::
         Focus(Dense(3, Linear))     ::
@@ -67,7 +67,7 @@ object PokeMonCluster {
         Settings[Double](iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
       )
 
-    val xz = xs.map(_._2)
+    val  xz = xs.map(_._2)
 
     net.train(xz, xz)
 

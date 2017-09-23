@@ -35,7 +35,7 @@ object XOR {
       learningRate = { case (_, _) => 1.0 },
       iterations = 10000,
       errorFuncOutput = Some(ErrorFuncOutput(Some("/Users/felix/github/unversioned/errorFunc.txt"), None)))
-    val net: FFN[Double] = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
+    val net = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 
     val a = net.evaluate(->(0.0, 0.0))
