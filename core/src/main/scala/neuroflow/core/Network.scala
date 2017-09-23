@@ -50,7 +50,7 @@ trait TypeAliases {
 
 
 /** A minimal constructor for a [[Network]]. */
-@implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
+@implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
 trait Constructor[V, +T <: Network[_, _, _]] {
   def apply(ls: Seq[Layer], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): T
 }
