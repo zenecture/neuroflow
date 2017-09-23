@@ -36,7 +36,7 @@ Let's construct the fully connected feed-forward net (FFN) depicted above. We ha
 ```scala
 import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -47,7 +47,7 @@ We import all `Activator` functions so we can place a `Sigmoid` on the layers:
 
 ```scala
 val (g, h) = (Sigmoid, Sigmoid)
-val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
+val net: FNN[Double] = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
 In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
@@ -67,7 +67,7 @@ val fullies    =
   Dense  (40,  f)           ::
   Dense  (30,  f)           :: 
   Output (20,  f)           :: HNil
-val deeperNet = Network(
+val deeperNet: FNN[Double] = Network(
   bottleNeck ::: fullies, 
   Settings(precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
@@ -163,8 +163,8 @@ object Coordinator extends App {
   val nodes = Set(Node("localhost", 2553) /* ... */)
 
   def coordinator = {
-    val f   = ReLU
-    val net =
+    val f = ReLU
+    val net: DistFFN[Double] =
       Network(
         Input (1200) :: Dense(210, f) :: Dense(210, f) :: Dense(210, f) :: Output(1200, f) :: HNil,
         Settings(
@@ -199,12 +199,13 @@ Using `neuroflow.application.plugin.IO` we can store the weights represented as 
 
 ```scala
 val file = "/path/to/net.nf"
-implicit val wp = IO.File.read(file)
+implicit val weightProvider = IO.File.readDouble(file)
 val net = Network(layers)
-IO.File.write(net, file)
+// ... do work.
+IO.File.write(net.weights, file)
 ```
 
 Here, `IO.File.read` will yield an implicit `WeightProvider` from file to construct a net.
-Afterwards, the weights will be saved to the same file with `IO.File.write`. 
+The weights will be saved to the same file with `IO.File.write`. 
 If the desired target is a database, simply use `IO.Json.write` instead and save it as a raw JSON string. 
 However, all important types extend `Serializable`, so feel free to work with the bytes on your own.
