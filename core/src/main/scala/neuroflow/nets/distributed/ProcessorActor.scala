@@ -16,7 +16,7 @@ import scala.concurrent.duration._
   */
 class ProcessorActor(x: ActorSelection, stepSize: Double, _weightsRoCo: IndexedSeq[(Int, Int)],
                      _outputDim: Int, _weightsWi: IndexedSeq[(Iterator[Array[(Double, Int)]], Int)],
-                     layers: Seq[Layer], settings: Settings) extends Actor with Logs {
+                     layers: Seq[Layer], settings: Settings[Double]) extends Actor with Logs {
 
   import context.dispatcher
 

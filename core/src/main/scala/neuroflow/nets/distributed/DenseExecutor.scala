@@ -3,7 +3,7 @@ package neuroflow.nets.distributed
 import akka.actor.{ActorSystem, Props}
 import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
-import neuroflow.core.Network.{Matrix, _}
+import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 
 object DenseExecutor extends Logs {
 
-  def apply(node: Node, xs: Vectors, ys: Vectors, settings: Settings = Settings()): Unit = {
+  def apply(node: Node, xs: Vectors[Double], ys: Vectors[Double], settings: Settings[Double] = Settings[Double]()): Unit = {
 
     info(s"Booting DefaultExecutor ${node.host}:${node.port} ...")
 
@@ -43,10 +43,12 @@ object DenseExecutor extends Logs {
 }
 
 
-class DenseExecutor(xs: Vectors, ys: Vectors, settings: Settings) extends ExecutorActor[Vectors, Vectors](xs, ys, settings) {
+class DenseExecutor(xs: Vectors[Double], ys: Vectors[Double], settings: Settings[Double]) extends ExecutorActor[Vectors[Double], Vectors[Double]](xs, ys, settings) {
 
-  protected def compute(xs: Vectors, ys: Vectors, layers: Seq[Layer], weights: ArrayBuffer[Matrix],
-                      learningRate: Double, parallelism: Int): (Weights, Matrix) = {
+  type Matrix = Network.Matrix[Double]
+
+  protected def compute(xs: Vectors[Double], ys: Vectors[Double], layers: Seq[Layer], weights: ArrayBuffer[Matrix],
+                      learningRate: Double, parallelism: Int): (Weights[Double], Matrix) = {
 
     val _xsys = xs.par.zip(ys).map { case (a, b) => (a.asDenseMatrix, b.asDenseMatrix)}
     _xsys.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(parallelism))

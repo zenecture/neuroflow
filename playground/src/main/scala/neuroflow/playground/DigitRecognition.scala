@@ -7,7 +7,7 @@ import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -29,7 +29,7 @@ object DigitRecognition {
   */
 
 
-  def getDigitSet(path: String): immutable.IndexedSeq[Vector[Array[Double]]] = {
+  def getDigitSet(path: String): immutable.IndexedSeq[scala.Vector[Array[Double]]] = {
     val selector: Int => Boolean = _ < 255
     (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).data.grouped(100).toVector)
   }
@@ -46,7 +46,7 @@ object DigitRecognition {
         regularization = Some(KeepBest))
       val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
       val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
-      val net = Network(Input(xs.head.size) :: Dense(50, fn) :: Output(10, fn) :: HNil, settings)
+      val net: FFN[Double] = Network(Input(xs.head.size) :: Dense(50, fn) :: Output(10, fn) :: HNil, settings)
       net.train(xs.map(l => DenseVector(l)), ys.map(_.dv))
       net
     }

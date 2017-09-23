@@ -26,18 +26,23 @@ import scala.concurrent.forkjoin.ForkJoinPool
   */
 
 object ConvNetwork {
-  implicit val constructor: Constructor[ConvNetwork] = new Constructor[ConvNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): ConvNetwork = {
+  implicit val double: Constructor[Double, ConvNetwork] = new Constructor[Double, ConvNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): ConvNetwork = {
       ConvNetwork(ls, settings, weightProvider(ls))
     }
   }
 }
 
-private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                     identifier: String = Registry.register()) extends ConvolutionalNetwork with KeepBestLogic with WaypointLogic {
+private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+                                     identifier: String = Registry.register())
+  extends CNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   import Convolution.IntTupler
-  import Network._
+
+  type Vector   = Network.Vector[Double]
+  type Vectors  = Network.Vectors[Double]
+  type Matrix   = Network.Matrix[Double]
+  type Matrices = Network.Matrices[Double]
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
@@ -355,8 +360,8 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings, wei
   /** Approximates the gradient based on finite central differences. (For debugging) */
   private def adaptWeightsApprox(xs: Seq[Matrices], ys: Matrices, stepSize: Double): Matrix = {
 
-    require(settings.updateRule.isInstanceOf[Debuggable])
-    val _rule: Debuggable = settings.updateRule.asInstanceOf[Debuggable]
+    require(settings.updateRule.isInstanceOf[Debuggable[Double]])
+    val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par

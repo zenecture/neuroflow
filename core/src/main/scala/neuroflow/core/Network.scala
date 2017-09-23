@@ -20,14 +20,14 @@ object Network extends TypeAliases {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[T <: Network[_, _], L <: HList]
+  def apply[V, T <: Network[_, _, _], L <: HList]
                                      (layers: L,
-                                      settings: Settings = Settings())
+                                      settings: Settings[V] = Settings[V]())
                                      (implicit
                                       startsWith: L StartsWith In,
                                       endsWith: L EndsWith Out,
-                                      weightProvider: WeightProvider,
-                                      constructor: Constructor[T],
+                                      weightProvider: WeightProvider[V],
+                                      constructor: Constructor[V, T],
                                       toList: L ToList Layer): T = {
     constructor(layers.toList, settings)
   }
@@ -38,21 +38,21 @@ object Network extends TypeAliases {
 /** For the sake of beauty. */
 trait TypeAliases {
 
-  type SVector  = scala.Vector[Double]
-  type Vector   = DenseVector[Double]
-  type Matrix   = DenseMatrix[Double]
-  type Vectors  = Seq[Vector]
-  type Matrices = Seq[Matrix]
-  type Weights  = IndexedSeq[Matrix]
-  type Learning = PartialFunction[(Int, Double), Double]
+  type SVector[V]   =  scala.Vector[V]
+  type Vector[V]    =  DenseVector[V]
+  type Matrix[V]    =  DenseMatrix[V]
+  type Vectors[V]   =  Seq[Vector[V]]
+  type Matrices[V]  =  Seq[Matrix[V]]
+  type Weights[V]   =  IndexedSeq[Matrix[V]]
+  type Learning     =  PartialFunction[(Int, Double), Double]
 
 }
 
 
 /** A minimal constructor for a [[Network]]. */
 @implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.DefaultNetwork._")
-trait Constructor[+T <: Network[_, _]] {
-  def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): T
+trait Constructor[V, +T <: Network[_, _, _]] {
+  def apply(ls: Seq[Layer], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): T
 }
 
 
@@ -72,9 +72,10 @@ trait Constructor[+T <: Network[_, _]] {
   * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
   * Some nets use specific parameters set in the `specifics` map.
   */
-case class Settings(verbose           :  Boolean                      =  true,
+case class Settings[V]
+                   (verbose           :  Boolean                      =  true,
                     learningRate      :  Learning                     =  { case (_, _) => 1E-4 },
-                    updateRule        :  Update                       =  Vanilla,
+                    updateRule        :  Update[V]                    =  Vanilla[V],
                     precision         :  Double                       =  1E-5,
                     iterations        :  Int                          =  100,
                     prettyPrint       :  Boolean                      =  false,
@@ -84,13 +85,13 @@ case class Settings(verbose           :  Boolean                      =  true,
                     batchSize         :  Option[Int]                  =  None,
                     errorFuncOutput   :  Option[ErrorFuncOutput]      =  None,
                     regularization    :  Option[Regularization]       =  None,
-                    waypoint          :  Option[Waypoint]             =  None,
+                    waypoint          :  Option[Waypoint[V]]          =  None,
                     approximation     :  Option[Approximation]        =  None,
                     partitions        :  Option[Set[Int]]             =  None,
                     specifics         :  Option[Map[String, Double]]  =  None) extends Serializable
 
 
-trait IllusionBreaker { self: Network[_, _] =>
+trait IllusionBreaker { self: Network[_, _, _] =>
 
   /**
     * Checks if the [[Settings]] are properly defined for this network.
@@ -109,7 +110,7 @@ object IllusionBreaker {
 }
 
 
-trait Network[In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
+trait Network[V, In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
 
   checkSettings()
 
@@ -118,13 +119,13 @@ trait Network[In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with 
   val identifier: String
 
   /** Settings of this neural network. */
-  val settings: Settings
+  val settings: Settings[V]
 
   /** Layers of this neural network. */
   val layers: Seq[Layer]
 
   /** The weights are a bunch of matrices. */
-  val weights: Weights
+  val weights: Weights[V]
 
   /**
     * Computes output for given input `in`.
@@ -137,7 +138,7 @@ trait Network[In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with 
 }
 
 
-trait FeedForwardNetwork extends Network[Vector, Vector] {
+trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -147,12 +148,12 @@ trait FeedForwardNetwork extends Network[Vector, Vector] {
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Vectors, ys: Vectors): Unit
+  def train(xs: Vectors[V], ys: Vectors[V]): Unit
 
 }
 
 
-trait ConvolutionalNetwork extends Network[Matrices, Vector] {
+trait CNN[V] extends Network[V, Matrices[V], Vector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -162,17 +163,17 @@ trait ConvolutionalNetwork extends Network[Matrices, Vector] {
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Seq[Matrices], ys: Vectors): Unit
+  def train(xs: Seq[Matrices[V]], ys: Vectors[V]): Unit
 
 }
 
 
-trait RecurrentNetwork extends Network[Vectors, Vectors] {
+trait RNN[V] extends Network[V, Vectors[V], Vectors[V]] {
 
   /**
     * Takes input `xs` and trains this network against output `ys`.
     */
-  def train(xs: Vectors, ys: Vectors): Unit
+  def train(xs: Vectors[V], ys: Vectors[V]): Unit
 
 }
 
@@ -187,7 +188,7 @@ trait DistributedTraining {
 }
 
 
-trait DistributedFeedForwardNetwork extends Network[Vector, Vector] with DistributedTraining {
+trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -199,7 +200,7 @@ trait DistributedFeedForwardNetwork extends Network[Vector, Vector] with Distrib
 }
 
 
-trait DistributedConvolutionalNetwork extends Network[Matrices, Vector] with DistributedTraining {
+trait DistCNN[V] extends Network[V, Matrices[V], Vector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)

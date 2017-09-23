@@ -3,7 +3,7 @@ package neuroflow.playground
 import neuroflow.application.plugin.Notation._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -49,8 +49,8 @@ object Trending {
     val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, Random.nextDouble)) // Random
 
     val fn = Sigmoid
-    val settings = Settings(learningRate = { case (_, _) => 0.5 }, precision = 1E-4, iterations = 10000)
-    val net = Network(Input(trend.size) :: Dense(25, fn) :: Output(1, fn) :: HNil, settings)
+    val settings = Settings[Double](learningRate = { case (_, _) => 0.5 }, precision = 1E-4, iterations = 10000)
+    val net: FFN[Double] = Network(Input(trend.size) :: Dense(25, fn) :: Output(1, fn) :: HNil, settings)
 
     import Notation.Implicits.toVector
 

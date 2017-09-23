@@ -31,7 +31,7 @@ object ParityCluster {
   def apply = {
 
     import Extensions.VectorOps
-    import neuroflow.core.FFN.WeightProvider._
+    import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 
     val classes = (0 until dimension) map (i => (i, Random.nextInt(2))) map {
       case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ(dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
@@ -65,11 +65,11 @@ object ParityCluster {
       }
     }
 
-    val net = Network(
+    val net: FFN[Double] = Network(
         Input(dimension + 1)            ::
         Focus(Dense(3, Linear))         ::
         Output(dimension + 1, Sigmoid)  :: HNil,
-        Settings(iterations = 20, learningRate = { case (_, _) => 1E-4 })
+        Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })
       )
 
     net.train(xsys.map(_._1.dv), xsys.map(_._2.dv))

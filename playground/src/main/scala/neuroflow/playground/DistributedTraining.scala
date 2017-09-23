@@ -4,7 +4,7 @@ import breeze.linalg.DenseVector
 import breeze.stats.distributions.Gaussian
 import neuroflow.common.Logs
 import neuroflow.core.Activator._
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.distributed.DenseExecutor
 import neuroflow.nets.distributed.DenseNetwork._
@@ -28,14 +28,14 @@ object DistributedTraining extends Logs {
 
     val f   = ReLU
 
-    val net =
+    val net: DistFFN[Double]  =
       Network(
         Input (dim)               ::
         Dense(out, f)             ::
         Dense(out, f)             ::
         Dense(out, f)             ::
         Output(dim, f)            :: HNil,
-        Settings(
+        Settings[Double](
           coordinator  = Node("localhost", 2552),
           transport    = Transport(100000, "128 MiB"),
           learningRate = { case (_, _) => 1E-11 },

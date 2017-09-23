@@ -2,7 +2,7 @@ package neuroflow.nets.cpu
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.core.Activator._
-import neuroflow.core.CNN.{convoluted, random}
+import neuroflow.core.WeightProvider.Double.CNN.{convoluted, randomD}
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 import neuroflow.nets.cpu.ConvNetwork._
@@ -34,8 +34,8 @@ class ConvNetworkNumTest  extends Specification {
 
     val f = ReLU
 
-    val debuggableA = Debuggable()
-    val debuggableB = Debuggable()
+    val debuggableA = Debuggable[Double]()
+    val debuggableB = Debuggable[Double]()
 
     val a = Convolution(dimIn = dim,      field = (6, 3), filters = 16, stride = 2, f)
     val b = Convolution(dimIn = a.dimOut, field = (2, 4), filters = 8, stride = 1, f)
@@ -46,21 +46,21 @@ class ConvNetworkNumTest  extends Specification {
 
     val layout = convs ::: fullies
 
-    val rand = convoluted(layout.toList, random(0.01, 0.1))
+    val rand = convoluted(layout.toList, randomD(0.01, 0.1))
 
-    implicit val wp = new WeightProvider {
-      def apply(layers: Seq[Layer]): Weights = rand.map(_.copy)
+    implicit val wp = new WeightProvider[Double] {
+      def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
     }
 
-    val settings = Settings(
+    val settings = Settings[Double](
       prettyPrint = true,
       approximation = None,
       learningRate = { case (_, _) => 1.0 },
       iterations = 1
     )
 
-    val netA = Network(layout, settings.copy(updateRule = debuggableA))
-    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
+    val netA: CNN[Double] = Network(layout, settings.copy(updateRule = debuggableA))
+    val netB: CNN[Double] = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
     val m = DenseMatrix.rand[Double](dim._1, dim._2)
     val n = DenseVector.rand[Double](out)

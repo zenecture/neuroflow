@@ -27,18 +27,21 @@ import scala.collection.Seq
 
 
 object LBFGSNetwork {
-  implicit val constructor: Constructor[LBFGSNetwork] = new Constructor[LBFGSNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): LBFGSNetwork = {
+  implicit val double: Constructor[Double, LBFGSNetwork] = new Constructor[Double, LBFGSNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LBFGSNetwork = {
       LBFGSNetwork(ls, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
-                                      identifier: String = Registry.register()) extends FeedForwardNetwork {
+private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+                                      identifier: String = Registry.register()) extends FFN[Double] {
 
-  import neuroflow.core.Network._
+  type Vector   = Network.Vector[Double]
+  type Vectors  = Network.Vectors[Double]
+  type Matrix   = Network.Matrix[Double]
+  type Matrices = Network.Matrices[Double]
 
   private val fastLayers = layers.map {
     case Focus(inner) => inner
@@ -142,7 +145,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings, we
   /**
     * Computes the network recursively from `cursor` until `target`.
     */
-  @tailrec final protected def flow(weights: Weights, in: Matrix, cursor: Int, target: Int): Matrix = {
+  @tailrec final protected def flow(weights: Weights[Double], in: Matrix, cursor: Int, target: Int): Matrix = {
     if (target < 0) in
     else {
       val processed = fastLayers(cursor) match {

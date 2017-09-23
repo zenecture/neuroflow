@@ -32,12 +32,12 @@ case class EarlyStopping[In, Out](xs: Seq[In], ys: Seq[Out], factor: Double) ext
 case object KeepBest extends Regularization
 
 
-trait EarlyStoppingLogic { self: Network[_, _] =>
+trait EarlyStoppingLogic[V] { self: Network[V, _, _] =>
 
   private var best = Double.PositiveInfinity
   import settings._
 
-  def shouldStopEarly[N <: Network[_, _], In, Out](implicit k: CanAverage[N, In, Out]): Boolean = regularization match {
+  def shouldStopEarly[N <: Network[_, _, _], In, Out](implicit k: CanAverage[V, N, In, Out]): Boolean = regularization match {
     case Some(es: EarlyStopping[In, Out]) =>
       val averaged = k.averagedError(es.xs, es.ys)
       if (settings.verbose) info(f"Averaged test error: $averaged%.6g. Best test error so far: $best%.6g.")
@@ -56,20 +56,20 @@ trait EarlyStoppingLogic { self: Network[_, _] =>
 object EarlyStoppingLogic {
 
   /** Type-Class for concrete net impl of error averaging. */
-  trait CanAverage[N <: Network[_, _], In, Out] {
+  trait CanAverage[V, N <: Network[_, _, _], In, Out] {
     def averagedError(xs: Seq[In], ys: Seq[Out]): Double
   }
 
 }
 
-trait KeepBestLogic { self: Network[_, _] =>
+trait KeepBestLogic[V] { self: Network[V, _, _] =>
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private var bestErr = Double.PositiveInfinity
-  private var bestWs: Weights = self.weights
+  private var bestWs: Weights[V] = self.weights
 
-  def keepBest(error: Double, ws: Weights): Unit = {
+  def keepBest(error: Double, ws: Weights[V]): Unit = {
     if (error < bestErr) Future {
       bestErr = error
       bestWs = ws.map(_.copy)

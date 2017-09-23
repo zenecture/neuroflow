@@ -3,6 +3,7 @@ package neuroflow.playground
 import neuroflow.application.plugin.Notation._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
+import neuroflow.core.WeightProvider.Double.RNN
 import neuroflow.core._
 import shapeless._
 
@@ -38,12 +39,12 @@ object Sequences {
   def cosine2sine = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-0.2, 0.2)
+    implicit val wp = RNN(-0.2, 0.2)
 
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
     val f = Tanh
-    val net = Network(Input(1) :: Dense(5, f) :: Output(1, f) :: HNil,
+    val net: RNN[Double] = Network(Input(1) :: Dense(5, f) :: Output(1, f) :: HNil,
       Settings(iterations = 5000, learningRate = { case (_, _) => 0.2 }, approximation = Some(Approximation(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
@@ -66,12 +67,12 @@ object Sequences {
   def linear2Step = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-5.0, 5.0)
+    implicit val wp = RNN(-5.0, 5.0)
 
     val stepSize = 0.01
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x),->(if (x < 0.8) 0.5 else 1.0)))
     val f = Sigmoid
-    val net = Network(Input(1) :: Dense(3, f) :: Dense(3, f) :: Output(1, f) :: HNil,
+    val net: RNN[Double] = Network(Input(1) :: Dense(3, f) :: Dense(3, f) :: Output(1, f) :: HNil,
       Settings(iterations = 5000, learningRate = { case _ => 0.2 },
         approximation = Some(Approximation(1E-12)),
         errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
@@ -94,12 +95,12 @@ object Sequences {
   def linear2cosineSine = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+    implicit val wp = RNN(-1.0, 1.0)
 
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x), ->(sin(10 * x), cos(10 * x))))
     val f = Tanh
-    val net = Network(Input(1) :: Dense(7, f) :: Dense(7, f) :: Output(2, f) :: HNil,
+    val net: RNN[Double] = Network(Input(1) :: Dense(7, f) :: Dense(7, f) :: Output(2, f) :: HNil,
       Settings(iterations = 5000, learningRate = { case _ => 0.5 }, approximation = Some(Approximation(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
@@ -124,14 +125,14 @@ object Sequences {
   def cosineSineClassifier = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+    implicit val wp = RNN(-1.0, 1.0)
 
     val stepSize = 0.01
     val a = Range.Double.inclusive(-1.0, 0.0, stepSize).map(x => (->(sin(10 * x)), ∞(2))).dropRight(1) :+ (->(sin(0.0)), ->(-1.0, 1.0))
     val b = Range.Double.inclusive(0.0, 1.0, stepSize).map(x => (->(cos(3 * x)), ∞(2))).dropRight(1) :+ (->(cos(3 * 1.0)), ->(1.0, -1.0))
     val all = a ++ b
     val f = Tanh
-    val net = Network(Input(1) :: Dense(3, f) :: Output(2, f) :: HNil,
+    val net: RNN[Double] = Network(Input(1) :: Dense(3, f) :: Output(2, f) :: HNil,
       Settings(iterations = 500 ,
         learningRate = { case _ => 0.2 },
         partitions = Some(Set(a.indices.last)),
@@ -168,12 +169,12 @@ object Sequences {
   def randomPointMapping = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+    implicit val wp = RNN(-1.0, 1.0)
 
     val xs = (1 to 9) map (_ => ρ(3))
     val ys = (1 to 9) map (_ => ρ(3))
 
-    val net = Network(Input(3) :: Dense(6, Tanh) :: Output(3, Tanh) :: HNil,
+    val net: RNN[Double] = Network(Input(3) :: Dense(6, Tanh) :: Output(3, Tanh) :: HNil,
       Settings(iterations = 2000,
         learningRate = { case _ => 0.5 },
         approximation = Some(Approximation(1E-9)),
@@ -200,7 +201,7 @@ object Sequences {
   def randomPointClassifier = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = RNN.WeightProvider(-1.0, 1.0)
+    implicit val wp = RNN(-1.0, 1.0)
 
     val (c, n, k) = (5, 5, 3)
 
@@ -209,7 +210,7 @@ object Sequences {
     }
 
     val f = Tanh
-    val net = Network(Input(k) :: Dense(10, f) :: Output(c, f) :: HNil,
+    val net: RNN[Double] = Network(Input(k) :: Dense(10, f) :: Output(c, f) :: HNil,
       Settings(iterations = 2500,
         learningRate = { case _ => 0.2 },
         partitions = Some(Π(c, n)),

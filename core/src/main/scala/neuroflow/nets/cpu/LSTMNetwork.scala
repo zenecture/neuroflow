@@ -30,19 +30,22 @@ import scala.collection._
 
 
 object LSTMNetwork {
-  implicit val constructor: Constructor[LSTMNetwork] = new Constructor[LSTMNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): LSTMNetwork = {
+  implicit val double: Constructor[Double, LSTMNetwork] = new Constructor[Double, LSTMNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LSTMNetwork = {
       LSTMNetwork(ls, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
+private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                      identifier: String = Registry.register())
-  extends RecurrentNetwork with KeepBestLogic with WaypointLogic {
+  extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
-  import neuroflow.core.Network._
+  type Vector   = Network.Vector[Double]
+  type Vectors  = Network.Vectors[Double]
+  type Matrix   = Network.Matrix[Double]
+  type Matrices = Network.Matrices[Double]
 
   private val hiddenLayers = layers.drop(1).dropRight(1)
   private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)).toArray

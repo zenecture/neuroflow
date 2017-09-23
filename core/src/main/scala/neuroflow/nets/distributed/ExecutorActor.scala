@@ -5,9 +5,10 @@ import java.util.UUID
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
-import neuroflow.core.Network.{Matrix, _}
 import neuroflow.core._
+import neuroflow.core.Network._
 
+import scala.collection.IndexedSeq
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
@@ -16,7 +17,7 @@ import scala.concurrent.duration._
   * @since 11.09.17
   */
 
-abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, settings: Settings) extends Actor with Logs {
+abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, settings: Settings[Double]) extends Actor with Logs {
 
   import context.dispatcher
 
@@ -25,7 +26,7 @@ abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, setti
 
   private val _MSGGS = settings.transport.messageGroupSize
 
-  private val _weights = ArrayBuffer.empty[Matrix]
+  private val _weights = ArrayBuffer.empty[Matrix[Double]]
   private var _job: Job = _
   private var _batchCount = 0
   private val _buffer = ArrayBuffer.empty[WeightBatch]
@@ -94,7 +95,7 @@ abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, setti
     _weights.clear()
   }
 
-  private def sendResults(job: Job, weights: Weights, error: Matrix, sender: ActorRef): Unit = {
+  private def sendResults(job: Job, weights: Weights[Double], error: Matrix[Double], sender: ActorRef): Unit = {
     val weightsWi = weights.map(_.data.zipWithIndex.grouped(_MSGGS)).zipWithIndex
     val errorWi = error.data.zipWithIndex.grouped(_MSGGS)
     weightsWi.foreach {
@@ -114,8 +115,8 @@ abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, setti
 
   }
 
-  protected def compute(xs: In, ys: Out, layers: Seq[Layer], weights: ArrayBuffer[Matrix],
-                      learningRate: Double, parallelism: Int): (Weights, Matrix)
+  protected def compute(xs: In, ys: Out, layers: Seq[Layer], weights: ArrayBuffer[Matrix[Double]],
+                      learningRate: Double, parallelism: Int): (Weights[Double], Matrix[Double])
 
 
 }

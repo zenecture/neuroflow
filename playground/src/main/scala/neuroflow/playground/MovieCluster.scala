@@ -9,7 +9,7 @@ import neuroflow.application.processor.{Extensions, Normalizer, Util}
 import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core._
+import neuroflow.core.{FFN, _}
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
@@ -22,7 +22,7 @@ import scala.io.{Source, StdIn}
 
 object MovieCluster {
 
-  case class Movie(id: Int, title: String, vec: Network.SVector)
+  case class Movie(id: Int, title: String, vec: Network.SVector[Double])
   case class Rating(user: Int, movieId: Int, rating: Int)
 
   val netFile = "/Users/felix/github/unversioned/movies.nf"
@@ -47,7 +47,7 @@ object MovieCluster {
   def apply = {
 
     import Extensions.VectorOps
-    import neuroflow.core.FFN.WeightProvider._
+    import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 
     val topByUser = observations.take(observationLimit).filter(_.rating == 5).groupBy(_.user).map {
       case (user, ratings) =>
@@ -59,19 +59,19 @@ object MovieCluster {
 
     println("Training samples: " + topByUser.size)
 
-    val net = Network(layout, Settings(iterations = 500, learningRate = { case (_, _) => 1E-4 }))
+    val net: FFN[Double] = Network(layout, Settings[Double](iterations = 500, learningRate = { case (_, _) => 1E-4 }))
 
     net.train(topByUser.map(_._1), topByUser.map(_._2))
 
-    IO.File.write(net, netFile)
+    IO.File.write(net.weights, netFile)
 
   }
 
   def find = {
 
-    val net = {
-      implicit val wp = IO.File.read(netFile)
-      Network(layout, Settings())
+    val net: FFN[Double] = {
+      implicit val wp = IO.File.readDouble(netFile)
+      Network(layout, Settings[Double]())
     }
 
     val res = movies.map(m => m.copy(vec = net(m.vec.dv).vv))

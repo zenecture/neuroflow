@@ -2,7 +2,7 @@ package neuroflow.playground
 
 import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -31,11 +31,11 @@ object XOR {
     val fn = Sigmoid
     val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-    val settings = Settings(
+    val settings = Settings[Double](
       learningRate = { case (_, _) => 1.0 },
       iterations = 10000,
       errorFuncOutput = Some(ErrorFuncOutput(Some("/Users/felix/github/unversioned/errorFunc.txt"), None)))
-    val net = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
+    val net: FFN[Double] = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 
     val a = net.evaluate(->(0.0, 0.0))

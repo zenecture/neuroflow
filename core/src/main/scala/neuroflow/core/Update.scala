@@ -1,6 +1,7 @@
 package neuroflow.core
 
-import breeze.linalg.DenseMatrix
+import breeze.linalg._
+import breeze.linalg.operators._
 import jcuda.jcublas._
 import neuroflow.nets.gpu.cuda.CuMatrix
 
@@ -13,87 +14,154 @@ import neuroflow.nets.gpu.cuda.CuMatrix
 /**
   * Updates weights `ws` using derivatives `dws` and `learningRate` for layer `position`.
   */
-trait Update {
-  def apply(ws: DenseMatrix[Double], dws: DenseMatrix[Double], learningRate: Double, position: Int): Unit
-  def apply(ws: DenseMatrix[Float], dws: DenseMatrix[Float], learningRate: Float, position: Int): Unit
-  def apply(ws: CuMatrix[Double], dws: CuMatrix[Double], learningRate: Double, position: Int)(implicit handle: cublasHandle): Unit
-  def apply(ws: CuMatrix[Float], dws: CuMatrix[Float], learningRate: Float, position: Int)(implicit handle: cublasHandle): Unit
+trait Update[V] {
+
+  def apply(ws: DenseMatrix[V], dws: DenseMatrix[V], learningRate: V, position: Int)
+           (implicit
+            mul: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): Unit
+
+  def apply(ws: CuMatrix[V], dws: CuMatrix[V], learningRate: V, position: Int)
+           (implicit
+            handle: cublasHandle,
+            mul: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): Unit
+
 }
 
 
 
-case object Vanilla extends Update {
-  def apply(ws: DenseMatrix[Double], dws: DenseMatrix[Double], learningRate: Double, position: Int): Unit = ws -= (dws *= learningRate)
-  def apply(ws: DenseMatrix[Float], dws: DenseMatrix[Float], learningRate: Float, position: Int): Unit = ws -= (dws *= learningRate)
-  def apply(ws: CuMatrix[Double], dws: CuMatrix[Double], learningRate: Double, position: Int)(implicit handle: cublasHandle): Unit = ws -= (dws *= learningRate)
-  def apply(ws: CuMatrix[Float], dws: CuMatrix[Float], learningRate: Float, position: Int)(implicit handle: cublasHandle): Unit = ws -= (dws *= learningRate)
+case class Vanilla[V]() extends Update[V] {
+
+  def apply(ws: DenseMatrix[V], dws: DenseMatrix[V], learningRate: V, position: Int)
+           (implicit
+            mul: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): Unit = {
+    ws -= (dws *= learningRate)
+  }
+
+  def apply(ws: CuMatrix[V], dws: CuMatrix[V], learningRate: V, position: Int)
+           (implicit
+            handle: cublasHandle,
+            mul: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): Unit = {
+    ws -= (dws *= learningRate)
+  }
+
 }
 
 
 
-case class Momentum(μ: Double = 0.9) extends Update {
+case class Momentum[V](μ: V) extends Update[V] {
 
-  val μf = μ.toFloat
+  private val vsd = collection.mutable.HashMap.empty[Int, DenseMatrix[V]]
+  private val vsc = collection.mutable.HashMap.empty[Int, CuMatrix[V]]
 
-  private val vs1 = collection.mutable.HashMap.empty[Int, DenseMatrix[Double]]
-  private val vs2 = collection.mutable.HashMap.empty[Int, DenseMatrix[Float]]
-  private val vs3 = collection.mutable.HashMap.empty[Int, CuMatrix[Double]]
-  private val vs4 = collection.mutable.HashMap.empty[Int, CuMatrix[Float]]
-
-  def apply(ws: DenseMatrix[Double], dws: DenseMatrix[Double], learningRate: Double, position: Int): Unit = {
-    if (vs1.isDefinedAt(position)) vs1(position) := (μ * vs1(position)) - (dws *= learningRate)
-    else vs1 += position -> -(dws * learningRate)
-    ws += vs1(position)
+  def apply(ws: DenseMatrix[V], dws: DenseMatrix[V], learningRate: V, position: Int)
+           (implicit
+            mul: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): Unit = {
+    if (vsd.isDefinedAt(position)) vsd(position) := (μ * vsd(position)) - (dws *= learningRate)
+    else vsd += position -> -(dws * learningRate)
+    ws += vsd(position)
   }
 
-  def apply(ws: DenseMatrix[Float], dws: DenseMatrix[Float], learningRate: Float, position: Int): Unit = {
-    if (vs2.isDefinedAt(position)) vs2(position) := (μf * vs2(position)) - (dws *= learningRate)
-    else vs2 += position -> -(dws * learningRate)
-    ws += vs2(position)
-  }
-
-  def apply(ws: CuMatrix[Double], dws: CuMatrix[Double], learningRate: Double, position: Int)(implicit handle: cublasHandle): Unit = {
-    if (vs3.isDefinedAt(position)) {
-      val r1 = μ * vs3(position)
+  def apply(ws: CuMatrix[V], dws: CuMatrix[V], learningRate: V, position: Int)
+           (implicit
+            handle: cublasHandle,
+            mul: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): Unit = {
+    if (vsc.isDefinedAt(position)) {
+      val r1 = μ * vsc(position)
       val r2 = r1 - (dws *= learningRate)
-      vs3(position) := r2
+      vsc(position) := r2
       r1.release()
       r2.release()
-    } else vs3 += position -> -(dws * learningRate)
-    ws += vs3(position)
-  }
-
-  def apply(ws: CuMatrix[Float], dws: CuMatrix[Float], learningRate: Float, position: Int)(implicit handle: cublasHandle): Unit = {
-    if (vs4.isDefinedAt(position)) {
-      val r1 = μf * vs4(position)
-      val r2 = r1 - (dws *= learningRate)
-      vs4(position) := r2
-      r1.release()
-      r2.release()
-    } else vs4 += position -> -(dws * learningRate)
-    ws += vs4(position)
+    } else vsc += position -> -(dws * learningRate)
+    ws += vsc(position)
   }
 
   def release(): Unit = {
-    vs3.values.foreach(_.release())
-    vs4.values.foreach(_.release())
+    vsc.values.foreach(_.release())
+    vsc.values.foreach(_.release())
   }
 
 }
 
 
 
-case class Debuggable() extends Update {
+case class Debuggable[V]() extends Update[V] {
 
-  var lastGradients = collection.mutable.Map.empty[Int, DenseMatrix[Double]]
+  var lastGradients = collection.mutable.Map.empty[Int, DenseMatrix[V]]
 
-  def apply(ws: DenseMatrix[Double], dws: DenseMatrix[Double], learningRate: Double, position: Int): Unit = {
+  def apply(ws: DenseMatrix[V], dws: DenseMatrix[V], learningRate: V, position: Int)
+           (implicit
+            mul: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): Unit = {
     lastGradients += position -> dws
     ws -= (dws *= learningRate)
   }
 
-  def apply(ws: DenseMatrix[Float], dws: DenseMatrix[Float], learningRate: Float, position: Int): Unit = ???
-  def apply(ws: CuMatrix[Double], dws: CuMatrix[Double], learningRate: Double, position: Int)(implicit handle: cublasHandle): Unit = ???
-  def apply(ws: CuMatrix[Float], dws: CuMatrix[Float], learningRate: Float, position: Int)(implicit handle: cublasHandle): Unit = ???
+  def apply(ws: CuMatrix[V], dws: CuMatrix[V], learningRate: V, position: Int)
+           (implicit
+            handle: cublasHandle,
+            mul: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): Unit = ???
 
 }

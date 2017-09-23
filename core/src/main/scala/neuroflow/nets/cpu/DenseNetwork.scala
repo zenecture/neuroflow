@@ -29,19 +29,22 @@ import scala.concurrent.forkjoin.ForkJoinPool
 
 
 object DenseNetwork {
-  implicit val constructor: Constructor[DenseNetwork] = new Constructor[DenseNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): DenseNetwork = {
+  implicit val double: Constructor[Double, DenseNetwork] = new Constructor[Double, DenseNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetwork = {
       DenseNetwork(ls, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
+private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = Registry.register())
-  extends FeedForwardNetwork with EarlyStoppingLogic with KeepBestLogic with WaypointLogic {
+  extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
-  import neuroflow.core.Network._
+  type Vector   = Network.Vector[Double]
+  type Vectors  = Network.Vectors[Double]
+  type Matrix   = Network.Matrix[Double]
+  type Matrices = Network.Matrices[Double]
 
   private val _layers = layers.map {
     case Focus(inner) => inner
@@ -56,7 +59,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
-  private implicit object Average extends CanAverage[DenseNetwork, Vector, Vector] {
+  private implicit object Average extends CanAverage[Double, DenseNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
         case (a, b) => mean(abs(a - b))
@@ -232,8 +235,8 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
   /** Approximates the gradient based on finite central differences. (For debugging) */
   private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
 
-    require(settings.updateRule.isInstanceOf[Debuggable])
-    val _rule: Debuggable = settings.updateRule.asInstanceOf[Debuggable]
+    require(settings.updateRule.isInstanceOf[Debuggable[Double]])
+    val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par

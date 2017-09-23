@@ -4,11 +4,10 @@ import breeze.numerics._
 import breeze.stats._
 import neuroflow.core.Activator.Linear
 import neuroflow.core.EarlyStoppingLogic.CanAverage
-import neuroflow.core.FFN.WeightProvider.oneWeights
+import neuroflow.core.WeightProvider.Double.FFN.oneWeights
 import neuroflow.core.Network.Vector
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork
-import neuroflow.nets.cpu.DenseNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 import shapeless._
@@ -37,11 +36,12 @@ class RegularizationTest extends Specification {
 
     val (xs, ys) = (Vector(Vector(1.0).dv, Vector(2.0).dv, Vector(3.0).dv), Vector(Vector(3.2).dv, Vector(5.8).dv, Vector(9.2).dv))
 
-    val net = Network(Input(1) :: Dense(3, Linear) :: Output(1, Linear) :: HNil,
-      Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
+    val layout = Input(1) :: Dense(3, Linear) :: Output(1, Linear) :: HNil
 
-    implicit object KBL extends CanAverage[DenseNetwork, Vector, Vector] {
-      def averagedError(xs: Seq[Vector], ys: Seq[Vector]): Double = {
+    val net = DenseNetwork.double(layout.toList, Settings(regularization = Some(EarlyStopping(xs, ys, 0.8))))
+
+    implicit object KBL extends CanAverage[Double, DenseNetwork, Vector[Double], Vector[Double]] {
+      def averagedError(xs: Seq[Vector[Double]], ys: Seq[Vector[Double]]): Double = {
         val errors = xs.map(net.evaluate).zip(ys).map {
           case (a, b) => mean(abs(a - b))
         }

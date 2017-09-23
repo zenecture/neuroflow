@@ -7,7 +7,7 @@ import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -42,7 +42,7 @@ object PokeMonCluster {
         r(8).toDouble, r(9).toDouble, r(10).toDouble, gens.indexOf(r(11).toDouble), if (r(12).toBoolean) 1 else 0)
     }
     val maximums =
-      (pokemons.map(_.total).max, pokemons.map(_.hp).max,
+       (pokemons.map(_.total).max, pokemons.map(_.hp).max,
         pokemons.map(_.attack).max, pokemons.map(_.defense).max,
         pokemons.map(_.spAtk).max, pokemons.map(_.spDef).max,
         pokemons.map(_.speed).max)
@@ -58,13 +58,13 @@ object PokeMonCluster {
     val xs = pokemons.map(p => p -> toVector(p).dv)
     val dim = xs.head._2.size
 
-    val net =
+    val net: FFN[Double] =
       Network(
         Input(dim)                  ::
         Focus(Dense(3, Linear))     ::
         Dense(dim / 2, ReLU)        ::
         Output(dim, ReLU)           :: HNil,
-        Settings(iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
+        Settings[Double](iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
       )
 
     val xz = xs.map(_._2)
