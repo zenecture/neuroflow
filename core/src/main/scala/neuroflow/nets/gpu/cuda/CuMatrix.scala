@@ -18,8 +18,9 @@ import scala.reflect._
 
 
 /**
-  * [[https://github.com/dlwh/gust/]] under the Apache License 2.0
+  * [[https://github.com/dlwh/gust/]] under Apache License 2.0
   * @author dlwh
+  * @author bogdanski
   */
 class CuMatrix[V](val rows: Int,
                   val cols: Int,
@@ -285,9 +286,9 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
     mat
   }
 
-  def rand(rows: Int, cols: Int)(implicit rand: RandBasis = Rand) = {
+  def rand[V](rows: Int, cols: Int)(implicit rand: RandBasis = Rand, ct: ClassTag[V]): CuMatrix[V] = {
     import jcuda.jcurand.JCurand._
-    val mat = new CuMatrix[Double](rows, cols)
+    val mat = new CuMatrix[V](rows, cols)
     val generator = new curandGenerator()
     curandCreateGenerator(generator, curandRngType.CURAND_RNG_PSEUDO_DEFAULT)
     curandSetPseudoRandomGeneratorSeed(generator, rand.randInt.draw())
@@ -298,7 +299,7 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
     mat
   }
 
-  def fromDense[V <: AnyVal](mat: DenseMatrix[V])(implicit ct: ClassTag[V]) = {
+  def fromDense[V <: AnyVal](mat: DenseMatrix[V])(implicit ct: ClassTag[V]): CuMatrix[V] = {
     val g = new CuMatrix[V](mat.rows, mat.cols)
     g := mat
     g

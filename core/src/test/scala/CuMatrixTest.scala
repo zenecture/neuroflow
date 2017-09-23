@@ -10,7 +10,11 @@ import org.specs2.specification.core.SpecStructure
   * @author bogdanski
   * @since 21.09.17
   */
+
+
 class CuMatrixTest  extends Specification {
+
+  sequential
 
   def is: SpecStructure =
     s2"""
@@ -20,7 +24,8 @@ class CuMatrixTest  extends Specification {
       - Mult two matrices                                $mult
       - AddSub two matrices                              $addSub
       - Convert DenseMatrix <-> CuMatrix                 $convert
-      - Bench with CPU                                   $bench
+      - Bench with CPU (Double Precision)                $benchDouble
+      - Bench with CPU (Single Precision)                $benchSingle
 
   """
 
@@ -93,7 +98,7 @@ class CuMatrixTest  extends Specification {
 
   }
 
-  def bench = {
+  def benchDouble = {
 
     implicit val handle = new cublasHandle
     JCublas2.cublasCreate(handle)
@@ -111,8 +116,8 @@ class CuMatrixTest  extends Specification {
       }
 
       val c = withTimer(() => {
-        val a = CuMatrix.rand(n, n)
-        val b = CuMatrix.rand(n, n)
+        val a = CuMatrix.rand[Double](n, n)
+        val b = CuMatrix.rand[Double](n, n)
         (a, b, a * b)
       })
       c._2._1.release()
@@ -125,9 +130,11 @@ class CuMatrixTest  extends Specification {
         A * B
       })
 
-      println(s"++ c: ${c._1}")
-      println(s"++ C: ${C._1}")
-      println(s"++ n: $n")
+      println("Double, with creation")
+      println(s"c: ${c._1}")
+      println(s"C: ${C._1}")
+      println(s"n: $n")
+      println()
 
     }
 
@@ -140,8 +147,8 @@ class CuMatrixTest  extends Specification {
         n2 - n1 -> r
       }
 
-      val a = CuMatrix.rand(n, n)
-      val b = CuMatrix.rand(n, n)
+      val a = CuMatrix.rand[Double](n, n)
+      val b = CuMatrix.rand[Double](n, n)
       val c = withTimer(() => a * b)
       a.release()
       b.release()
@@ -151,9 +158,85 @@ class CuMatrixTest  extends Specification {
       val B = DenseMatrix.rand[Double](n, n)
       val C = withTimer(() => A * B)
 
-      println(s"-- c: ${c._1}")
-      println(s"-- C: ${C._1}")
-      println(s"-- n: $n")
+      println("Double, without creation")
+      println(s"c: ${c._1}")
+      println(s"C: ${C._1}")
+      println(s"n: $n")
+      println()
+
+    }
+
+    success
+
+  }
+
+  def benchSingle = {
+
+    implicit val handle = new cublasHandle
+    JCublas2.cublasCreate(handle)
+
+    val rand = breeze.stats.distributions.Rand.gaussian.map(_.toFloat)
+
+    Seq(50, 500, 5000).foreach(n => benchWithCreation(n))
+    Seq(50, 500, 5000).foreach(n => benchWithoutCreation(n))
+
+    def benchWithCreation(n: Int) = {
+
+      def withTimer[B](f: () => B): (Long, B) = {
+        val n1 = System.nanoTime()
+        val r = f()
+        val n2 = System.nanoTime()
+        n2 - n1 -> r
+      }
+
+      val c = withTimer(() => {
+        val a = CuMatrix.rand[Float](n, n)
+        val b = CuMatrix.rand[Float](n, n)
+        (a, b, a * b)
+      })
+      c._2._1.release()
+      c._2._2.release()
+      c._2._3.release()
+
+      val C = withTimer(() => {
+        val A = DenseMatrix.rand[Float](n, n, rand)
+        val B = DenseMatrix.rand[Float](n, n, rand)
+        A * B
+      })
+
+      println("Float, with creation")
+      println(s"c: ${c._1}")
+      println(s"C: ${C._1}")
+      println(s"n: $n")
+      println()
+
+    }
+
+    def benchWithoutCreation(n: Int) = {
+
+      def withTimer[B](f: () => B): (Long, B) = {
+        val n1 = System.nanoTime()
+        val r = f()
+        val n2 = System.nanoTime()
+        n2 - n1 -> r
+      }
+
+      val a = CuMatrix.rand[Float](n, n)
+      val b = CuMatrix.rand[Float](n, n)
+      val c = withTimer(() => a * b)
+      a.release()
+      b.release()
+      c._2.release()
+
+      val A = DenseMatrix.rand[Float](n, n, rand)
+      val B = DenseMatrix.rand[Float](n, n, rand)
+      val C = withTimer(() => A * B)
+
+      println("Float, without creation")
+      println(s"c: ${c._1}")
+      println(s"C: ${C._1}")
+      println(s"n: $n")
+      println()
 
     }
 
