@@ -7,7 +7,7 @@ import java.text.NumberFormat.{ getIntegerInstance => formatter }
   * @since 09.07.16
   */
 
-trait Welcoming { self: Network[_, _] =>
+trait Welcoming { self: Network[_, _, _] =>
 
   private val welcome =
     f"""
@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |         Version 1.1.4
+      |         Version 1.1.5
       |
       |         Identifier: $identifier
       |         Network: ${this.getClass.getCanonicalName}

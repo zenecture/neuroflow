@@ -2,6 +2,7 @@ package neuroflow.playground
 
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
+import neuroflow.core.WeightProvider.Double.FFN
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -26,14 +27,14 @@ object Sinusoidal {
 
     */
 
-  implicit val wp = FFN.WeightProvider(-0.2, 0.2)
+  implicit val wp = FFN(-0.2, 0.2)
 
   def apply = {
 
     val fn = Tanh
     val group = 4
-    val sets = Settings(verbose = true, learningRate = { case (_, _) => 1E-1 }, precision = 1E-9, iterations = 1000)
-    val net = Network(Input(3) :: Dense(5, fn) :: Dense(3, fn) :: Output(1, fn) :: HNil, sets)
+    val sets = Settings[Double](learningRate = { case (_, _) => 1E-1 }, precision = 1E-9, iterations = 1000)
+    val net: FFN[Double] = Network(Input(3) :: Dense(5, fn) :: Dense(3, fn) :: Output(1, fn) :: HNil, sets)
     val sinusoidal = Range.Double(0.0, 0.8, 0.05).grouped(group).toVector.map(i => i.toVector.map(k => (k, Math.sin(10 * k))))
     val xsys = sinusoidal.map(s => (s.dropRight(1).map(_._2), s.takeRight(1).map(_._2)))
     val xs = xsys.map(_._1.dv)
@@ -45,7 +46,7 @@ object Sinusoidal {
 
   }
 
-  @tailrec def predict[T <: FeedForwardNetwork](net: T, last: Vector[Double], i: Double,
+  @tailrec def predict[T <: FFN[Double]](net: T, last: Vector[Double], i: Double,
                                                 results: Vector[(Double, Double)]): Vector[(Double, Double)] = {
     if (i < 4.0) {
       val score = net(last.dv)(0)

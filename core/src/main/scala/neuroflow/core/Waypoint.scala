@@ -13,9 +13,9 @@ import scala.concurrent.Future
 /**
   * Performs `action` on every `nth` iteration during training.
   */
-case class Waypoint(nth: Int, action: Weights => Unit)
+case class Waypoint[V](nth: Int, action: Weights[V] => Unit)
 
-trait WaypointLogic { self: Network[_, _] =>
+trait WaypointLogic[V] { self: Network[V, _, _] =>
 
   def waypoint(iteration: Int): Unit = Future {
     self.settings.waypoint match {

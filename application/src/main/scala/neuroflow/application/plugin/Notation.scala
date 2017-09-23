@@ -3,6 +3,7 @@ package neuroflow.application.plugin
 import java.util.concurrent.ThreadLocalRandom
 
 import breeze.linalg.DenseVector
+import neuroflow.core.Network
 
 /**
   * @author bogdanski
@@ -10,7 +11,7 @@ import breeze.linalg.DenseVector
   */
 object Notation {
 
-  import neuroflow.core.Network._
+  type Vector = Network.Vector[Double]
 
   def ->(elems: Double*): Vector = DenseVector(elems.toArray)
 

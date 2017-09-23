@@ -2,6 +2,7 @@ package neuroflow.application.processor
 
 import breeze.linalg.{max, sum}
 import neuroflow.application.plugin.Notation.ζ
+import neuroflow.core.Network
 
 /**
   * @author bogdanski
@@ -9,7 +10,8 @@ import neuroflow.application.plugin.Notation.ζ
   */
 object Normalizer {
 
-  import neuroflow.core.Network._
+  type Vector  = Network.Vector[Double]
+  type Vectors = Network.Vectors[Double]
 
   object MaxUnit {
     /**

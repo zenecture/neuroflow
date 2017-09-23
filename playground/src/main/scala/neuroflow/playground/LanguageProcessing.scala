@@ -42,9 +42,9 @@ object LanguageProcessing {
 
   def readSingle(file: String) = Seq(strip(scala.io.Source.fromFile(getResourceFile(file)).mkString))
 
-  def normalize(xs: Seq[String]): Vector[Vector[String]] = xs.map(_.split(" ").distinct.toVector).toVector
+  def normalize(xs: Seq[String]): scala.Vector[scala.Vector[String]] = xs.map(_.split(" ").distinct.toVector).toVector
 
-  def vectorize(xs: Seq[Seq[String]]): Vector[Vector[Double]] = xs.map(_.flatMap(dict.get)).map { v =>
+  def vectorize(xs: Seq[Seq[String]]): scala.Vector[scala.Vector[Double]] = xs.map(_.flatMap(dict.get)).map { v =>
     val vs = v.reduce((l, r) => l.zip(r).map(l => l._1 + l._2))
     val n = v.size.toDouble
     vs.map(_ / n)
@@ -55,7 +55,7 @@ object LanguageProcessing {
     * Fore more information about word2vec: https://code.google.com/archive/p/word2vec/
     * Use `dimension` to enforce that all vectors have the same dimension.
     */
-  def word2vec(file: File, dimension: Option[Int] = None): Map[String, Vector[Double]] =
+  def word2vec(file: File, dimension: Option[Int] = None): Map[String, scala.Vector[Double]] =
     scala.io.Source.fromFile(file).getLines.map { l =>
       val raw = l.split(" ")
       (raw.head, raw.tail.map(_.toDouble).toVector)
@@ -63,7 +63,7 @@ object LanguageProcessing {
 
   def apply = {
 
-    import neuroflow.core.FFN.WeightProvider._
+    import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 
     val cars = normalize(readAll("file/newsgroup/cars/"))
     val med = normalize(readAll("file/newsgroup/med/"))
@@ -75,20 +75,20 @@ object LanguageProcessing {
 
     println("No. of samples: " + allTrain.size)
 
-    val net = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
-      Settings(iterations = 500, specifics = Some(Map("m" -> 7))))
+    val net: FFN[Double] = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
+      Settings[Double](iterations = 500, specifics = Some(Map("m" -> 7))))
 
     net.train(allTrain.map(_._1.dv), allTrain.map(_._2))
 
-    IO.File.write(net, netFile)
+    IO.File.write(net.weights, netFile)
 
   }
 
   def test = {
 
-    val net = {
-      implicit val wp = IO.File.read(netFile)
-      Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil, Settings())
+    val net: FFN[Double] = {
+      implicit val wp = IO.File.readDouble(netFile)
+      Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil, Settings[Double]())
     }
 
     val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))
@@ -99,7 +99,7 @@ object LanguageProcessing {
     val testMed = vectorize(med)
     val testFree = vectorize(free)
 
-    def eval(id: String, maxIndex: Int, xs: Vector[Vector[Double]]) = {
+    def eval(id: String, maxIndex: Int, xs: scala.Vector[scala.Vector[Double]]) = {
       val (ok, fail) = xs.map(x => net(x.dv)).map(k => k.toScalaVector.indexOf(k.max) == maxIndex).partition(l => l)
       println(s"Correctly classified $id: ${ok.size.toDouble / (ok.size.toDouble + fail.size.toDouble) * 100.0} % !")
     }

@@ -5,6 +5,7 @@ import java.io.File
 
 import breeze.linalg.max
 import neuroflow.application.plugin.IO
+import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
@@ -26,8 +27,8 @@ object ImageRecognition {
     val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
-//    implicit val wp = neuroflow.core.CNN.WeightProvider(-0.008, 0.01)
-    implicit val wp = IO.File.read(wps)
+    implicit val wp = neuroflow.core.WeightProvider.Double.CNN(-0.008, 0.01)
+//    implicit val wp = IO.File.readDouble(wps)
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -63,8 +64,8 @@ object ImageRecognition {
       Dense(100, f)           ::
       Output(classes.size, f) :: HNil
 
-    val net = Network(convs ::: fully,
-      Settings(
+    val net: CNN[Double] = Network(convs ::: fully,
+      Settings[Double](
         prettyPrint = true,
         learningRate = { case (_, _) => 1E-3 },
         updateRule = Momentum(μ = 0.9),

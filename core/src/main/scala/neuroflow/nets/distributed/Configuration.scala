@@ -9,7 +9,7 @@ import com.typesafe.config.{Config, ConfigFactory}
   */
 object Configuration {
 
-  def apply(node: Node, settings: Settings): Config = {
+  def apply[V](node: Node, settings: Settings[V]): Config = {
     ConfigFactory.parseString(
       s"""
          |akka {

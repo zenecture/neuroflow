@@ -25,19 +25,19 @@ class IoTest extends Specification {
   """
 
   val layers = Input(2) :: Dense(3, Sigmoid) :: Output(2, Sigmoid) :: HNil
-  val measure = {
-    import neuroflow.core.FFN.WeightProvider.zeroWeights
+  val measure: FFN[Double] = {
+    import neuroflow.core.WeightProvider.Double.FFN.zeroWeights
     Network(layers)
   }
-  val asJson = "[{\"rows\":2,\"cols\":3,\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]},{\"rows\":3,\"cols\":2,\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]}]"
+  val asJson = "[{\"rows\":2,\"cols\":3,\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]},{\"rows\":3,\"cols\":2,\"precision\":\"double\",\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]}]"
 
   def serialize = {
-    val serialized = Json.write(measure)
+    val serialized = Json.write(measure.weights)
     serialized === asJson
   }
 
   def deserialize = {
-    implicit val wp = Json.read(asJson)
+    implicit val wp = Json.readDouble(asJson)
     val deserialized = Network(layers)
     deserialized.weights.toArray.map(_.toArray) === measure.weights.toArray.map(_.toArray)
   }

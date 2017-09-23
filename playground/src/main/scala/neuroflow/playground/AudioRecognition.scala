@@ -4,12 +4,10 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator.Tanh
-import neuroflow.core.FFN.WeightProvider._
+import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
-
-import scala.collection.immutable.Seq
 
 /**
   * @author bogdanski
@@ -35,12 +33,12 @@ object AudioRecognition {
   def apply = {
 
     val fn = Tanh
-    val sets = Settings(iterations = 2000, precision = 1E-4)
+    val sets = Settings[Double](iterations = 2000, precision = 1E-4)
     val (a, b, c) = (prepare("audio/hello.wav"), prepare("audio/goodbye.wav"), prepare("audio/hello-alt.wav"))
 
     val nets = ((a zip b) zip c).par.map {
       case ((x, y), z) =>
-        val net = Network(Input(x.size) :: Dense(20, fn) :: Output(2, fn) :: HNil, sets)
+        val net: FFN[Double] = Network(Input(x.size) :: Dense(20, fn) :: Output(2, fn) :: HNil, sets)
         net.train(Array(x.dv, y.dv, z.dv), Array(->(1.0, -1.0), ->(-1.0, 1.0), ->(1.0, -1.0)))
         (net, x, y, z)
     }

@@ -8,7 +8,7 @@ import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common.Logs
-import neuroflow.core.Network._
+import neuroflow.core.Network
 
 import scala.io.Source
 import scala.util.Try
@@ -18,6 +18,9 @@ import scala.util.Try
   * @since 03.01.16
   */
 object Image extends Logs {
+
+  type Matrices = Network.Matrices[Double]
+  type Vector   = Network.Vector[Double]
 
 
   /**

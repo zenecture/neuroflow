@@ -15,9 +15,22 @@ import scala.io.Source
   */
 object IO extends Logs {
 
-  private case class RawMatrix(rows: Int, cols: Int, data: Array[Double]) {
+  case class RawMatrix(rows: Int, cols: Int, precision: String, data: Array[Double]) {
     def toDenseMatrix = DenseMatrix.create[Double](rows, cols, data)
   }
+
+  trait CanProduceRaw[V] {
+    def apply(m: DenseMatrix[V]): RawMatrix
+  }
+
+  implicit object CanProduceRawFromDouble extends CanProduceRaw[Double] {
+    def apply(m: DenseMatrix[Double]): RawMatrix = RawMatrix(m.rows, m.cols, "double", m.toArray)
+  }
+
+  implicit object CanProduceRawFromFloat extends CanProduceRaw[Float] {
+    def apply(m: DenseMatrix[Float]): RawMatrix = RawMatrix(m.rows, m.cols, "single", m.map(_.toDouble).toArray)
+  }
+
 
   object Json {
 
@@ -26,20 +39,27 @@ object IO extends Logs {
     import io.circe.syntax._
 
     /**
-      * Deserializes weights as `json` to construct a `WeightProvider`
+      * Deserializes weights from `json` to construct a `WeightProvider`, casts to `Double`.
       */
-    def read(json: String): WeightProvider = new WeightProvider {
-      def apply(v1: Seq[Layer]): Weights = decode[Array[RawMatrix]](json) match {
-        case Left(t) => throw t
+    def readDouble(json: String): WeightProvider[Double] = new WeightProvider[Double] {
+      def apply(v1: Seq[Layer]): Weights[Double] = decode[Array[RawMatrix]](json) match {
+        case Left(t)   => throw t
         case Right(ws) => ws.map(_.toDenseMatrix)
+      }
+    }
+
+    def readFloat(json: String): WeightProvider[Float] = new WeightProvider[Float] {
+      def apply(v1: Seq[Layer]): Weights[Float] = decode[Array[RawMatrix]](json) match {
+        case Left(t)   => throw t
+        case Right(ws) => ws.map(_.toDenseMatrix.map(_.toFloat))
       }
     }
 
     /**
       * Serializes weights of `network` to json string
       */
-    def write(network: Network[_, _]): String = write(network.weights)
-    def write(weights: Weights): String = weights.map(m => RawMatrix(m.rows, m.cols, m.toArray)).asJson.noSpaces
+    def write[V](weights: Weights[V])(implicit c: CanProduceRaw[V]): String = weights.map(m => c(m)).asJson.noSpaces
+
   }
 
 
@@ -47,13 +67,14 @@ object IO extends Logs {
     /**
       * Deserializes weights as json from `file` to construct a `WeightProvider`
       */
-    def read(file: String): WeightProvider = ~> (Source.fromFile(file).mkString) map Json.read
+    def readDouble(file: String): WeightProvider[Double] = ~> (Source.fromFile(file).mkString) map Json.readDouble
+    def readFloat(file: String): WeightProvider[Float] = ~> (Source.fromFile(file).mkString) map Json.readFloat
 
     /**
       * Serializes weights of `network` to `file` as json
       */
-    def write(network: Network[_, _], file: String): Unit = write(network.weights, file)
-    def write(weights: Weights, file: String): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
+    def write[V](weights: Weights[V], file: String)(implicit c: CanProduceRaw[V]): Unit =
+      ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
   }
 
 }

@@ -32,19 +32,22 @@ import scala.concurrent.{Await, Future}
 
 
 object DenseNetwork {
-  implicit val constructor: Constructor[DenseNetwork] = new Constructor[DenseNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings)(implicit weightProvider: WeightProvider): DenseNetwork = {
+  implicit val double: Constructor[Double, DenseNetwork] = new Constructor[Double, DenseNetwork] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetwork = {
       DenseNetwork(ls, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, weights: Weights,
+private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = Registry.register())
-  extends DistributedFeedForwardNetwork with EarlyStoppingLogic with KeepBestLogic {
+  extends DistFFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] {
 
-  import neuroflow.core.Network._
+  type Vector   = Network.Vector[Double]
+  type Vectors  = Network.Vectors[Double]
+  type Matrix   = Network.Matrix[Double]
+  type Matrices = Network.Matrices[Double]
 
   private val _layers = layers.map {
     case Focus(inner) => inner
@@ -61,7 +64,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
 
   private val _akka = ActorSystem("NeuroFlow", Configuration(settings.coordinator, settings))
 
-  private implicit object Average extends CanAverage[DenseNetwork, Vector, Vector] {
+  private implicit object Average extends CanAverage[Double, DenseNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
         case (a, b) => mean(abs(a - b))
@@ -159,7 +162,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings, we
 
     val results = Await.result(Future.sequence {
       processors.map { processor =>
-        (processor ? 'Execute).mapTo[(Weights, Matrix)]
+        (processor ? 'Execute).mapTo[(Weights[Double], Matrix)]
       }
     }, atMost = Duration.Inf)
 
