@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
   * A [[WeightProvider]] connects the neurons of a [[Layer]] through the weights, or synapses.
   */
 @implicitNotFound(
-  "No weight provider in scope. Import your desired provider or try: " +
+  "No weight provider in scope. Add your own or import a predefined provider: " +
   "import neuroflow.core.WeightProvider.Y.X._ (where X = { FFN | RNN | CNN }, Y = { Double | Float }).")
 trait WeightProvider[V] extends (Seq[Layer] => Weights[V])
 
