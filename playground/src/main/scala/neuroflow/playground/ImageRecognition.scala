@@ -64,7 +64,7 @@ object ImageRecognition {
       Dense(100, f)           ::
       Output(classes.size, f) :: HNil
 
-    val net: CNN[Double] = Network(convs ::: fully,
+    val net = Network(convs ::: fully,
       Settings[Double](
         prettyPrint = true,
         learningRate = { case (_, _) => 1E-3 },

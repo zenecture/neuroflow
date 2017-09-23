@@ -75,7 +75,7 @@ object LanguageProcessing {
 
     println("No. of samples: " + allTrain.size)
 
-    val net: FFN[Double] = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
+    val net = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
       Settings[Double](iterations = 500, specifics = Some(Map("m" -> 7))))
 
     net.train(allTrain.map(_._1.dv), allTrain.map(_._2))
@@ -86,7 +86,7 @@ object LanguageProcessing {
 
   def test = {
 
-    val net: FFN[Double] = {
+    val net = {
       implicit val wp = IO.File.readDouble(netFile)
       Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil, Settings[Double]())
     }

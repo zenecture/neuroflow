@@ -59,7 +59,7 @@ object MovieCluster {
 
     println("Training samples: " + topByUser.size)
 
-    val net: FFN[Double] = Network(layout, Settings[Double](iterations = 500, learningRate = { case (_, _) => 1E-4 }))
+    val net = Network(layout, Settings[Double](iterations = 500, learningRate = { case (_, _) => 1E-4 }))
 
     net.train(topByUser.map(_._1), topByUser.map(_._2))
 
@@ -69,7 +69,7 @@ object MovieCluster {
 
   def find = {
 
-    val net: FFN[Double] = {
+    val net = {
       implicit val wp = IO.File.readDouble(netFile)
       Network(layout, Settings[Double]())
     }

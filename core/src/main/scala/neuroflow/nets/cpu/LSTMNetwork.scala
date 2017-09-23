@@ -23,6 +23,7 @@ import scala.collection._
   * where the current layer gets input from the lower layers at the same time step
   * and from itself at the previous time step.
   *
+  *
   * @author bogdanski
   * @since 07.07.16
   *
@@ -48,16 +49,16 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
   type Matrices = Network.Matrices[Double]
 
   private val hiddenLayers = layers.drop(1).dropRight(1)
-  private val initialOut = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)).toArray
-  private val _ANil      = Array.empty[Matrix]
-  private val separators = settings.partitions.getOrElse(Set.empty)
-  private val zeroOutput = DenseMatrix.zeros[Double](1, layers.last.neurons)
+  private val initialOut   = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)).toArray
+  private val     _ANil    = Array.empty[Matrix]
+  private val separators   = settings.partitions.getOrElse(Set.empty)
+  private val zeroOutput   = DenseMatrix.zeros[Double](1, layers.last.neurons)
 
   // mutable state
-  private val memoryCells = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
-  private var xIndices = Map.empty[Int, Int]
-  private var yIndices = Map.empty[Int, Int]
-  private var noTargets = Set.empty[Int]
+  private val memoryCells  = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons))
+  private var   xIndices   = Map.empty[Int, Int]
+  private var   yIndices   = Map.empty[Int, Int]
+  private var   noTargets  = Set.empty[Int]
 
 
   /**
