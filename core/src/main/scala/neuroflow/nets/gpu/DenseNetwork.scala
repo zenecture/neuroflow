@@ -3,11 +3,13 @@ package neuroflow.nets.gpu
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
+import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
 import neuroflow.nets.Registry
+import neuroflow.nets.gpu.cuda.CuMatrix
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -41,6 +43,9 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
                                       identifier: String = Registry.register())
   extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
+  implicit val handle = new cublasHandle
+  JCublas2.cublasCreate(handle)
+
   type Vector   = Network.Vector[Double]
   type Vectors  = Network.Vectors[Double]
   type Matrix   = Network.Matrix[Double]
@@ -56,6 +61,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
+  private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
 
@@ -129,6 +135,9 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
+      weights.zip(_cuWeights).foreach {
+        case (w, cw) => w := cw.toDense
+      }
       takeBest()
     }
   }
@@ -137,15 +146,22 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     * Computes the network recursively.
     */
   private def flow(in: Matrix, outLayer: Int): Matrix = {
-    val fa  = collection.mutable.Map.empty[Int, Matrix]
-    @tailrec def forward(in: Matrix, i: Int): Unit = {
-      val p = in * weights(i)
-      val a = p.map(_layersNI(i).activator)
+    val _in = CuMatrix.fromDense(in)
+    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+    @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
+      val p  = in * _cuWeights(i)
+      val pd = p.toDense
+      p.release()
+      val ad = pd.map(_layersNI(i).activator)
+      val a  = CuMatrix.fromDense(ad)
       fa += i -> a
       if (i < outLayer) forward(a, i + 1)
     }
-    forward(in, 0)
-    fa(outLayer)
+    forward(_in, 0)
+    val o = fa(outLayer).toDense
+    _in.release()
+    fa.values.foreach(_.release())
+    o
   }
 
   /**
@@ -153,29 +169,36 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     * adapts their value using gradient descent and returns the error matrix.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
-    val xsys = xs.par.zip(ys)
+    val cuxs = xs.map(m => CuMatrix.fromDense(m))
+    val cuys = ys.map(m => CuMatrix.fromDense(m))
+    val xsys = cuxs.par.zip(cuys)
     xsys.tasksupport = _forkJoinTaskSupport
 
     val _ds = (0 to _lastWlayerIdx).map { i =>
-      i -> DenseMatrix.zeros[Double](weights(i).rows, weights(i).cols)
+      i -> CuMatrix.zeros[Double](weights(i).rows, weights(i).cols)
     }.toMap
 
-    val _errSum = DenseMatrix.zeros[Double](1, _outputDim)
-    val _square = DenseMatrix.zeros[Double](1, _outputDim)
+    val _errSum = CuMatrix.zeros[Double](1, _outputDim)
+    val _square = CuMatrix.zeros[Double](1, _outputDim)
     _square := 2.0
 
     xsys.map { xy =>
-      val (x, y) = xy
-      val fa  = collection.mutable.Map.empty[Int, Matrix]
-      val fb  = collection.mutable.Map.empty[Int, Matrix]
-      val dws = collection.mutable.Map.empty[Int, Matrix]
-      val ds  = collection.mutable.Map.empty[Int, Matrix]
-      val e   = DenseMatrix.zeros[Double](1, _outputDim)
 
-      @tailrec def forward(in: Matrix, i: Int): Unit = {
-        val p = in * weights(i)
-        val a = p.map(_layersNI(i).activator)
-        val b = p.map(_layersNI(i).activator.derivative)
+      val (x, y) = xy
+      val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+      val fb  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+      val dws = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+      val ds  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+      val e   = CuMatrix.zeros[Double](1, _outputDim)
+
+      @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
+        val p = in * _cuWeights(i)
+        val pd = p.toDense // activator can be arbitrary, CPU.
+        p.release()
+        val ad = pd.map(_layersNI(i).activator)
+        val bd = pd.map(_layersNI(i).activator.derivative)
+        val a = CuMatrix.fromDense(ad)
+        val b = CuMatrix.fromDense(bd)
         fa += i -> a
         fb += i -> b
         if (i < _lastWlayerIdx) forward(a, i + 1)
@@ -184,28 +207,39 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
       @tailrec def derive(i: Int): Unit = {
         if (i == 0 && _lastWlayerIdx == 0) {
           val yf = y - fa(0)
-          val d = -yf *:* fb(0)
+          val nyf = -yf
+          val d = nyf *:* fb(0)
           val dw = x.t * d
           dws += 0 -> dw
           e += yf
+          nyf.release()
+          yf.release()
+          d.release()
         } else if (i == _lastWlayerIdx) {
           val yf = y - fa(i)
-          val d = -yf *:* fb(i)
+          val nyf = -yf
+          val d = nyf *:* fb(i)
           val dw = fa(i - 1).t * d
           dws += i -> dw
           ds += i -> d
           e += yf
+          nyf.release()
+          yf.release()
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > 0) {
-          val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
-          val dw = fa(i - 1).t * d
+          val d1 = ds(i + 1) * _cuWeights(i + 1).t
+          val d2 = d1 *:* fb(i)
+          val dw = fa(i - 1).t * d2
           dws += i -> dw
-          ds += i -> d
+          ds += i -> d2
+          d1.release()
           derive(i - 1)
         } else if (i == 0) {
-          val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
-          val dw = x.t * d
+          val d1 = ds(i + 1) * _cuWeights(i + 1).t
+          val d2 = d1 *:* fb(i)
+          val dw = x.t * d2
           dws += i -> dw
+          d1.release()
         }
       }
 
@@ -213,23 +247,43 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
       derive(_lastWlayerIdx)
       e :^= _square
       e *= 0.5
+
+      ds.values.foreach(_.release())
+      fa.values.foreach(_.release())
+      fb.values.foreach(_.release())
+
       (dws, e)
+
     }.seq.foreach { ab =>
       _errSum += ab._2
+      ab._2.release()
       var i = 0
       while (i <= _lastWlayerIdx) {
         val m = _ds(i)
         val n = ab._1(i)
         m += n
         i += 1
+        n.release()
       }
     }
+
     var i = 0
     while (i <= _lastWlayerIdx) {
-      settings.updateRule(weights(i), _ds(i), stepSize, i)
+      settings.updateRule(_cuWeights(i), _ds(i), stepSize, i)
       i += 1
     }
-    _errSum
+
+    xsys.foreach { xy =>
+      xy._1.release()
+      xy._2.release()
+    }
+
+    _ds.values.foreach(_.release())
+    val es = _errSum.toDense
+    _errSum.release()
+    _square.release()
+
+    es
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */

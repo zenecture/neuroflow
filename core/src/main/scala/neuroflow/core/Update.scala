@@ -162,6 +162,9 @@ case class Debuggable[V]() extends Update[V] {
             sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
             subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): Unit = ???
+            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): Unit = {
+    lastGradients += position -> dws.toDense
+    ws -= (dws *= learningRate)
+  }
 
 }
