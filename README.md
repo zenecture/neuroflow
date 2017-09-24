@@ -88,7 +88,7 @@ If a network doesn't follow this rule, it won't compile.
 # Training
 
 Let's train our `net` with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
-In NeuroFlow, you work with Breeze vectors and matrices (`DenseMatrix[Double]`, `DenseVector[Double]`). Let's quickly define the training data using the vector notation:
+In NeuroFlow, you work with Breeze vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). Let's quickly define the training data using the vector notation:
 
 ```scala
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
