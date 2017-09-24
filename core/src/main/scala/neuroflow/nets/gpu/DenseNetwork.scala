@@ -19,7 +19,7 @@ import scala.concurrent.forkjoin.ForkJoinPool
 
 /**
   *
-  * This is a feed-forward neural network with fully connected layers.
+  * This is a feed-forward neural network with fully connected layers running on CUDA.
   * It uses gradient descent to optimize the error function Σ1/2(y - net(x))².
   *
   * Use the parallelism parameter with care, as it greatly affects memory usage.
@@ -311,10 +311,13 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
       weights(weightLayer).update(weight, v - Δ)
+      weights.zip(_cuWeights).foreach {case (w, cw) => cw := w }
       val a = errorFunc()
       weights(weightLayer).update(weight, v + Δ)
+      weights.zip(_cuWeights).foreach {case (w, cw) => cw := w }
       val b = errorFunc()
       weights(weightLayer).update(weight, v)
+      weights.zip(_cuWeights).foreach {case (w, cw) => cw := w }
       (b - a) / (2 * Δ)
     }
 
@@ -326,7 +329,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val grad = sum(approximateErrorFuncDerivative(idx, k))
+          val efd  = approximateErrorFuncDerivative(idx, k)
+          val grad = sum(efd)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }
