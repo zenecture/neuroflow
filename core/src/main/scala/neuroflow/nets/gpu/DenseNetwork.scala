@@ -311,13 +311,13 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
       weights(weightLayer).update(weight, v - Δ)
-      weights.zip(_cuWeights).foreach {case (w, cw) => cw := w }
+      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
       val a = errorFunc()
       weights(weightLayer).update(weight, v + Δ)
-      weights.zip(_cuWeights).foreach {case (w, cw) => cw := w }
+      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
       val b = errorFunc()
       weights(weightLayer).update(weight, v)
-      weights.zip(_cuWeights).foreach {case (w, cw) => cw := w }
+      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
       (b - a) / (2 * Δ)
     }
 
