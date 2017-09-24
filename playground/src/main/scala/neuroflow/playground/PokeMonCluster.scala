@@ -49,7 +49,7 @@ object PokeMonCluster {
 
     def toVector(p: Pokemon): Vector[Double] = p match {
       case Pokemon(_, t1, t2, tot, hp, att, defe, spAtk, spDef, speed, gen, leg) =>
-        ζ(types.size).data.toVector.updated(t1, 1.0) ++ /* ζ(types.size).updated(t2, 1.0) ++ */ Vector(tot / maximums._1) ++
+        ζ[Double](types.size).data.toVector.updated(t1, 1.0) ++ /* ζ(types.size).updated(t2, 1.0) ++ */ Vector(tot / maximums._1) ++
           Vector(hp / maximums._2) ++ Vector(att / maximums._3) ++ Vector(defe / maximums._4)
           /* ++ ->(spAtk / maximums._5) ++ ->(spDef / maximums._6) ++ ->(speed / maximums._7)
              ++ ζ(gens.size).updated(gen, 1.0) ++ ->(leg) */

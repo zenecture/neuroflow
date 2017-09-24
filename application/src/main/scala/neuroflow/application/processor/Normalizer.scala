@@ -55,9 +55,9 @@ object Normalizer {
       * Extracts the original hot vectors from horizontally merged `x`.
       */
     def apply(x: Vector): Vectors = x.data.zipWithIndex.flatMap {
-      case (v, i) if v >= 1.0 => Some({ val m = ζ(x.size); m.update(i, 1.0); m })
+      case (v, i) if v >= 1.0 => Some({ val m = ζ[Double](x.size); m.update(i, 1.0); m })
       case (v, i) if v == 0.0 => None
-      case (v, i) if v  < 0.0 => Some({ val m = ζ(x.size); m.update(i, -1.0); m })
+      case (v, i) if v  < 0.0 => Some({ val m = ζ[Double](x.size); m.update(i, -1.0); m })
     }
   }
 
