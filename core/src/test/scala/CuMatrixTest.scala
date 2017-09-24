@@ -39,16 +39,19 @@ class CuMatrixTest  extends Specification {
     val c = a * b.t
     val d = (a += 4.0) *:* (b += 4.0)
     val e = a.reshape(1, 16) *:* b.reshape(1, 16)
+    val f = e :^= e
     println(a)
     println(b)
     println(c)
     println(d)
     println(e)
+    println(f)
     a.release()
     b.release()
     c.release()
     d.release()
     e.release()
+    f.release()
 
     success
 
