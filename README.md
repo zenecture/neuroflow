@@ -100,7 +100,7 @@ For feed-forward nets, the error function is defined as follows:
 
     E(W) = Σ1/2(t - net(x))²
 
-Where `W` are all weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
+Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form, which is convenient for gradient descent.
 
 The training progress will appear on console so we can track it. 
