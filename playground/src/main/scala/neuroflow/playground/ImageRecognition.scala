@@ -35,7 +35,7 @@ object ImageRecognition {
           "dog", "frog", "horse", "ship", "truck")
 
     val classVecs = classes.zipWithIndex.map { case (c, i) => 
-      c -> ~>(ζ(classes.size)).io(_.update(i, 1.0)).t 
+      c -> ~>(ζ[Double](classes.size)).io(_.update(i, 1.0)).t
     }.toMap
 
     val train = new File(path + "/train").list().take(50000).map { s =>

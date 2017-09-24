@@ -26,6 +26,11 @@ trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializab
   val symbol: String
   def apply(x: N): N
   def derivative(x: N): N
+  def map[B](f: B => N, g: N => B): Activator[B] = new Activator[B] {
+    val symbol: String = self.symbol
+    def apply(x: B): B = g(self(f(x)))
+    def derivative(x: B): B = g(self.derivative(f(x)))
+  }
 }
 
 /**

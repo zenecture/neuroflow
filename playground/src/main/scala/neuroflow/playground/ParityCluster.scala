@@ -34,10 +34,10 @@ object ParityCluster {
     import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 
     val classes = (0 until dimension) map (i => (i, Random.nextInt(2))) map {
-      case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ(dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
-      case (i, k) if i % 2 == 0 && k % 2 != 0 => ("xo", ζ(dimension).toScalaVector.updated(i, 1.0) ++ Vector(0.0))
-      case (i, k) if i % 2 != 0 && k % 2 == 0 => ("vw", ζ(dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
-      case (i, k) if i % 2 != 0 && k % 2 != 0 => ("vo", ζ(dimension).toScalaVector.updated(i, 1.0) ++ Vector(0.0))
+      case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
+      case (i, k) if i % 2 == 0 && k % 2 != 0 => ("xo", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(0.0))
+      case (i, k) if i % 2 != 0 && k % 2 == 0 => ("vw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
+      case (i, k) if i % 2 != 0 && k % 2 != 0 => ("vo", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(0.0))
     }
 
     val evens = Range(0, dimension, 2).toVector

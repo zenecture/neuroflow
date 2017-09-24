@@ -35,7 +35,7 @@ object MovieCluster {
     ~>(Source.fromFile(getResourceFile("file/ml-100k/u.item")).getLines.toList.take(dimensionLimit)).map { ms =>
       ms.map { line =>
         val r = line.replace("|", ";").split(";")
-        Movie(r(0).toInt, r(1), ζ(ms.size).toScalaVector.updated(r(0).toInt - 1, 1.0))
+        Movie(r(0).toInt, r(1), ζ[Double](ms.size).toScalaVector.updated(r(0).toInt - 1, 1.0))
       }
     }
 
