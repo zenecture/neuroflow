@@ -116,6 +116,8 @@ trait Network[V, In, Out] extends (In => Out) with Logs with ErrorFuncGrapher wi
 
   sayHi()
 
+  val numericPrecision: String
+
   val identifier: String
 
   /** Settings of this neural network. */

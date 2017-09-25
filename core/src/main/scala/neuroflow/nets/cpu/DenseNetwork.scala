@@ -38,7 +38,7 @@ object DenseNetwork {
 
 
 private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register())
+                                      identifier: String = Registry.register(), numericPrecision: String = "Double")
   extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   type Vector   = Network.Vector[Double]
