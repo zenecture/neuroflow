@@ -76,8 +76,7 @@ object Word2Vec {
           learningRate    = { case (_, _) => 1E-4 },
           updateRule      = Momentum(0.9f),
           iterations      = 10000,
-          batchSize       = Some(8),
-          parallelism     = 8,
+          batchSize       = Some(64),
           regularization  = Some(KeepBest),
           prettyPrint     = true,
           waypoint        = Some(Waypoint(nth = 10, ws => IO.File.write(ws, wps))))

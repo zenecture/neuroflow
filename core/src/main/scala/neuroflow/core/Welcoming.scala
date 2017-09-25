@@ -21,13 +21,13 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version   1.1.7
+      |            Version   1.1.8
       |
       |         Identifier : $identifier
-      |         Network    : ${this.getClass.getCanonicalName}
-      |         Layout:    : ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
-      |         Weights:   : ${ formatter.format(weights.map(_.size).sum) } (≈ ${ weights.map(_.size).sum.toDouble * sizeOf(numericPrecision) / 1024.0 / 1024.0 }%.6g MB)
-      |         Precision: : $numericPrecision
+      |            Network : ${this.getClass.getCanonicalName}
+      |             Layout : ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
+      |            Weights : ${ formatter.format(weights.map(_.size).sum) } (≈ ${ weights.map(_.size).sum.toDouble * sizeOf(numericPrecision) / 1024.0 / 1024.0 }%.6g MB)
+      |          Precision : $numericPrecision
       |
       |
       |

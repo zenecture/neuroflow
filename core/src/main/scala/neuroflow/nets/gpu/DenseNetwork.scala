@@ -22,8 +22,6 @@ import scala.concurrent.forkjoin.ForkJoinPool
   * This is a feed-forward neural network with fully connected layers running on CUDA.
   * It uses gradient descent to optimize the error function Σ1/2(y - net(x))².
   *
-  * Use the parallelism parameter with care, as it greatly affects memory usage.
-  *
   * @author bogdanski
   * @since 15.01.16
   *
@@ -46,7 +44,10 @@ object DenseNetwork {
   
 }
 
+
+////
 //// Double Precision Impl
+////
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = Registry.register(), numericPrecision: String = "Double")
@@ -89,6 +90,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
+    if (settings.parallelism > 1)
+      warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
@@ -355,7 +358,10 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
 }
 
+
+////
 //// Single Precision Impl
+////
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
                                             identifier: String = Registry.register(), numericPrecision: String = "Single")
