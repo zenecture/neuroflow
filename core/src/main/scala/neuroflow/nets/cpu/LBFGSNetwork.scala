@@ -134,7 +134,7 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Dou
   def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
     layers.collect {
-      case c: Focus => c
+      case c: Focus[Double] => c
     }.headOption.map { cl =>
       flow(weights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
     }.getOrElse {

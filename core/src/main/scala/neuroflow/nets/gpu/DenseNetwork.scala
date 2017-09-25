@@ -66,7 +66,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     case layer: Layer => layer
   }.toArray
 
-  private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
+  private val _clusterLayer   = layers.collect { case c: Focus[_] => c }.headOption
 
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
   private val _outputDim      = _layers.last.neurons
@@ -380,7 +380,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     case layer: Layer => layer
   }.toArray
 
-  private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
+  private val _clusterLayer   = layers.collect { case c: Focus[_] => c }.headOption
 
   private val _activators     = _layers.tail.map { case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat) }
   private val _outputDim      = _layers.last.neurons

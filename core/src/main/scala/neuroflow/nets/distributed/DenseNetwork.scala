@@ -54,7 +54,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     case layer: Layer => layer
   }.toArray
 
-  private val _clusterLayer   = layers.collect { case c: Focus => c }.headOption
+  private val _clusterLayer   = layers.collect { case c: Focus[_] => c }.headOption
 
   private val _lastWlayerIdx  = weights.size - 1
   private def _weightsWi      = weights.map(_.data.zipWithIndex.grouped(settings.transport.messageGroupSize)).zipWithIndex

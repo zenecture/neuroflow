@@ -1,11 +1,13 @@
-package neuroflow.nets.cpu
+package neuroflow.nets.gpu
 
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
+import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.Network._
 import neuroflow.core._
 import neuroflow.nets.Registry
+import neuroflow.nets.gpu.cuda.CuMatrix
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -26,23 +28,26 @@ import scala.concurrent.forkjoin.ForkJoinPool
   */
 
 object ConvNetwork {
-  implicit val double: Constructor[Double, ConvNetwork] = new Constructor[Double, ConvNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): ConvNetwork = {
-      ConvNetwork(ls, settings, weightProvider(ls))
+  implicit val single: Constructor[Float, ConvNetworkSingle] = new Constructor[Float, ConvNetworkSingle] {
+    def apply(ls: Seq[Layer], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): ConvNetworkSingle = {
+      ConvNetworkSingle(ls, settings, weightProvider(ls))
     }
   }
 }
 
-private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
                                      identifier: String = Registry.register(), numericPrecision: String = "Double")
-  extends CNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
+  extends CNN[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
+
+  implicit val handle = new cublasHandle
+  JCublas2.cublasCreate(handle)
 
   import Convolution.IntTupler
 
-  type Vector   = Network.Vector[Double]
-  type Vectors  = Network.Vectors[Double]
-  type Matrix   = Network.Matrix[Double]
-  type Matrices = Network.Matrices[Double]
+  type Vector   = Network.Vector[Float]
+  type Vectors  = Network.Vectors[Float]
+  type Matrix   = Network.Matrix[Float]
+  type Matrices = Network.Matrices[Float]
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
@@ -55,11 +60,12 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
 
   private val _clusterLayer       = layers.collect { case c: Focus[_] => c }.headOption
   private val _lastWlayerIdx      = weights.size - 1
+  private val _fullLayers         = _allLayers.map { hd => hd.activator.map[Float](_.toDouble, _.toFloat) }
   private val _convLayers         = _allLayers.zipWithIndex.map(_.swap).filter {
     case (_, _: Convolution[_])   => true
     case _                        => false
   }.toMap.mapValues {
-    case c: Convolution[Double]   => c
+    case c: Convolution[Double]   => c.copy(activator = c.activator.map[Float](_.toDouble, _.toFloat))
   }
 
   private val _outputDim = _allLayers.last.neurons
@@ -68,6 +74,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
 
   private type Indices   = Map[(Int, Int), DenseMatrix[Int]]
   private val _indices   = collection.mutable.Map.empty[Int, Indices]
+  private val _cuWeights = weights.map(m => CuMatrix.fromDense(m))
 
   /**
     * Computes output for `x`.
@@ -89,13 +96,13 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
-    run(xsys, learningRate(0 -> 1.0), xs.size, batchSize, precision, 1, iterations)
+    run(xsys, learningRate(0 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
   }
 
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Double, sampleSize: Int, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Float, sampleSize: Int, batchSize: Int, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val _em = xsys.map { batch =>
       val (x, y) = (batch.map(_._1), batch.map(_._2))
@@ -112,7 +119,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
     keepBest(errorMean, weights)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
       takeBest()
@@ -122,35 +129,45 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
   private def flow(in: Matrices, target: Int): Matrix = {
 
     val _fa = ArrayBuffer.empty[Matrix]
+    val _fb = ArrayBuffer.empty[CuMatrix[Float]]
 
     @tailrec def conv(_in: Matrices, i: Int): Unit = {
-      val l = _convLayers(i)
-      val p = weights(i) * im2col(_in, l.field, l.stride`²`)._1
-      val a = p.map(l.activator)
+      val l  = _convLayers(i)
+      val c  = CuMatrix.fromDense(im2col(_in, l.field, l.stride`²`)._1)
+      val p  = _cuWeights(i) * c
+      val a = p.toDense.map(l.activator)
+      c.release()
+      p.release()
       _fa += a
       if (i < _lastC) conv(col2im(a, l.dimOut), i + 1)
     }
 
-    @tailrec def fully(_in: Matrix, i: Int): Unit = {
-      val l = _allLayers(i)
-      val p = _in * weights(i)
-      val a = p.map(l.activator)
-      _fa += a
+    @tailrec def fully(_in: CuMatrix[Float], i: Int): Unit = {
+      val l  = _fullLayers(i)
+      val p  = _in * _cuWeights(i)
+      val ad = p.toDense.map(l)
+      val a  = CuMatrix.fromDense(ad)
+      p.release()
+      _fb += a
       if (i < _lastL) fully(a, i + 1)
     }
 
     conv(in, 0)
-    fully(_fa(_lastC).reshape(1, _convLayers(_lastC).neurons), _lastC + 1)
+    val _cuIn = CuMatrix.fromDense(_fa(_lastC).reshape(1, _convLayers(_lastC).neurons))
+    fully(_cuIn, _lastC + 1)
 
-    _fa(target)
+    val o = if (target <= _lastC) _fa(target) else _fb(target).toDense
+    _fb.foreach(_.release())
+    o
 
   }
+
 
   private def im2col(ms: Matrices, field: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
     val dim = (ms.head.rows, ms.head.cols, ms.size)
     val dimOut = ((dim._1 - field._1) / stride._1 + 1, (dim._2 - field._2) / stride._2 + 1)
     val fieldSq = field._1 * field._2
-    val out = DenseMatrix.zeros[Double](fieldSq * dim._3, dimOut._1 * dimOut._2)
+    val out = DenseMatrix.zeros[Float](fieldSq * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
         k -> DenseMatrix.zeros[Int](field._1, field._2)
@@ -197,13 +214,13 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
     out
   }
 
-  private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Double): Matrix = {
+  private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Float): Matrix = {
 
     val xsys = xs.par.zip(ys)
     xsys.tasksupport = _forkJoinTaskSupport
 
     val _ds = (0 to _lastWlayerIdx).map { i =>
-      i -> DenseMatrix.zeros[Double](weights(i).rows, weights(i).cols)
+      i -> DenseMatrix.zeros[Float](weights(i).rows, weights(i).cols)
     }.toMap
 
     val _ww = _convLayers.map {
@@ -212,7 +229,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
         val l2 = _convLayers(i + 1)
         val fieldSq = l2.field._1 * l2.field._2
         val wr = weights(i + 1)
-        val ww = DenseMatrix.zeros[Double](l.filters, l2.filters * fieldSq)
+        val ww = DenseMatrix.zeros[Float](l.filters, l2.filters * fieldSq)
         var (filter, depth) = (0, 0)
         while (filter < l2.filters) {
           while (depth < l.filters) {
@@ -231,18 +248,19 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
       case (i, _) => i -> weights(i)
     }
 
-    val _errSum  = DenseMatrix.zeros[Double](1, _outputDim)
-    val _square  = DenseMatrix.zeros[Double](1, _outputDim)
-    _square := 2.0
+    val _errSum  = DenseMatrix.zeros[Float](1, _outputDim)
+    val _square  = DenseMatrix.zeros[Float](1, _outputDim)
+    _square := 2.0f
 
     xsys.map { xy =>
+
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, Matrix]
       val fb  = collection.mutable.Map.empty[Int, Matrix]
       val fc  = collection.mutable.Map.empty[Int, Matrix]
       val dws = collection.mutable.Map.empty[Int, Matrix]
       val ds  = collection.mutable.Map.empty[Int, Matrix]
-      val e   = DenseMatrix.zeros[Double](1, _outputDim)
+      val e   = DenseMatrix.zeros[Float](1, _outputDim)
 
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
@@ -263,10 +281,10 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
       }
 
       @tailrec def fully(_in: Matrix, i: Int): Unit = {
-        val l = _allLayers(i)
+        val l = _fullLayers(i)
         val p = _in * weights(i)
-        val a = p.map(l.activator)
-        val b = p.map(l.activator.derivative)
+        val a = p.map(l)
+        val b = p.map(l.derivative)
         fa += i -> a
         fb += i -> b
         if (i < _lastL) fully(a, i + 1)
@@ -300,7 +318,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
           val id = _indices(i + 1)
           val de = ds(i + 1)
           val fs = l1.field._1 * l1.field._2
-          val dc = DenseMatrix.zeros[Double](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
+          val dc = DenseMatrix.zeros[Float](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
           var f  = 0
           while (f < de.rows) {
             var (x, y, q) = (0, 0, 0)
@@ -309,7 +327,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
                 var p = 0
                 id(x, y).foreachPair { (_, v) =>
                   val t = (f * fs + p, q)
-                  val d = if (v > 0) de(f, v - 1) else 0.0
+                  val d = if (v > 0) de(f, v - 1) else 0.0f
                   dc.update(t, d)
                   p += 1
                 }
@@ -328,12 +346,14 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
           if (i > 0) derive(i - 1)
         }
       }
+
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
       e :^= _square
-      e *= 0.5
+      e *= 0.5f
       (dws, e)
+
     }.seq.foreach { ab =>
       _errSum += ab._2
       var i = 0
@@ -356,30 +376,33 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
-  private def adaptWeightsApprox(xs: Seq[Matrices], ys: Matrices, stepSize: Double): Matrix = {
+  private def adaptWeightsApprox(xs: Seq[Matrices], ys: Matrices, stepSize: Float): Matrix = {
 
-    require(settings.updateRule.isInstanceOf[Debuggable[Double]])
-    val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
+    require(settings.updateRule.isInstanceOf[Debuggable[Float]])
+    val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par
       xsys.tasksupport = _forkJoinTaskSupport
-      xsys.map { case (x, y) => 0.5 * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
+      xsys.map { case (x, y) => 0.5f * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
     }
 
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
-      val Δ = settings.approximation.get.Δ
+      val Δ = settings.approximation.get.Δ.toFloat
       val v = weights(weightLayer)(weight)
       weights(weightLayer).update(weight, v - Δ)
+      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
       val a = errorFunc()
       weights(weightLayer).update(weight, v + Δ)
+      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
       val b = errorFunc()
       weights(weightLayer).update(weight, v)
+      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
       (b - a) / (2 * Δ)
     }
 
-    val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
-    val grads   = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
+    val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Float]
+    val grads   = collection.mutable.HashMap.empty[(Int, (Int, Int)), Float]
     val debug   = collection.mutable.HashMap.empty[Int, Matrix]
 
     weights.zipWithIndex.foreach {
