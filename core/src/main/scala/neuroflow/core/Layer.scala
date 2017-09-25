@@ -23,12 +23,12 @@ case class Input(neurons: Int) extends Layer with In {
 }
 
 /** Dense output layer carrying `neurons` with `activator` function. */
-case class Output(neurons: Int, activator: Activator[Double]) extends Layer with HasActivator[Double] with Out {
+case class Output[V](neurons: Int, activator: Activator[V]) extends Layer with HasActivator[V] with Out {
   val symbol: String = "Out"
 }
 
 /** Dense layer carrying `neurons` with `activator` function. */
-case class Dense(neurons: Int, activator: Activator[Double]) extends Layer with Hidden with HasActivator[Double] {
+case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Hidden with HasActivator[V] {
   val symbol: String = "Dense"
 }
 
@@ -36,7 +36,7 @@ case class Dense(neurons: Int, activator: Activator[Double]) extends Layer with 
   * [[Focus]] is used if the desired model output
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
   */
-case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
+case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
   val neurons: Int = inner.neurons
 }
@@ -49,9 +49,8 @@ case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
   *   Sliding the receptive field over the input volume with `stride`.
   *   Applying the `activator` function element-wise on the output.
   */
-case class Convolution(dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,
-                       stride: Int, activator: Activator[Double])
-  extends Hidden with HasActivator[Double] with Layer with In {
+case class Convolution[V](dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,
+                       stride: Int, activator: Activator[V]) extends Hidden with Layer with HasActivator[V] with In {
 
   val symbol: String = "Conv"
 
