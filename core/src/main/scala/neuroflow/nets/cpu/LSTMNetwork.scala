@@ -40,7 +40,7 @@ object LSTMNetwork {
 
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                     identifier: String = Registry.register())
+                                     identifier: String = Registry.register(), numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   type Vector   = Network.Vector[Double]

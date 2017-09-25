@@ -37,7 +37,7 @@ case class Dense(neurons: Int, activator: Activator[Double]) extends Layer with 
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
   */
 case class Focus(inner: Layer with HasActivator[Double]) extends Layer {
-  val symbol: String = s"Cluster(${inner.symbol}(${inner.activator.symbol}))"
+  val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
   val neurons: Int = inner.neurons
 }
 

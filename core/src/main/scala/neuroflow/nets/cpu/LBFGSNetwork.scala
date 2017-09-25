@@ -36,7 +36,7 @@ object LBFGSNetwork {
 
 
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register()) extends FFN[Double] {
+                                      identifier: String = Registry.register(), numericPrecision: String = "Double") extends FFN[Double] {
 
   type Vector   = Network.Vector[Double]
   type Vectors  = Network.Vectors[Double]

@@ -49,7 +49,7 @@ object DenseNetwork {
 //// Double Precision Impl
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register())
+                                      identifier: String = Registry.register(), numericPrecision: String = "Double")
   extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   implicit val handle = new cublasHandle
@@ -191,7 +191,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val _square = CuMatrix.zeros[Double](1, _outputDim)
     _square := 2.0
 
-    xsys.map { xy =>
+    xsys.seq.map { xy =>
 
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
@@ -357,7 +357,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 //// Single Precision Impl
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
-                                            identifier: String = Registry.register())
+                                            identifier: String = Registry.register(), numericPrecision: String = "Single")
   extends FFN[Float] with EarlyStoppingLogic[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
 
   implicit val handle = new cublasHandle
@@ -488,8 +488,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
     val cuxs = xs.map(m => CuMatrix.fromDense(m))
     val cuys = ys.map(m => CuMatrix.fromDense(m))
-    val xsys = cuxs.par.zip(cuys)
-    xsys.tasksupport = _forkJoinTaskSupport
+    val xsys = cuxs.zip(cuys)
 
     val _ds = (0 to _lastWlayerIdx).map { i =>
       i -> CuMatrix.zeros[Float](weights(i).rows, weights(i).cols)
@@ -571,7 +570,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
       (dws, e)
 
-    }.seq.foreach { ab =>
+    }.foreach { ab =>
       _errSum += ab._2
       ab._2.release()
       var i = 0

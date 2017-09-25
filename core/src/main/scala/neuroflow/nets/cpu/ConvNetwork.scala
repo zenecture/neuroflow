@@ -34,7 +34,7 @@ object ConvNetwork {
 }
 
 private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                     identifier: String = Registry.register())
+                                     identifier: String = Registry.register(), numericPrecision: String = "Double")
   extends CNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   import Convolution.IntTupler
