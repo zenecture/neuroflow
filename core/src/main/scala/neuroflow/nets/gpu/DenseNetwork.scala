@@ -178,10 +178,10 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     * adapts their value using gradient descent and returns the error matrix.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
+
     val cuxs = xs.map(m => CuMatrix.fromDense(m))
     val cuys = ys.map(m => CuMatrix.fromDense(m))
-    val xsys = cuxs.par.zip(cuys)
-    xsys.tasksupport = _forkJoinTaskSupport
+    val xsys = cuxs.zip(cuys)
 
     val _ds = (0 to _lastWlayerIdx).map { i =>
       i -> CuMatrix.zeros[Double](weights(i).rows, weights(i).cols)
@@ -191,7 +191,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val _square = CuMatrix.zeros[Double](1, _outputDim)
     _square := 2.0
 
-    xsys.seq.map { xy =>
+    xsys.map { xy =>
 
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
@@ -263,7 +263,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
       (dws, e)
 
-    }.seq.foreach { ab =>
+    }.foreach { ab =>
       _errSum += ab._2
       ab._2.release()
       var i = 0
@@ -293,6 +293,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     _square.release()
 
     es
+
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
@@ -486,6 +487,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     * adapts their value using gradient descent and returns the error matrix.
     */
   private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
+
     val cuxs = xs.map(m => CuMatrix.fromDense(m))
     val cuys = ys.map(m => CuMatrix.fromDense(m))
     val xsys = cuxs.zip(cuys)
@@ -600,6 +602,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     _square.release()
 
     es
+
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
