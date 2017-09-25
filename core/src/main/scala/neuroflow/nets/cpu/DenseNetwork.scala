@@ -57,7 +57,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
+  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
   private implicit object Average extends CanAverage[Double, DenseNetwork, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {

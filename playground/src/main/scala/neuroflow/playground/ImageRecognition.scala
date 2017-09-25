@@ -70,7 +70,7 @@ object ImageRecognition {
         learningRate    = { case (_, _) => 1E-3 },
         updateRule      = Momentum(μ = 0.9),
         iterations      = 1000,
-        parallelism     = 8,
+        parallelism     = Some(8),
         batchSize       = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
         waypoint        = Some(Waypoint(nth = 3, ws => IO.File.write(ws, wps)))

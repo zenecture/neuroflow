@@ -44,7 +44,7 @@ private[nets] case class ConvNetwork(layers: Seq[Layer], settings: Settings[Doub
   type Matrix   = Network.Matrix[Double]
   type Matrices = Network.Matrices[Double]
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
+  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
   private val _allLayers = layers.map {
     case Focus(inner)    => inner

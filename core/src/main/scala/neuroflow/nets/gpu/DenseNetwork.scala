@@ -73,7 +73,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
+  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
   private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
@@ -90,7 +90,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (settings.parallelism > 1)
+    if (settings.parallelism.getOrElse(1) > 1)
       warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
@@ -387,7 +387,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism))
+  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
   private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
@@ -404,6 +404,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
+    if (settings.parallelism.getOrElse(1) > 1)
+      warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
