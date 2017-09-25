@@ -31,7 +31,7 @@ object Word2Vec {
     val wps = "/Users/felix/github/unversioned/word2vecWp.nf"
 
     implicit val wp = neuroflow.core.WeightProvider.Float.FFN(-1, 1)
-//     implicit val wp = IO.File.readDouble(wps)
+//     implicit val wp = IO.File.readFloat(wps)
 
     val corpus = Source.fromFile(getResourceFile("file/newsgroup/reduced.txt")).mkString.split(" ").map(_ -> 1)
 
@@ -42,6 +42,7 @@ object Word2Vec {
         case None    => wc += c._1 -> 1
       }
     }
+
     val words = wc.filter(_._2 >= cutOff)
 
     val vecs  = words.zipWithIndex.map {
