@@ -50,7 +50,7 @@ trait TypeAliases {
 
 
 /** A minimal constructor for a [[Network]]. */
-@implicitNotFound("No network constructor in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
+@implicitNotFound("No `Constructor` in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
 trait Constructor[V, +T <: Network[_, _, _]] {
   def apply(ls: Seq[Layer], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): T
 }
@@ -62,8 +62,8 @@ trait Constructor[V, +T <: Network[_, _, _]] {
   * The `updateRule` defines the relationship between gradient, weights and learning rate during training.
   * The network will terminate either if `precision` is high enough or `iterations` is reached.
   * If `prettyPrint` is true, the layout will be rendered graphically.
-  * The level of `parallelism` controls how many threads will be used for training.
   * For distributed training, `coordinator` and `transport` specific settings may be configured.
+  * The level of `parallelism` controls how many threads will be used for training.
   * The `batchSize` controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
   * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
@@ -79,9 +79,9 @@ case class Settings[V]
                     precision         :  Double                       =  1E-5,
                     iterations        :  Int                          =  100,
                     prettyPrint       :  Boolean                      =  false,
-                    parallelism       :  Int                          =  Runtime.getRuntime.availableProcessors,
-                    coordinator       :  Node                         =  Node("0.0.0.0", 2552),
+                    coordinator       :  Node                         =  Node("localhost", 2552),
                     transport         :  Transport                    =  Transport(100000, "128 MiB"),
+                    parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),
                     batchSize         :  Option[Int]                  =  None,
                     errorFuncOutput   :  Option[ErrorFuncOutput]      =  None,
                     regularization    :  Option[Regularization]       =  None,

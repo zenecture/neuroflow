@@ -44,7 +44,7 @@ class ProcessorActor(x: ActorSelection, stepSize: Double, _weightsRoCo: IndexedS
     case 'Execute =>
       _request = sender()
       _scheduler.schedule(1 minute, 10 seconds, self, 'Resend)
-      x ! Job(_id, _batches.length, layers, _weightsRoCo, stepSize, settings.parallelism)
+      x ! Job(_id, _batches.length, layers, _weightsRoCo, stepSize, settings.parallelism.getOrElse(1))
       _batches.foreach { wb =>
         _acks += wb.id -> wb
         x ! wb

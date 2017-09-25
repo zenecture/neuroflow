@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.1.8",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.1.8"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.1.9",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.1.9"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -71,15 +71,15 @@ val deeperNet = Network(
   bottleNeck ::: fullies, 
   Settings[Double](precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
-    regularization = Some(KeepBest), batchSize = Some(8), parallelism = 8
+    regularization = Some(KeepBest), batchSize = Some(8), parallelism = Some(8)
   )
 )
 ```
 
 The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent. 
 The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
-since each batch is processed in parallel. Another important aspect is the numerical type of the net, which is set by explicitly annotating
-the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`. 
+since a batch can be processed in parallel. Another important aspect is the numerical type of the net, which is set by explicitly annotating
+the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` (single) instead of `Double` precision. 
 Have a look at the `Settings` class for the full list of options.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 

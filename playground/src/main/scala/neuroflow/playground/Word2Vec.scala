@@ -4,15 +4,16 @@ import java.io.{File, FileOutputStream, PrintWriter}
 
 import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.Notation.ζ
+import neuroflow.application.processor.Extensions.Breeze.cosineSimilarity
 import neuroflow.application.processor.Normalizer.ScaledVectorSpace
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.gpu.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
-import scala.io.Source
+import scala.io.{Source, StdIn}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -23,15 +24,15 @@ object Word2Vec {
 
   def apply = {
 
-    val windowL = 3
-    val windowR = 3
+    val windowL = 5
+    val windowR = 5
     val cutOff  = 5
 
     val output = "/Users/felix/github/unversioned/word2vec.txt"
     val wps = "/Users/felix/github/unversioned/word2vecWp.nf"
 
-    implicit val wp = neuroflow.core.WeightProvider.Float.FFN(-1, 1)
-//     implicit val wp = IO.File.readFloat(wps)
+//    implicit val wp = neuroflow.core.WeightProvider.Double.FFN(-1, 1)
+     implicit val wp = IO.File.readDouble(wps)
 
     val corpus = Source.fromFile(getResourceFile("file/newsgroup/reduced.txt")).mkString.split(" ").map(_ -> 1)
 
@@ -47,7 +48,7 @@ object Word2Vec {
 
     val vecs  = words.zipWithIndex.map {
       case (w, i) => w._1 -> {
-        val v = ζ[Float](words.size)
+        val v = ζ[Double](words.size)
         v.update(i, 1.0f)
         v
       }
@@ -70,11 +71,11 @@ object Word2Vec {
     val net =
       Network(
         Input(dim)                 ::
-        Focus(Dense(3, Linear))    ::
+        Focus(Dense(20, Linear))   ::
         Output(dim, Sigmoid)       :: HNil,
-        Settings[Float](
+        Settings[Double](
           learningRate    = { case (_, _) => 1E-4 },
-          updateRule      = Momentum(0.9f),
+          updateRule      = Momentum(0.9),
           iterations      = 10000,
           batchSize       = Some(64),
           regularization  = Some(KeepBest),
@@ -96,6 +97,16 @@ object Word2Vec {
         writer.println(prettyPrint(v._2.toScalaVector, ";") + s";${v._1}")
       }
     }.io(_.close)
+
+    var findId: Int = 0
+    while ({ print("Find wordId: "); findId = StdIn.readInt(); findId >= 0 }) {
+      val found = res(findId)
+      val sims  = res.map { r =>
+        r._1 -> cosineSimilarity(found._2, r._2)
+      }.sortBy(_._2).reverse.take(10)
+      println(s"10 similar words for ${found._1}:")
+      sims.foreach(println)
+    }
 
   }
 
