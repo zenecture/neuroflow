@@ -77,6 +77,15 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     case c: Convolution[Double]   => c.copy(activator = c.activator)
   }
 
+  private val _parArrayPool = {
+    val range = _convLayers.flatMap(l => Seq(l._2.dimIn._3, l._2.dimOut._3))
+    range.map { size =>
+      val pa = (0 until size).toParArray
+      pa.tasksupport = _forkJoinTaskSupport
+      size -> pa
+    }.toMap
+  }
+
   private val _outputDim = _allLayers.last.neurons
   private val _lastC     = _convLayers.maxBy(_._1)._1
   private val _lastL     = _allLayers.indices.last
@@ -91,8 +100,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (settings.parallelism.getOrElse(1) > 1)
-      warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
@@ -199,32 +206,30 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
-    var (w, h, i) = (0, 0, 0)
-    while (w < ((dim._1 - field._1) / stride._1) + 1) {
-      while (h < ((dim._2 - field._2) / stride._2) + 1) {
-        var (x, y, z, wi) = (0, 0, 0, 0)
-        while (x < field._1) {
-          while (y < field._2) {
-            while (z < dim._3) {
+    _parArrayPool(dim._3).foreach { z =>
+      var (w, h, i) = (0, 0, 0)
+      while (w < ((dim._1 - field._1) / stride._1) + 1) {
+        while (h < ((dim._2 - field._2) / stride._2) + 1) {
+          var (x, y, wi) = (0, 0, 0)
+          while (x < field._1) {
+            while (y < field._2) {
               val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
               val value = ms(z)(a, b)
               val lin = c + wi
               out.update(lin, i, value)
               if (withIndices) idc(a, b).update(x, y, i + 1)
-              z += 1
+              wi += 1
+              y += 1
             }
-            z   = 0
-            wi += 1
-            y += 1
+            y = 0
+            x += 1
           }
-          y  = 0
-          x += 1
+          i += 1
+          h += 1
         }
-        i += 1
-        h += 1
+        h = 0
+        w += 1
       }
-      h  = 0
-      w += 1
     }
     (out, idc)
   }
@@ -356,16 +361,15 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val de = ds(i + 1).toDense
           val fs = l1.field._1 * l1.field._2
           val dc = DenseMatrix.zeros[Double](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
-          var f  = 0
-          while (f < de.rows) {
+          _parArrayPool(de.rows).foreach { f =>
+            val _de = 0.0 +: de(f, ::).inner.toArray
             var (x, y, q) = (0, 0, 0)
             while (x < l1.dimIn._1) {
               while (y < l1.dimIn._2) {
                 var p = 0
                 id(x, y).foreachPair { (_, v) =>
                   val t = (f * fs + p, q)
-                  val d = if (v > 0) de(f, v - 1) else 0.0f
-                  dc.update(t, d)
+                  dc.update(t, _de(v))
                   p += 1
                 }
                 y += 1
@@ -374,7 +378,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
               y = 0
               x += 1
             }
-            f += 1
           }
           val cdc = CuMatrix.fromDense(dc)
           val d = _ww(i) * cdc *:* fb(i)
@@ -540,6 +543,15 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     case c: Convolution[Double]   => c.copy(activator = c.activator.map[Float](_.toDouble, _.toFloat))
   }
 
+  private val _parArrayPool = {
+    val range = _convLayers.flatMap(l => Seq(l._2.dimIn._3, l._2.dimOut._3))
+    range.map { size =>
+      val pa = (0 until size).toParArray
+      pa.tasksupport = _forkJoinTaskSupport
+      size -> pa
+    }.toMap
+  }
+
   private val _outputDim = _allLayers.last.neurons
   private val _lastC     = _convLayers.maxBy(_._1)._1
   private val _lastL     = _allLayers.indices.last
@@ -554,8 +566,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (settings.parallelism.getOrElse(1) > 1)
-      warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
@@ -662,32 +672,30 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
-    var (w, h, i) = (0, 0, 0)
-    while (w < ((dim._1 - field._1) / stride._1) + 1) {
-      while (h < ((dim._2 - field._2) / stride._2) + 1) {
-        var (x, y, z, wi) = (0, 0, 0, 0)
-        while (x < field._1) {
-          while (y < field._2) {
-            while (z < dim._3) {
+    _parArrayPool(dim._3).foreach { z =>
+      var (w, h, i) = (0, 0, 0)
+      while (w < ((dim._1 - field._1) / stride._1) + 1) {
+        while (h < ((dim._2 - field._2) / stride._2) + 1) {
+          var (x, y, wi) = (0, 0, 0)
+          while (x < field._1) {
+            while (y < field._2) {
               val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
               val value = ms(z)(a, b)
               val lin = c + wi
               out.update(lin, i, value)
               if (withIndices) idc(a, b).update(x, y, i + 1)
-              z += 1
+              wi += 1
+              y += 1
             }
-            z   = 0
-            wi += 1
-            y += 1
+            y = 0
+            x += 1
           }
-          y  = 0
-          x += 1
+          i += 1
+          h += 1
         }
-        i += 1
-        h += 1
+        h = 0
+        w += 1
       }
-      h  = 0
-      w += 1
     }
     (out, idc)
   }
@@ -819,16 +827,15 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val de = ds(i + 1).toDense
           val fs = l1.field._1 * l1.field._2
           val dc = DenseMatrix.zeros[Float](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
-          var f  = 0
-          while (f < de.rows) {
+          _parArrayPool(de.rows).foreach { f =>
+            val _de = 0.0f +: de(f, ::).inner.toArray
             var (x, y, q) = (0, 0, 0)
             while (x < l1.dimIn._1) {
               while (y < l1.dimIn._2) {
                 var p = 0
                 id(x, y).foreachPair { (_, v) =>
                   val t = (f * fs + p, q)
-                  val d = if (v > 0) de(f, v - 1) else 0.0f
-                  dc.update(t, d)
+                  dc.update(t, _de(v))
                   p += 1
                 }
                 y += 1
@@ -837,7 +844,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
               y = 0
               x += 1
             }
-            f += 1
           }
           val cdc = CuMatrix.fromDense(dc)
           val d = _ww(i) * cdc *:* fb(i)
