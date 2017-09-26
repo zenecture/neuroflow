@@ -99,8 +99,6 @@ class ConvNetworkNumTest  extends Specification {
 
     if (equal) success else failure
 
-    success
-
   }
 
   def gradCheckGPU = {
