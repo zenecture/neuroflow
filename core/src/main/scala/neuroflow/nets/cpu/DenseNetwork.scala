@@ -29,16 +29,25 @@ import scala.concurrent.forkjoin.ForkJoinPool
 
 
 object DenseNetwork {
-  implicit val double: Constructor[Double, DenseNetwork] = new Constructor[Double, DenseNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetwork = {
-      DenseNetwork(ls, settings, weightProvider(ls))
+
+  implicit val double: Constructor[Double, DenseNetworkDouble] = new Constructor[Double, DenseNetworkDouble] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetworkDouble = {
+      DenseNetworkDouble(ls, settings, weightProvider(ls))
     }
   }
+
+  implicit val single: Constructor[Float, DenseNetworkSingle] = new Constructor[Float, DenseNetworkSingle] {
+    def apply(ls: Seq[Layer], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): DenseNetworkSingle = {
+      DenseNetworkSingle(ls, settings, weightProvider(ls))
+    }
+  }
+
 }
 
+//<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register(), numericPrecision: String = "Double")
+private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+                                            identifier: String = Registry.register(), numericPrecision: String = "Double")
   extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   type Vector   = Network.Vector[Double]
@@ -59,7 +68,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
 
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
-  private implicit object Average extends CanAverage[Double, DenseNetwork, Vector, Vector] {
+  private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
         case (a, b) => mean(abs(a - b))
@@ -286,3 +295,259 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
   }
 
 }
+
+//</editor-fold>
+
+//<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
+
+private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
+                                            identifier: String = Registry.register(), numericPrecision: String = "Single")
+  extends FFN[Float] with EarlyStoppingLogic[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
+
+  type Vector   = Network.Vector[Float]
+  type Vectors  = Network.Vectors[Float]
+  type Matrix   = Network.Matrix[Float]
+  type Matrices = Network.Matrices[Float]
+
+  private val _layers = layers.map {
+    case Focus(inner) => inner
+    case layer: Layer => layer
+  }.toArray
+
+  private val _clusterLayer   = layers.collect { case c: Focus[_] => c }.headOption
+
+  private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat) }
+  private val _outputDim      = _layers.last.neurons
+  private val _lastWlayerIdx  = weights.size - 1
+
+  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
+
+  private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
+    def averagedError(xs: Vectors, ys: Vectors): Double = {
+      val errors = xs.map(evaluate).zip(ys).map {
+        case (a, b) => mean(abs(a - b))
+      }
+      mean(errors)
+    }
+  }
+
+  /**
+    * Checks if the [[Settings]] are properly defined.
+    * Might throw a [[SettingsNotSupportedException]].
+    */
+  override def checkSettings(): Unit = {
+    super.checkSettings()
+    if (settings.specifics.isDefined)
+      warn("No specific settings supported. This has no effect.")
+    settings.regularization.foreach {
+      case _: EarlyStopping[_, _] | KeepBest =>
+      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    }
+  }
+
+  /**
+    * Trains this net with input `xs` against output `ys`.
+    */
+  def train(xs: Vectors, ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
+    import settings._
+    val batchSize = settings.batchSize.getOrElse(xs.size)
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
+    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    run(xsys, learningRate(0 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
+  }
+
+  /**
+    * Computes output for `x`.
+    */
+  def apply(x: Vector): Vector = {
+    val input = DenseMatrix.create[Float](1, x.size, x.toArray)
+    _clusterLayer.map { cl =>
+      flow(input, layers.indexOf(cl) - 1).toDenseVector
+    }.getOrElse {
+      flow(input, _lastWlayerIdx).toDenseVector
+    }
+  }
+
+  /**
+    * The training loop.
+    */
+  @tailrec private def run(xsys: Seq[Seq[(Matrix, Matrix)]], stepSize: Float, sampleSize: Int, batchSize: Int, precision: Double,
+                           iteration: Int, maxIterations: Int): Unit = {
+    val _em = xsys.map { batch =>
+      val (x, y) = (batch.map(_._1), batch.map(_._2))
+      val error =
+        if (settings.approximation.isDefined)
+          adaptWeightsApprox(x, y, stepSize)
+        else adaptWeights(x, y, stepSize)
+      error
+    }.reduce(_ + _)
+    val errorMean = mean(_em)
+    val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
+    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
+    maybeGraph(errorMean)
+    keepBest(errorMean, weights)
+    waypoint(iteration)
+    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)
+    } else {
+      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
+      takeBest()
+    }
+  }
+
+  /**
+    * Computes the network recursively.
+    */
+  private def flow(in: Matrix, outLayer: Int): Matrix = {
+    val fa  = collection.mutable.Map.empty[Int, Matrix]
+    @tailrec def forward(in: Matrix, i: Int): Unit = {
+      val p = in * weights(i)
+      val a = p.map(_layersNI(i))
+      fa += i -> a
+      if (i < outLayer) forward(a, i + 1)
+    }
+    forward(in, 0)
+    fa(outLayer)
+  }
+
+  /**
+    * Computes gradient for all weights in parallel,
+    * adapts their value using gradient descent and returns the error matrix.
+    */
+  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
+    val xsys = xs.par.zip(ys)
+    xsys.tasksupport = _forkJoinTaskSupport
+
+    val _ds = (0 to _lastWlayerIdx).map { i =>
+      i -> DenseMatrix.zeros[Float](weights(i).rows, weights(i).cols)
+    }.toMap
+
+    val _errSum = DenseMatrix.zeros[Float](1, _outputDim)
+    val _square = DenseMatrix.zeros[Float](1, _outputDim)
+    _square := 2.0f
+
+    xsys.map { xy =>
+      val (x, y) = xy
+      val fa  = collection.mutable.Map.empty[Int, Matrix]
+      val fb  = collection.mutable.Map.empty[Int, Matrix]
+      val dws = collection.mutable.Map.empty[Int, Matrix]
+      val ds  = collection.mutable.Map.empty[Int, Matrix]
+      val e   = DenseMatrix.zeros[Float](1, _outputDim)
+
+      @tailrec def forward(in: Matrix, i: Int): Unit = {
+        val p = in * weights(i)
+        val a = p.map(_layersNI(i))
+        val b = p.map(_layersNI(i).derivative)
+        fa += i -> a
+        fb += i -> b
+        if (i < _lastWlayerIdx) forward(a, i + 1)
+      }
+
+      @tailrec def derive(i: Int): Unit = {
+        if (i == 0 && _lastWlayerIdx == 0) {
+          val yf = y - fa(0)
+          val d = -yf *:* fb(0)
+          val dw = x.t * d
+          dws += 0 -> dw
+          e += yf
+        } else if (i == _lastWlayerIdx) {
+          val yf = y - fa(i)
+          val d = -yf *:* fb(i)
+          val dw = fa(i - 1).t * d
+          dws += i -> dw
+          ds += i -> d
+          e += yf
+          derive(i - 1)
+        } else if (i < _lastWlayerIdx && i > 0) {
+          val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
+          val dw = fa(i - 1).t * d
+          dws += i -> dw
+          ds += i -> d
+          derive(i - 1)
+        } else if (i == 0) {
+          val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
+          val dw = x.t * d
+          dws += i -> dw
+        }
+      }
+
+      forward(x, 0)
+      derive(_lastWlayerIdx)
+      e :^= _square
+      e *= 0.5f
+      (dws, e)
+    }.seq.foreach { ab =>
+      _errSum += ab._2
+      var i = 0
+      while (i <= _lastWlayerIdx) {
+        val m = _ds(i)
+        val n = ab._1(i)
+        m += n
+        i += 1
+      }
+    }
+    var i = 0
+    while (i <= _lastWlayerIdx) {
+      settings.updateRule(weights(i), _ds(i), stepSize, i)
+      i += 1
+    }
+    _errSum
+  }
+
+  /** Approximates the gradient based on finite central differences. (For debugging) */
+  private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
+
+    require(settings.updateRule.isInstanceOf[Debuggable[Float]])
+    val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
+
+    def errorFunc(): Matrix = {
+      val xsys = xs.zip(ys).par
+      xsys.tasksupport = _forkJoinTaskSupport
+      xsys.map { case (x, y) => 0.5f * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
+    }
+
+    def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
+      val Δ = settings.approximation.get.Δ.toFloat
+      val v = weights(weightLayer)(weight)
+      weights(weightLayer).update(weight, v - Δ)
+      val a = errorFunc()
+      weights(weightLayer).update(weight, v + Δ)
+      val b = errorFunc()
+      weights(weightLayer).update(weight, v)
+      (b - a) / (2 * Δ)
+    }
+
+    val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Float]
+    val grads   = collection.mutable.HashMap.empty[(Int, (Int, Int)), Float]
+    val debug   = collection.mutable.HashMap.empty[Int, Matrix]
+
+    weights.zipWithIndex.foreach {
+      case (l, idx) =>
+        debug += idx -> l.copy
+        l.foreachPair { (k, v) =>
+          val grad = sum(approximateErrorFuncDerivative(idx, k))
+          updates += (idx, k) -> (v - (stepSize * grad))
+          grads += (idx, k) -> grad
+        }
+    }
+
+    updates.foreach {
+      case ((wl, k), v) =>
+        weights(wl).update(k, v)
+    }
+
+    grads.foreach {
+      case ((wl, k), v) =>
+        debug(wl).update(k, v)
+    }
+
+    _rule.lastGradients = debug
+
+    errorFunc()
+
+  }
+
+}
+
+//</editor-fold>
