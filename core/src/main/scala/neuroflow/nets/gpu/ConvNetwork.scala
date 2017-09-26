@@ -74,7 +74,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     case (_, _: Convolution[_])   => true
     case _                        => false
   }.toMap.mapValues {
-    case c: Convolution[Double]   => c.copy(activator = c.activator)
+    case c: Convolution[Double]   => c
   }
 
   private val _parArrayPool = {
