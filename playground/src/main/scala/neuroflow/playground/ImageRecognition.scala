@@ -60,17 +60,18 @@ object ImageRecognition {
 
     val convs = a :: b :: c :: HNil
     val fully =
-      Dense(200, f)           ::
       Dense(100, f)           ::
+      Dense(50, f)            ::
       Output(classes.size, f) :: HNil
 
     val net = Network(convs ::: fully,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case (_, _) => 2E-3 },
+        learningRate    = { case (_, _) => 1E-3 },
         updateRule      = Momentum(μ = 0.9f),
         iterations      = 10000,
-        batchSize       = Some(8),
+        batchSize       = Some(16),
+        parallelism     = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
         waypoint        = Some(Waypoint(nth = 30, ws => IO.File.write(ws, wps)))
       )
