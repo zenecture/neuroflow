@@ -45,9 +45,7 @@ object DenseNetwork {
 }
 
 
-////
-//// Double Precision Impl
-////
+// <editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = Registry.register(), numericPrecision: String = "Double")
@@ -147,9 +145,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
-      weights.zip(_cuWeights).foreach {
-        case (w, cw) => w := cw.toDense
-      }
+      syncWeights()
       takeBest()
     }
   }
@@ -299,6 +295,12 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
   }
 
+  private def syncWeights(): Unit = {
+    weights.zip(_cuWeights).foreach {
+      case (w, cw) => w := cw.toDense
+    }
+  }
+
   /** Approximates the gradient based on finite central differences. (For debugging) */
   private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
 
@@ -306,8 +308,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys).par
-      xsys.tasksupport = _forkJoinTaskSupport
+      val xsys = xs.zip(ys)
       xsys.map { case (x, y) => 0.5 * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
     }
 
@@ -315,14 +316,20 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
       weights(weightLayer).update(weight, v - Δ)
-      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
+      syncWeightsBack()
       val a = errorFunc()
       weights(weightLayer).update(weight, v + Δ)
-      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
+      syncWeightsBack()
       val b = errorFunc()
       weights(weightLayer).update(weight, v)
-      weights.zip(_cuWeights).foreach { case (w, cw) => cw := w }
+      syncWeightsBack()
       (b - a) / (2 * Δ)
+    }
+
+    def syncWeightsBack(): Unit = {
+      weights.zip(_cuWeights).foreach {
+        case (w, cw) => cw := w
+      }
     }
 
     val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
@@ -352,6 +359,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     _rule.lastGradients = debug
 
+    syncWeightsBack()
+
     errorFunc()
 
   }
@@ -359,9 +368,10 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 }
 
 
-////
-//// Single Precision Impl
-////
+// </editor-fold>
+
+
+// <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
                                             identifier: String = Registry.register(), numericPrecision: String = "Single")
@@ -461,9 +471,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
-      weights.zip(_cuWeights).foreach {
-        case (w, cw) => w := cw.toDense
-      }
+      syncWeights()
       takeBest()
     }
   }
@@ -613,6 +621,12 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
   }
 
+  private def syncWeights(): Unit = {
+    weights.zip(_cuWeights).foreach {
+      case (w, cw) => w := cw.toDense
+    }
+  }
+
   /** Approximates the gradient based on finite central differences. (For debugging) */
   private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
 
@@ -620,8 +634,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys).par
-      xsys.tasksupport = _forkJoinTaskSupport
+      val xsys = xs.zip(ys)
       xsys.map { case (x, y) => 0.5f * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
     }
 
@@ -629,11 +642,20 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       val Δ = settings.approximation.get.Δ.toFloat
       val v = weights(weightLayer)(weight)
       weights(weightLayer).update(weight, v - Δ)
+      syncWeightsBack()
       val a = errorFunc()
       weights(weightLayer).update(weight, v + Δ)
+      syncWeightsBack()
       val b = errorFunc()
       weights(weightLayer).update(weight, v)
+      syncWeightsBack()
       (b - a) / (2 * Δ)
+    }
+
+    def syncWeightsBack(): Unit = {
+      weights.zip(_cuWeights).foreach {
+        case (w, cw) => cw := w
+      }
     }
 
     val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Float]
@@ -644,7 +666,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val grad = sum(approximateErrorFuncDerivative(idx, k))
+          val efd  = approximateErrorFuncDerivative(idx, k)
+          val grad = sum(efd)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }
@@ -662,8 +685,12 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     _rule.lastGradients = debug
 
+    syncWeightsBack()
+
     errorFunc()
 
   }
 
 }
+
+// </editor-fold>

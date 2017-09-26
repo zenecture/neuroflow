@@ -12,7 +12,7 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Convolution.IntTupler
 import neuroflow.core._
-import neuroflow.nets.cpu.ConvNetwork._
+import neuroflow.nets.gpu.ConvNetwork._
 import shapeless._
 
 /**
@@ -27,25 +27,25 @@ object ImageRecognition {
     val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
-    implicit val wp = neuroflow.core.WeightProvider.Double.CNN(-0.008, 0.01)
-//    implicit val wp = IO.File.readDouble(wps)
+    implicit val wp = neuroflow.core.WeightProvider.Float.CNN(-0.008, 0.01)
+//    implicit val wp = IO.File.readFloat(wps)
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
           "dog", "frog", "horse", "ship", "truck")
 
     val classVecs = classes.zipWithIndex.map { case (c, i) => 
-      c -> ~>(ζ[Double](classes.size)).io(_.update(i, 1.0)).t
+      c -> ~>(ζ[Float](classes.size)).io(_.update(i, 1.0f)).t
     }.toMap
 
-    val train = new File(path + "/train").list().take(50000).map { s =>
+    val train = new File(path + "/train").list().take(64).map { s =>
       val c = classes.find(z => s.contains(z)).get
-      extractRgb3d(path + "/train/" + s, None) -> classVecs(c)
+      extractRgb3d(path + "/train/" + s, None).map(_.mapValues(_.toFloat)) -> classVecs(c)
     }
 
-    val test = new File(path + "/test").list().take(10000).map { s =>
+    val test = new File(path + "/test").list().take(0).map { s =>
       val c = classes.find(z => s.contains(z)).get
-      extractRgb3d(path + "/test/" + s, None) -> classVecs(c)
+      extractRgb3d(path + "/test/" + s, None).map(_.mapValues(_.toFloat)) -> classVecs(c)
     }
 
     classes.foreach { c =>
@@ -54,9 +54,9 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val a = Convolution((32, 32, 3), field = 1`²`, filters = 96, stride = 1, f)
-    val b = Convolution( a.dimOut,   field = 4`²`, filters = 64, stride = 2, f)
-    val c = Convolution( b.dimOut,   field = 6`²`, filters = 32, stride = 1, f)
+    val a = Convolution(dimIn = (32, 32, 3), field = 1`²`, filters = 96, stride = 1, f)
+    val b = Convolution(dimIn = a.dimOut,    field = 1`²`, filters = 96, stride = 1, f)
+    val c = Convolution(dimIn = b.dimOut,    field = 1`²`, filters = 96, stride = 1, f)
 
     val convs = a :: b :: c :: HNil
     val fully =
@@ -65,15 +65,14 @@ object ImageRecognition {
       Output(classes.size, f) :: HNil
 
     val net = Network(convs ::: fully,
-      Settings[Double](
+      Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case (_, _) => 1E-3 },
-        updateRule      = Momentum(μ = 0.9),
-        iterations      = 1000,
-        parallelism     = Some(8),
+        learningRate    = { case (_, _) => 2E-3 },
+        updateRule      = Momentum(μ = 0.9f),
+        iterations      = 10000,
         batchSize       = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
-        waypoint        = Some(Waypoint(nth = 3, ws => IO.File.write(ws, wps)))
+        waypoint        = Some(Waypoint(nth = 30, ws => IO.File.write(ws, wps)))
       )
     )
 
