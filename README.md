@@ -157,8 +157,8 @@ we can spread the load across several machines instead of batching it.
 Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
 In our example, the overhead is 2*4,5=9 MB network traffic per node and iteration, while gaining computational parallelism.
 
-<em>However, note that on-line training can have a much faster convergence (depending on the level of redundancy within the data) 
-than a full distributed batch over all samples, even when using several machines.</em>
+<em>However, note that on-line or mini-batch training can have much faster convergence (depending on the level of redundancy within the data) 
+than a full distributed batch, even when using several machines.</em>
 
 ```scala
 import neuroflow.nets.distributed.DenseNetwork._
