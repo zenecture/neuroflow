@@ -45,7 +45,7 @@ object DenseNetwork {
 }
 
 
-// <editor-fold defaultstate="collapsed" desc="Double Precision Impl">
+//<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = Registry.register(), numericPrecision: String = "Double")
@@ -368,10 +368,10 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 }
 
 
-// </editor-fold>
+//</editor-fold>
 
 
-// <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
+//<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
                                             identifier: String = Registry.register(), numericPrecision: String = "Single")
@@ -693,4 +693,4 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
 }
 
-// </editor-fold>
+//</editor-fold>
