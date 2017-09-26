@@ -1,11 +1,11 @@
 package neuroflow.nets.gpu
 
 import breeze.macros.arityize
-import breeze.util.SerializableLogging
 import jcuda.NativePointerObject
 import jcuda.driver.{CUfunction, CUstream}
 import jcuda.jcublas.{JCublas2, cublasHandle}
 import jcuda.runtime.{JCuda, cudaStream_t}
+import neuroflow.common.Logs
 import org.bridj.{Pointer, PointerIO}
 
 import scala.reflect.ClassTag
@@ -14,18 +14,29 @@ import scala.reflect.ClassTag
   * @author dlwh
   * @author bogdanski
   **/
-package object cuda extends SerializableLogging {
+package object cuda extends Logs {
+
   type CuPointer = jcuda.Pointer
 
-  def allocate[V:ClassTag](size: Long) = {
-    val ptr = new CuPointer()
-    val tpe = implicitly[ClassTag[V]].runtimeClass
-    val io = PointerIO.getInstance[V](tpe)
-    JCuda.cudaMalloc(ptr, size * io.getTargetSize)
-    Pointer.pointerToAddress(nativePtr(ptr), size, io, DeviceFreeReleaser)
+  def allocate[V:ClassTag](size: Long): Pointer[V] = {
+    val maxTryCount = 1000000
+    var tries = 0
+    var res: Pointer[V] = null
+    def tryMalloc(): Pointer[V] = {
+      val ptr = new CuPointer()
+      val tpe = implicitly[ClassTag[V]].runtimeClass
+      val io = PointerIO.getInstance[V](tpe)
+      JCuda.cudaMalloc(ptr, size * io.getTargetSize)
+      Pointer.pointerToAddress(nativePtr(ptr), size, io, DeviceFreeReleaser)
+    }
+    while ({ res = tryMalloc(); res == null && tries < maxTryCount }) {
+      tries += 1
+    }
+    if (res == null) error(s"Couldn't allocate matrix of rows*cols=$size on CUDA device. Tried $tries times ...")
+    res
   }
 
-  def allocateHost[V:ClassTag](size: Long) = {
+  def allocateHost[V:ClassTag](size: Long): Pointer[V] = {
     val ptr = new CuPointer()
     val tpe = implicitly[ClassTag[V]].runtimeClass
     val io = PointerIO.getInstance[V](tpe)

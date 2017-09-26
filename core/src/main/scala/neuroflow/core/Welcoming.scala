@@ -46,21 +46,29 @@ trait Welcoming { self: Network[_, _, _] =>
   }
 
   private def prettyPrint(): Unit = {
+
     val max = layers.map {
       case Convolution(dimIn, _, _, _, _) => math.max(dimIn._1, dimIn._2)
       case l: Layer                       => l.neurons
     }.max
+
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
+
     val potency = layers.flatMap {
+      case c: Convolution[_]  => Seq(c, c.copy(dimIn = c.dimOut, stride = 1 /* prevent sanity checks */))
+      case l: Layer           => Seq(l)
+    }.flatMap {
       case Convolution(dimIn, _, _, _, _) =>
         val m = (1 to math.ceil(dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
         val s = m.dropRight(1) :+ (m.last._1, m.last._2, false)
         s
       case l: Layer                       => Seq((l.neurons, false, false))
     }
+
     val center = math.ceil(((max * f) - 1.0) / 2.0)
-    val cols = potency.map(p => ((p._1 - 1).toDouble * f, p._2, p._3)).map { l =>
-      val col = (0 until (max * f).toInt) map { _ => " " }
+
+    val  cols  = potency.map(p => ((p._1 - 1).toDouble * f, p._2, p._3)).map { l =>
+      val  col = (0 until (max * f).toInt) map { _ => " " }
       col.zipWithIndex.map {
         case (c, i) if i <= center && i >= (center - math.ceil (l._1 / 2.0))   => ("O", l._2, l._3)
         case (c, i) if i >= center && i <= (center + math.floor(l._1 / 2.0))   => ("O", l._2, l._3)
@@ -77,6 +85,7 @@ trait Welcoming { self: Network[_, _, _] =>
     println()
     println()
     println()
+
   }
 
   def sayHi(): Unit = {

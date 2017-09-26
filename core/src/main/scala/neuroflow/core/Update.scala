@@ -119,7 +119,12 @@ case class Momentum[V](μ: V) extends Update[V] {
       vsc(position) := r2
       r1.release()
       r2.release()
-    } else vsc += position -> -(dws * learningRate)
+    } else vsc += position -> {
+      val r1 = dws * learningRate
+      val r2 = -r1
+      r1.release()
+      r2
+    }
     ws += vsc(position)
   }
 
