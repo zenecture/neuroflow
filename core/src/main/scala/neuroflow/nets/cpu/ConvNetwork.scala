@@ -313,14 +313,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val dc = DenseMatrix.zeros[Double](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
           var f  = 0
           while (f < de.rows) {
+            val _de = 0.0 +: de(f, ::).inner.toArray
             var (x, y, q) = (0, 0, 0)
             while (x < l1.dimIn._1) {
               while (y < l1.dimIn._2) {
                 var p = 0
                 id(x, y).foreachPair { (_, v) =>
                   val t = (f * fs + p, q)
-                  val d = if (v > 0) de(f, v - 1) else 0.0
-                  dc.update(t, d)
+                  dc.update(t, _de(v))
                   p += 1
                 }
                 y += 1
@@ -695,14 +695,14 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val dc = DenseMatrix.zeros[Float](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
           var f  = 0
           while (f < de.rows) {
+            val _de = 0.0f +: de(f, ::).inner.toArray
             var (x, y, q) = (0, 0, 0)
             while (x < l1.dimIn._1) {
               while (y < l1.dimIn._2) {
                 var p = 0
                 id(x, y).foreachPair { (_, v) =>
                   val t = (f * fs + p, q)
-                  val d = if (v > 0) de(f, v - 1) else 0.0f
-                  dc.update(t, d)
+                  dc.update(t, _de(v))
                   p += 1
                 }
                 y += 1
