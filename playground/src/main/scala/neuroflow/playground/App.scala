@@ -10,6 +10,7 @@ object App extends App {
   println("Run example (1-18): ")
 
   scala.io.StdIn.readInt() match {
+
     case  1 => XOR.apply
     case  2 => SigGap.apply
     case  3 => Trending.apply
@@ -30,6 +31,7 @@ object App extends App {
     case 18 => Word2Vec.apply
 
     case  _ => sys.exit()
+
   }
 
 }
