@@ -104,7 +104,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
       if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
-      keepBest(errorMean, weights)
+      keepBest(errorMean)
       waypoint(iteration)
       run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {

@@ -148,7 +148,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
     maybeGraph(errorMean)
-    keepBest(errorMean, weights)
+    keepBest(errorMean)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
@@ -250,7 +250,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val cuys = ys.map(m => CuMatrix.fromDense(m))
     val xsys = xs.zip(cuys)
 
-    val _ds = (0 to _lastWlayerIdx).map { i =>
+    val _dws = (0 to _lastWlayerIdx).map { i =>
       i -> CuMatrix.zeros[Double](weights(i).rows, weights(i).cols)
     }.toMap
 
@@ -277,21 +277,19 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         }
         i -> CuMatrix.fromDense(ww)
       case (i, _) => i -> null
-    }
+    } - _lastC
 
     val _errSum  = CuMatrix.zeros[Double](1, _outputDim)
     val _square  = CuMatrix.zeros[Double](1, _outputDim)
     _square := 2.0
 
-    xsys.map { xy =>
+    xsys.foreach { xy =>
 
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
       val fb  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
       val fc  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
-      val dws = collection.mutable.Map.empty[Int, CuMatrix[Double]]
       val ds  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
-      val e   = CuMatrix.zeros[Double](1, _outputDim)
 
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
@@ -332,28 +330,31 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val nyf = -yf
           val d = nyf *:* fb(i)
           val dw = fa(i - 1).t * d
-          dws += i -> dw
+          _dws(i) += dw
+          _errSum += yf
           ds += i -> d
-          e += yf
           nyf.release()
+          dw.release()
           yf.release()
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
           val d2 = d1 *:* fb(i)
           val dw = fa(i - 1).t * d2
-          dws += i -> dw
+          _dws(i) += dw
           ds += i -> d2
           d1.release()
+          dw.release()
           derive(i - 1)
         } else if (i == _lastC) {
           val l = _convLayers(i)
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
           val d2 = (d1 *:* fb(i)).reshape(l.filters, l.dimOut._1 * l.dimOut._2)
           val dw = d2 * fc(i).t
-          dws += i -> dw
+          _dws(i) += dw
           ds += i -> d2
           d1.release()
+          dw.release()
           if (i > 0) derive(i - 1)
         } else {
           val l1 = _convLayers(i + 1)
@@ -382,9 +383,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val cdc = CuMatrix.fromDense(dc)
           val d = _ww(i) * cdc *:* fb(i)
           val dw = d * fc(i).t
-          dws += i -> dw
+          _dws(i) += dw
           ds += i -> d
           cdc.release()
+          dw.release()
           if (i > 0) derive(i - 1)
         }
       }
@@ -392,41 +394,25 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
-      e :^= _square
-      e *= 0.5
 
       fa.values.foreach(_.release())
       fb.values.foreach(_.release())
       fc.values.foreach(_.release())
       ds.values.foreach(_.release())
 
-      (dws, e)
-
-    }.foreach { ab =>
-      _errSum += ab._2
-      ab._2.release()
-      var i = 0
-      while (i <= _lastWlayerIdx) {
-        val m = _ds(i)
-        val n = ab._1(i)
-        m += n
-        i += 1
-        n.release()
-      }
     }
 
     var i = 0
     while (i <= _lastWlayerIdx) {
-      settings.updateRule(_cuWeights(i), _ds(i), stepSize, i)
+      settings.updateRule(_cuWeights(i), _dws(i), stepSize, i)
       i += 1
     }
 
-    xsys.foreach { xy =>
-      xy._2.release()
-    }
-
-    _ds.values.foreach(_.release())
-    _ww.values.dropRight(1).foreach(_.release())
+    xsys.foreach(_._2.release())
+    _dws.values.foreach(_.release())
+    _ww.values.foreach(_.release())
+    _errSum :^= _square
+    _errSum *= 0.5
     val es = _errSum.toDense
     _errSum.release()
     _square.release()
@@ -614,7 +600,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
     maybeGraph(errorMean)
-    keepBest(errorMean, weights)
+    keepBest(errorMean)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)
@@ -716,7 +702,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val cuys = ys.map(m => CuMatrix.fromDense(m))
     val xsys = xs.zip(cuys)
 
-    val _ds = (0 to _lastWlayerIdx).map { i =>
+    val _dws = (0 to _lastWlayerIdx).map { i =>
       i -> CuMatrix.zeros[Float](weights(i).rows, weights(i).cols)
     }.toMap
 
@@ -743,21 +729,19 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         }
         i -> CuMatrix.fromDense(ww)
       case (i, _) => i -> null
-    }
+    } - _lastC
 
     val _errSum  = CuMatrix.zeros[Float](1, _outputDim)
     val _square  = CuMatrix.zeros[Float](1, _outputDim)
     _square := 2.0f
 
-    xsys.map { xy =>
+    xsys.foreach { xy =>
 
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
       val fb  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
       val fc  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
-      val dws = collection.mutable.Map.empty[Int, CuMatrix[Float]]
       val ds  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
-      val e   = CuMatrix.zeros[Float](1, _outputDim)
 
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
@@ -798,28 +782,31 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val nyf = -yf
           val d = nyf *:* fb(i)
           val dw = fa(i - 1).t * d
-          dws += i -> dw
+          _dws(i) += dw
+          _errSum += yf
           ds += i -> d
-          e += yf
           nyf.release()
+          dw.release()
           yf.release()
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
           val d2 = d1 *:* fb(i)
           val dw = fa(i - 1).t * d2
-          dws += i -> dw
+          _dws(i) += dw
           ds += i -> d2
           d1.release()
+          dw.release()
           derive(i - 1)
         } else if (i == _lastC) {
           val l = _convLayers(i)
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
           val d2 = (d1 *:* fb(i)).reshape(l.filters, l.dimOut._1 * l.dimOut._2)
           val dw = d2 * fc(i).t
-          dws += i -> dw
+          _dws(i) += dw
           ds += i -> d2
           d1.release()
+          dw.release()
           if (i > 0) derive(i - 1)
         } else {
           val l1 = _convLayers(i + 1)
@@ -848,9 +835,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val cdc = CuMatrix.fromDense(dc)
           val d = _ww(i) * cdc *:* fb(i)
           val dw = d * fc(i).t
-          dws += i -> dw
+          _dws(i) += dw
           ds += i -> d
           cdc.release()
+          dw.release()
           if (i > 0) derive(i - 1)
         }
       }
@@ -858,41 +846,25 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
-      e :^= _square
-      e *= 0.5f
 
       fa.values.foreach(_.release())
       fb.values.foreach(_.release())
       fc.values.foreach(_.release())
       ds.values.foreach(_.release())
 
-      (dws, e)
-
-    }.foreach { ab =>
-      _errSum += ab._2
-      ab._2.release()
-      var i = 0
-      while (i <= _lastWlayerIdx) {
-        val m = _ds(i)
-        val n = ab._1(i)
-        m += n
-        i += 1
-        n.release()
-      }
     }
 
     var i = 0
     while (i <= _lastWlayerIdx) {
-      settings.updateRule(_cuWeights(i), _ds(i), stepSize, i)
+      settings.updateRule(_cuWeights(i), _dws(i), stepSize, i)
       i += 1
     }
 
-    xsys.foreach { xy =>
-      xy._2.release()
-    }
-
-    _ds.values.foreach(_.release())
-    _ww.values.dropRight(1).foreach(_.release())
+    xsys.foreach(_._2.release())
+    _dws.values.foreach(_.release())
+    _ww.values.foreach(_.release())
+    _errSum :^= _square
+    _errSum *= 0.5f
     val es = _errSum.toDense
     _errSum.release()
     _square.release()

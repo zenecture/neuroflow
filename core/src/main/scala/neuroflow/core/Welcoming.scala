@@ -21,11 +21,11 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version   1.2.1
+      |            Version   1.2.2
       |
       |         Identifier : $identifier
       |            Network : ${this.getClass.getCanonicalName}
-      |             Layout : ${layers.foldLeft("[")((s, l) => s + buildString(l) + ", ").dropRight(2) + "]"}
+      |             Layout : ${layers.foldLeft("")((s, l) => s + buildString(l) + "\n                      ").dropRight(2)}
       |            Weights : ${ formatter.format(weights.map(_.size).sum) } (≈ ${ weights.map(_.size).sum.toDouble * sizeOf(numericPrecision) / 1024.0 / 1024.0 }%.6g MB)
       |          Precision : $numericPrecision
       |
@@ -48,21 +48,22 @@ trait Welcoming { self: Network[_, _, _] =>
   private def prettyPrint(): Unit = {
 
     val max = layers.map {
-      case Convolution(dimIn, _, _, _, _) => math.max(dimIn._1, dimIn._2)
-      case l: Layer                       => l.neurons
+      case c @ Convolution(dimIn, _, _, _, _) => math.max(math.max(dimIn._1, dimIn._2), math.max(c.dimOut._1, c.dimOut._2))
+      case l: Layer                           => l.neurons
     }.max
 
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
 
-    val potency = layers.flatMap {
-      case c: Convolution[_]  => Seq(c, c.copy(dimIn = c.dimOut, stride = 1 /* prevent sanity checks */))
-      case l: Layer           => Seq(l)
+    val potency = layers.zipWithIndex.flatMap {
+      case (c: Convolution[_], i) if i == 0  => Seq(c, c.copy(dimIn = c.dimOut, stride = 1 /* prevent sanity checks */))
+      case (c: Convolution[_], _)            => Seq(c.copy(dimIn = c.dimOut))
+      case (l: Layer, _)                     => Seq(l)
     }.flatMap {
       case Convolution(dimIn, _, _, _, _) =>
         val m = (1 to math.ceil(dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
         val s = m.dropRight(1) :+ (m.last._1, m.last._2, false)
         s
-      case l: Layer                       => Seq((l.neurons, false, false))
+      case l: Layer => Seq((l.neurons, false, false))
     }
 
     val center = math.ceil(((max * f) - 1.0) / 2.0)
