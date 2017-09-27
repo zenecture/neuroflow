@@ -8,7 +8,7 @@ object NeuroflowBuild extends Build {
 
     name in ThisBuild         := "neuroflow",
     organization in ThisBuild := "com.zenecture",
-    version                   := "1.2.1",
+    version                   := "1.2.2",
     scalaVersion              := "2.12.3",
     assemblyMergeStrategy
                   in assembly := {
@@ -17,7 +17,9 @@ object NeuroflowBuild extends Build {
       case x                             => MergeStrategy.first
     },
     autoCompilerPlugins := true,
-    addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full)
+    addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
+    parallelExecution in ThisBuild := false
+
   )
 
   lazy val core        = Project(id = "neuroflow-core",        base = file("core"),        settings = neuroflowSettings)

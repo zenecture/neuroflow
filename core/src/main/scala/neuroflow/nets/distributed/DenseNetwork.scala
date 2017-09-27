@@ -124,7 +124,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     val errorMean = mean(error)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
     maybeGraph(errorMean)
-    keepBest(errorMean, weights)
+    keepBest(errorMean)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
       run(xs, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {

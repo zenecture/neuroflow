@@ -69,10 +69,10 @@ trait KeepBestLogic[V] { self: Network[V, _, _] =>
   private var bestErr = Double.PositiveInfinity
   private var bestWs: Weights[V] = self.weights
 
-  def keepBest(error: Double, ws: Weights[V]): Unit = {
+  def keepBest(error: Double): Unit = {
     if (error < bestErr) Future {
       bestErr = error
-      bestWs = ws.map(_.copy)
+      bestWs = self.weights.map(_.copy)
     }
   }
 

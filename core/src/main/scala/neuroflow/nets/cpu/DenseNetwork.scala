@@ -132,7 +132,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
     maybeGraph(errorMean)
-    keepBest(errorMean, weights)
+    keepBest(errorMean)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
@@ -386,7 +386,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
     maybeGraph(errorMean)
-    keepBest(errorMean, weights)
+    keepBest(errorMean)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)

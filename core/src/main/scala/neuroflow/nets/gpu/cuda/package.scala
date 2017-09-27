@@ -19,7 +19,7 @@ package object cuda extends Logs {
   type CuPointer = jcuda.Pointer
 
   def allocate[V:ClassTag](size: Long): Pointer[V] = {
-    val maxTryCount = 1000000
+    val maxTryCount = 10
     var tries = 0
     var res: Pointer[V] = null
     def tryMalloc(): Pointer[V] = {
