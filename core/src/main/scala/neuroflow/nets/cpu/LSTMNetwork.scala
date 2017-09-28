@@ -90,7 +90,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
     noTargets = ys.zipWithIndex.filter { case (vec, idx) => vec.forall(_ == Double.PositiveInfinity) }.map(_._2).toSet
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
     yIndices = out.map(identityHashCode).zipWithIndex.toMap
-    run(in, out, learningRate(0 -> 1.0), precision, 0, iterations)
+    run(in, out, learningRate(1 -> 1.0), precision, 0, iterations)
   }
 
   /**

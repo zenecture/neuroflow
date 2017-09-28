@@ -100,7 +100,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
       Await.result(x ? Heartbeat, atMost = 120 seconds)
       if (verbose) info(s"Connected to $x.")
     }
-    run(xs, learningRate(0 -> 1.0), precision, 1, iterations)
+    run(xs, learningRate(1 -> 1.0), precision, 1, iterations)
   }
 
 
