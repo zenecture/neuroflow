@@ -207,6 +207,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     out
   }
 
+  /**
+    * Computes gradient for all weights in parallel,
+    * adapts their value using gradient descent and returns the error matrix.
+    */
   private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Double): Matrix = {
 
     val xsys = xs.par.zip(ys)
@@ -245,13 +249,15 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val _square  = DenseMatrix.zeros[Double](1, _outputDim)
     _square := 2.0
 
-    xsys.foreach { xy =>
+    xsys.map { xy =>
 
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, Matrix]
       val fb  = collection.mutable.Map.empty[Int, Matrix]
       val fc  = collection.mutable.Map.empty[Int, Matrix]
+      val dws = collection.mutable.Map.empty[Int, Matrix]
       val ds  = collection.mutable.Map.empty[Int, Matrix]
+      val e   = DenseMatrix.zeros[Double](1, _outputDim)
 
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
@@ -286,14 +292,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val yf = y - fa(i)
           val d = -yf *:* fb(i)
           val dw = fa(i - 1).t * d
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
-          _errSum += yf
+          e += yf
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
           val dw = fa(i - 1).t * d
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
           derive(i - 1)
         } else if (i == _lastC) {
@@ -301,7 +307,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val d = ((ds(i + 1) * weights(i + 1).t) *:* fb(i))
             .reshape(l.filters, l.dimOut._1 * l.dimOut._2)
           val dw = d * fc(i).t
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
           if (i > 0) derive(i - 1)
         } else {
@@ -332,7 +338,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           }
           val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
           if (i > 0) derive(i - 1)
         }
@@ -341,7 +347,19 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
+      e :^= _square
+      e *= 0.5
+      (dws, e)
 
+    }.seq.foreach { ab =>
+      _errSum += ab._2
+      var i = 0
+      while (i <= _lastWlayerIdx) {
+        val m = _dws(i)
+        val n = ab._1(i)
+        m += n
+        i += 1
+      }
     }
 
     var i = 0
@@ -349,9 +367,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       settings.updateRule(weights(i), _dws(i), stepSize, i)
       i += 1
     }
-
-    _errSum :^= _square
-    _errSum *= 0.5
 
     _errSum
 
@@ -581,6 +596,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     out
   }
 
+  /**
+    * Computes gradient for all weights in parallel,
+    * adapts their value using gradient descent and returns the error matrix.
+    */
   private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Float): Matrix = {
 
     val xsys = xs.par.zip(ys)
@@ -619,13 +638,15 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val _square  = DenseMatrix.zeros[Float](1, _outputDim)
     _square := 2.0f
 
-    xsys.foreach { xy =>
+    xsys.map { xy =>
 
       val (x, y) = xy
       val fa  = collection.mutable.Map.empty[Int, Matrix]
       val fb  = collection.mutable.Map.empty[Int, Matrix]
       val fc  = collection.mutable.Map.empty[Int, Matrix]
+      val dws = collection.mutable.Map.empty[Int, Matrix]
       val ds  = collection.mutable.Map.empty[Int, Matrix]
+      val e   = DenseMatrix.zeros[Float](1, _outputDim)
 
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
@@ -660,14 +681,14 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val yf = y - fa(i)
           val d = -yf *:* fb(i)
           val dw = fa(i - 1).t * d
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
-          _errSum += yf
+          e += yf
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
           val dw = fa(i - 1).t * d
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
           derive(i - 1)
         } else if (i == _lastC) {
@@ -675,7 +696,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val d = ((ds(i + 1) * weights(i + 1).t) *:* fb(i))
             .reshape(l.filters, l.dimOut._1 * l.dimOut._2)
           val dw = d * fc(i).t
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
           if (i > 0) derive(i - 1)
         } else {
@@ -706,7 +727,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           }
           val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
-          _dws(i) += dw
+          dws += i -> dw
           ds += i -> d
           if (i > 0) derive(i - 1)
         }
@@ -715,7 +736,19 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
+      e :^= _square
+      e *= 0.5f
+      (dws, e)
 
+    }.seq.foreach { ab =>
+      _errSum += ab._2
+      var i = 0
+      while (i <= _lastWlayerIdx) {
+        val m = _dws(i)
+        val n = ab._1(i)
+        m += n
+        i += 1
+      }
     }
 
     var i = 0
@@ -723,9 +756,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       settings.updateRule(weights(i), _dws(i), stepSize, i)
       i += 1
     }
-
-    _errSum :^= _square
-    _errSum *= 0.5f
 
     _errSum
 
