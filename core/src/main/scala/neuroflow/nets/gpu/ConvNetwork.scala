@@ -331,6 +331,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val d = nyf *:* fb(i)
           val dw = fa(i - 1).t * d
           _dws(i) += dw
+          yf :^= _square
+          yf *= 0.5
           _errSum += yf
           ds += i -> d
           nyf.release()
@@ -411,8 +413,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     xsys.foreach(_._2.release())
     _dws.values.foreach(_.release())
     _ww.values.foreach(_.release())
-    _errSum :^= _square
-    _errSum *= 0.5
     val es = _errSum.toDense
     _errSum.release()
     _square.release()
@@ -783,6 +783,8 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val d = nyf *:* fb(i)
           val dw = fa(i - 1).t * d
           _dws(i) += dw
+          yf :^= _square
+          yf *= 0.5f
           _errSum += yf
           ds += i -> d
           nyf.release()
@@ -863,8 +865,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     xsys.foreach(_._2.release())
     _dws.values.foreach(_.release())
     _ww.values.foreach(_.release())
-    _errSum :^= _square
-    _errSum *= 0.5f
     val es = _errSum.toDense
     _errSum.release()
     _square.release()
