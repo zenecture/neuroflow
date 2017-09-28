@@ -71,8 +71,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
-
   private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
@@ -216,8 +214,10 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
           val nyf = -yf
           val d = nyf *:* fb(0)
           val dw = x.t * d
-          _dws(i) += dw
+          yf :^= _square
+          yf *= 0.5
           _errSum += yf
+          _dws(i) += dw
           nyf.release()
           yf.release()
           d.release()
@@ -227,9 +227,11 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
           val nyf = -yf
           val d = nyf *:* fb(i)
           val dw = fa(i - 1).t * d
+          yf :^= _square
+          yf *= 0.5
+          _errSum += yf
           _dws(i) += dw
           ds += i -> d
-          _errSum += yf
           nyf.release()
           yf.release()
           dw.release()
@@ -274,9 +276,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     }
 
     _dws.values.foreach(_.release())
-
-    _errSum :^= _square
-    _errSum *= 0.5
 
     val es = _errSum.toDense
     _errSum.release()
@@ -534,6 +533,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
           val d = nyf *:* fb(0)
           val dw = x.t * d
           _dws(i) += dw
+          yf :^= _square
+          yf *= 0.5f
           _errSum += yf
           nyf.release()
           yf.release()
@@ -546,6 +547,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
           val dw = fa(i - 1).t * d
           _dws(i) += dw
           ds += i -> d
+          yf :^= _square
+          yf *= 0.5f
           _errSum += yf
           nyf.release()
           yf.release()
@@ -591,9 +594,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     }
 
     _dws.values.foreach(_.release())
-
-    _errSum :^= _square
-    _errSum *= 0.5f
 
     val es = _errSum.toDense
     _errSum.release()
