@@ -128,7 +128,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
-    run(xsys, learningRate(0 -> 1.0), xs.size, batchSize, precision, 1, iterations)
+    run(xsys, learningRate(1 -> 1.0), xs.size, batchSize, precision, 1, iterations)
   }
 
   /**
@@ -580,7 +580,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
-    run(xsys, learningRate(0 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
+    run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
   }
 
   /**
