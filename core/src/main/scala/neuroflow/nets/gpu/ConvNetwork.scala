@@ -147,6 +147,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val errorMean = mean(_em)
     val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
+    syncWeights()
     maybeGraph(errorMean)
     keepBest(errorMean)
     waypoint(iteration)
@@ -154,7 +155,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
-      syncWeights()
       takeBest()
     }
   }
@@ -599,6 +599,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val errorMean = mean(_em)
     val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
     if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
+    syncWeights()
     maybeGraph(errorMean)
     keepBest(errorMean)
     waypoint(iteration)
@@ -606,7 +607,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)
     } else {
       if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
-      syncWeights()
       takeBest()
     }
   }
