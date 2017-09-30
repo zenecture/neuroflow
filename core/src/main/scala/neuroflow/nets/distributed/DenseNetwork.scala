@@ -10,7 +10,6 @@ import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -41,7 +40,7 @@ object DenseNetwork {
 
 
 private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register(), numericPrecision: String = "Double")
+                                      identifier: String = "neuroflow.nets.distributed.DenseNetwork", numericPrecision: String = "Double")
   extends DistFFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] {
 
   type Vector   = Network.Vector[Double]

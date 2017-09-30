@@ -29,10 +29,10 @@ object XOR {
     import neuroflow.nets.cpu.DenseNetwork._
 
     implicit val wp = neuroflow.core.WeightProvider.Double.FFN.normal {
-      Map { // normal config per weight layer
-        0 -> (0.0, 1.0)
+      Map ( // normal config per weight layer
+        0 -> (0.0, 1.0),
         1 -> (0.0, 0.1)
-      }
+      )
     }
 
     val fn = Sigmoid

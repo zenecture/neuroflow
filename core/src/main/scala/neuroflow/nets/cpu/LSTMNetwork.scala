@@ -9,7 +9,6 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection._
@@ -40,7 +39,7 @@ object LSTMNetwork {
 
 
 private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                     identifier: String = Registry.register(), numericPrecision: String = "Double")
+                                     identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   type Vector   = Network.Vector[Double]
