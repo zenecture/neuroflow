@@ -89,7 +89,7 @@ object Word2Vec {
       case (w, v) => w -> net(v)
     }.toSeq
 
-    val res = resRaw.map(_._1).zip(ScaledVectorSpace(resRaw.map(_._2.map(_.toDouble))))
+    val res = resRaw.map(_._1).zip(ScaledVectorSpace(resRaw.map(_._2)))
 
     val outputFile = ~>(new File(output)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
