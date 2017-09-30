@@ -5,7 +5,6 @@ import breeze.numerics._
 import breeze.stats._
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -44,7 +43,7 @@ object ConvNetwork {
 //<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
 private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                     identifier: String = Registry.register(), numericPrecision: String = "Double")
+                                           identifier: String = "neuroflow.nets.cpu.ConvNetwork", numericPrecision: String = "Double")
   extends CNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   import Convolution.IntTupler
@@ -432,7 +431,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 //<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
 private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
-                                           identifier: String = Registry.register(), numericPrecision: String = "Single")
+                                           identifier: String = "neuroflow.nets.cpu.ConvNetwork", numericPrecision: String = "Single")
   extends CNN[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
 
   import Convolution.IntTupler

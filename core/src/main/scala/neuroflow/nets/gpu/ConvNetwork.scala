@@ -7,7 +7,6 @@ import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.Registry
 import neuroflow.nets.gpu.cuda.CuMatrix
 
 import scala.annotation.tailrec
@@ -18,7 +17,7 @@ import scala.concurrent.forkjoin.ForkJoinPool
 
 /**
   *
-  * This is a convolutional feed-forward neural network running on CUDA.
+  * This is a convolutional feed-forward neural network running on CUDA and CPU.
   * It uses gradient descent to optimize the error function Σ1/2(y - net(x))².
   *
   * @author bogdanski
@@ -45,7 +44,7 @@ object ConvNetwork {
 // <editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
 private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                           identifier: String = Registry.register(), numericPrecision: String = "Double")
+                                           identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Double")
   extends CNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   implicit val handle = new cublasHandle
@@ -497,7 +496,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 // <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
 private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
-                                     identifier: String = Registry.register(), numericPrecision: String = "Single")
+                                           identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Single")
   extends CNN[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
 
   implicit val handle = new cublasHandle

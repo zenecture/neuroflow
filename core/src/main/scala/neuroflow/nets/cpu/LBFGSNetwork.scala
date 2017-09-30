@@ -7,7 +7,6 @@ import breeze.stats._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.Registry
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -36,7 +35,7 @@ object LBFGSNetwork {
 
 
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register(), numericPrecision: String = "Double") extends FFN[Double] {
+                                      identifier: String = "neuroflow.nets.cpu.LBFGSNetwork", numericPrecision: String = "Double") extends FFN[Double] {
 
   type Vector   = Network.Vector[Double]
   type Vectors  = Network.Vectors[Double]

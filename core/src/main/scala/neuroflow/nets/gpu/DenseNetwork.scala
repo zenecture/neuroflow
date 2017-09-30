@@ -8,7 +8,6 @@ import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.Registry
 import neuroflow.nets.gpu.cuda.CuMatrix
 
 import scala.annotation.tailrec
@@ -48,7 +47,7 @@ object DenseNetwork {
 //<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
-                                      identifier: String = Registry.register(), numericPrecision: String = "Double")
+                                            identifier: String = "neuroflow.nets.gpu.DenseNetwork", numericPrecision: String = "Double")
   extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
   implicit val handle = new cublasHandle
@@ -364,7 +363,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 //<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
-                                            identifier: String = Registry.register(), numericPrecision: String = "Single")
+                                            identifier: String = "neuroflow.nets.gpu.DenseNetwork", numericPrecision: String = "Single")
   extends FFN[Float] with EarlyStoppingLogic[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
 
   implicit val handle = new cublasHandle
