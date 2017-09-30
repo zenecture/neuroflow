@@ -2,9 +2,7 @@ package neuroflow.playground
 
 import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
-import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
 /**
@@ -27,6 +25,9 @@ object XOR {
          http://znctr.com/blog/artificial-neural-networks
 
      */
+
+    import neuroflow.nets.cpu.DenseNetwork._
+    implicit val wp = neuroflow.core.WeightProvider.Double.FFN.normal(μ = 0.0, σ = 1.0)
 
     val fn = Sigmoid
     val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
