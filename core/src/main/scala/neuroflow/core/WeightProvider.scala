@@ -84,6 +84,9 @@ trait BaseOps[V] {
   def randomD(i: (Double, Double)): () => Double = () => ThreadLocalRandom.current.nextDouble(i._1, i._2)
   def randomF(i: (Double, Double)): () => Float  = () => ThreadLocalRandom.current.nextDouble(i._1, i._2).toFloat
 
+  def normalD(μ: Double, σ: Double): () => Double = () => breeze.stats.distributions.Gaussian(μ, σ).draw()
+  def normalF(μ: Double, σ: Double): () => Float  = () => breeze.stats.distributions.Gaussian(μ, σ).draw().toFloat
+
 }
 
 object WeightProvider {
@@ -117,6 +120,10 @@ object WeightProvider {
         def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
       }
 
+      def normal(μ: Double, σ: Double): WeightProvider[Double] = new WeightProvider[Double] {
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, normalD(μ, σ))
+      }
+
     }
 
     object CNN extends BaseOps[Double] {
@@ -144,6 +151,10 @@ object WeightProvider {
 
       def static(seed: Double): WeightProvider[Double] = new WeightProvider[Double] {
         def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
+      }
+
+      def normal(μ: Double, σ: Double): WeightProvider[Double] = new WeightProvider[Double] {
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, normalD(μ, σ))
       }
 
     }
@@ -195,6 +206,10 @@ object WeightProvider {
         def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
       }
 
+      def normal(μ: Double, σ: Double): WeightProvider[Float] = new WeightProvider[Float] {
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, normalF(μ, σ))
+      }
+
     }
 
     object CNN extends BaseOps[Float] {
@@ -222,6 +237,10 @@ object WeightProvider {
 
       def static(seed: Float): WeightProvider[Float] = new WeightProvider[Float] {
         def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
+      }
+
+      def normal(μ: Double, σ: Double): WeightProvider[Float] = new WeightProvider[Float] {
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, normalF(μ, σ))
       }
 
     }
