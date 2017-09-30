@@ -124,7 +124,7 @@ gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5
 gnuplot> plot '~/NF/errorFunc.txt' with linespoints ls 1
 ```
 
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph2.png" width=494 height=339 />
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph3.png" width=448 height=321 />
 
 If you want to be more flexible, e.g. piping the error over the wire to a real-time dashboard, 
 you can provide a function closure `action` of type `Double => Unit` which gets executed in the background after each training epoch, 
