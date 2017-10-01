@@ -40,6 +40,11 @@ trait BaseOps[V] {
         DenseMatrix.create[V](neuronsLeft, neuronsRight, Array.fill(product)(seed(index)()))
     }
 
+  def fullyConnected(layers: Seq[Layer], seed: () => V)(implicit ct: ClassTag[V], z: Zero[V]): Weights = {
+    val m = layers.indices.map((_, seed)).toMap
+    fullyConnected(layers, m)
+  }
+
   /**
     * Convolutional layers produce im2col-ready weight matrices.
     */
@@ -65,6 +70,11 @@ trait BaseOps[V] {
         val product = neuronsLeft * neuronsRight
         DenseMatrix.create[V](neuronsLeft, neuronsRight, Array.fill(product)(seed(idx)()))
     }
+
+  def convoluted(layers: Seq[Layer], seed: () => V)(implicit ct: ClassTag[V], z: Zero[V]): Weights = {
+    val m = layers.indices.map((_, seed)).toMap
+    convoluted(layers, m)
+  }
 
   /**
     * Enriches the given `layers` and their `weights` with recurrent LSTM connections.
@@ -96,15 +106,15 @@ object WeightProvider {
     object FFN extends BaseOps[Double] {
 
       implicit val zeroWeights = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => 0.0)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 0.0)
       }
 
       implicit val oneWeights = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => 1.0)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 1.0)
       }
 
       implicit val minusOneWeights = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => -1.0)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => -1.0)
       }
 
       implicit val randomWeights: WeightProvider[Double] = apply(-1, 1)
@@ -113,18 +123,18 @@ object WeightProvider {
         * Gives a weight provider with random weights in range `r`.
         */
       def apply(r: (Double, Double)): WeightProvider[Double] = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, randomD(r))).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, randomD(r))
       }
 
       def static(seed: Double): WeightProvider[Double] = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => seed)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
       }
 
       /**
         * Gives a weight provider with weights drawn from normal distribution.
         */
       def normal(μ: Double, σ: Double): WeightProvider[Double] = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, normalD(μ, σ))).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, normalD(μ, σ))
       }
 
       /**
@@ -140,15 +150,15 @@ object WeightProvider {
     object CNN extends BaseOps[Double] {
 
       implicit val zeroWeights = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => 0.0)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => 0.0)
       }
 
       implicit val oneWeights = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => 1.0)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => 1.0)
       }
 
       implicit val minusOneWeights = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => -1.0)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => -1.0)
       }
 
       implicit val randomWeights: WeightProvider[Double] = apply(-1, 1)
@@ -157,18 +167,18 @@ object WeightProvider {
         * Gives a weight provider with random weights in range `r`.
         */
       def apply(r: (Double, Double)): WeightProvider[Double] = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, randomD(r))).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, randomD(r))
       }
 
       def static(seed: Double): WeightProvider[Double] = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => seed)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
       }
 
       /**
         * Gives a weight provider with weights drawn from normal distribution.
         */
       def normal(μ: Double, σ: Double): WeightProvider[Double] = new WeightProvider[Double] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, normalD(μ, σ))).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, normalD(μ, σ))
       }
 
       /**
@@ -204,15 +214,15 @@ object WeightProvider {
     object FFN extends BaseOps[Float] {
 
       implicit val zeroWeights = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => 0.0f)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 0.0f)
       }
 
       implicit val oneWeights = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => 1.0f)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => 1.0f)
       }
 
       implicit val minusOneWeights = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => -1.0f)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => -1.0f)
       }
 
       implicit val randomWeights: WeightProvider[Float] = apply(-1, 1)
@@ -221,18 +231,18 @@ object WeightProvider {
         * Gives a weight provider with random weights in range `r`.
         */
       def apply(r: (Float, Float)): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, randomF(r))).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, randomF(r))
       }
 
       def static(seed: Float): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, () => seed)).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
       }
 
       /**
         * Gives a weight provider with weights drawn from normal distribution.
         */
       def normal(μ: Float, σ: Float): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, layers.indices.map((_, normalF(μ, σ))).toMap)
+        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, normalF(μ, σ))
       }
 
       /**
@@ -248,15 +258,15 @@ object WeightProvider {
     object CNN extends BaseOps[Float] {
 
       implicit val zeroWeights = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => 0.0f)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => 0.0f)
       }
 
       implicit val oneWeights = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => 1.0f)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => 1.0f)
       }
 
       implicit val minusOneWeights = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => -1.0f)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => -1.0f)
       }
 
       implicit val randomWeights: WeightProvider[Float] = apply(-1, 1)
@@ -265,18 +275,18 @@ object WeightProvider {
         * Gives a weight provider with random weights in range `r`.
         */
       def apply(r: (Float, Float)): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, randomF(r))).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, randomF(r))
       }
 
       def static(seed: Float): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, () => seed)).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
       }
 
       /**
         * Gives a weight provider with weights drawn from normal distribution.
         */
       def normal(μ: Float, σ: Float): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = convoluted(layers, layers.indices.map((_, normalF(μ, σ))).toMap)
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, normalF(μ, σ))
       }
 
       /**
