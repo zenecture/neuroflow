@@ -80,7 +80,7 @@ object Word2Vec {
           batchSize       = Some(64),
           regularization  = Some(KeepBest),
           prettyPrint     = true,
-          waypoint        = Some(Waypoint(nth = 10, ws => IO.File.write(ws, wps))))
+          waypoint        = Some(Waypoint(nth = 10, (_, ws) => IO.File.write(ws, wps))))
       )
 
     net.train(xsys.map(_._2), xsys.map(_._3))
