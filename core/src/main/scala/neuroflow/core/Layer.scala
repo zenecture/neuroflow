@@ -17,24 +17,36 @@ sealed trait Out
 sealed trait Hidden
 
 
-/** Dense input layer carrying `neurons`. */
+/**
+  * A dense input layer is the first fully connected one in a FFN, where:
+  *   `neurons`      Number of neurons in this layer
+  */
 case class Input(neurons: Int) extends Layer with In {
   val symbol: String = "In"
 }
 
-/** Dense output layer carrying `neurons` with `activator` function. */
+/**
+  * A dense output layer is the last fully connected one in a FFN, where:
+  *   `neurons`      Number of neurons in this layer
+  *   `activator`    The activator function gets applied on the output element-wise.
+  */
 case class Output[V](neurons: Int, activator: Activator[V]) extends Layer with HasActivator[V] with Out {
   val symbol: String = "Out"
 }
 
-/** Dense layer carrying `neurons` with `activator` function. */
+/**
+  * A dense layer is a fully connected one, where:
+  *   `neurons`      Number of neurons in this layer
+  *   `activator`    The activator function gets applied on the output element-wise.
+  */
 case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Hidden with HasActivator[V] {
   val symbol: String = "Dense"
 }
 
 /**
-  * [[Focus]] is used if the desired model output
+  * A focus layer is used if the desired model output
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
+  *   `inner`      The inner layer
   */
 case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
@@ -42,36 +54,49 @@ case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
 }
 
 /**
-  * Convolutes the input volume. Where:
-  *   Input dimension `dimIn` as (width, height, depth).
-  *   The receptive `field` as (width, height).
-  *   How many independent `filters` are attached to the input.
-  *   Sliding the receptive field over the input volume with `stride`.
-  *   Applying the `activator` function element-wise on the output.
+  *
+  * Convolutes the input volume, where:
+  *
+  *   `dimIn`      Input dimension. (width, height, depth)
+  *   `padding`    A padding can be specified to ensure full convolution. (width, height)
+  *   `field`      The receptive field. (width, height)
+  *   `filters`    Number of independent filters attached to the input.
+  *   `stride`     Sliding the receptive field over the input volume with stride. (width, height)
+  *   `activator`  The activator function gets applied on the output element-wise.
+  *
   */
-case class Convolution[V](dimIn: (Int, Int, Int), field: (Int, Int), filters: Int,
-                       stride: Int, activator: Activator[V]) extends Hidden with Layer with HasActivator[V] with In {
+case class Convolution[V](dimIn:    (Int, Int, Int),
+                          padding:  (Int, Int),
+                          field:    (Int, Int),
+                          stride:   (Int, Int),
+                          filters:   Int,
+                          activator: Activator[V]) extends Layer with HasActivator[V] with Hidden with In {
 
-  val symbol: String = "Conv"
+  val symbol: String = "Convolution"
+
+  val dimInPadded: (Int, Int, Int) =
+    (dimIn._1 + (2 * padding._1),
+     dimIn._2 + (2 * padding._2),
+     dimIn._3)
 
   val dimOut: (Int, Int, Int) =
-    ((dimIn._1 - field._1) / stride + 1,
-     (dimIn._2 - field._2) / stride + 1,
+    ((dimIn._1 + (2 * padding._1) - field._1) / stride._1 + 1,
+     (dimIn._2 + (2 * padding._2) - field._2) / stride._2 + 1,
       filters)
 
   val neurons: Int = dimOut._1 * dimOut._2 * dimOut._3 // output relevance
 
-  private val _d1 = dimIn._1 - field._1
-  private val _d2 = dimIn._2 - field._2
+  private val _d1 = dimIn._1 + (2 * padding._1) - field._1
+  private val _d2 = dimIn._2 + (2 * padding._2) - field._2
 
   assert(filters  > 0, "Filters must be positive!")
-  assert(stride   > 0, "Stride must be positive!")
+  assert(stride._1 > 0 && stride._2 > 0, "Strides must be positive!")
   assert(field._1 > 0 && field._2 > 0, "Field must be positive!")
   assert(dimIn._1 > 0 && dimIn._2 > 0 && dimIn._3 > 0, "Input dimension must be positive!")
   assert(_d1 >= 0, s"Field $field is too big for input width ${dimIn._1}!")
   assert(_d2 >= 0, s"Field $field is too big for input height ${dimIn._2}!")
-  assert(_d1 % stride == 0, s"Width ${_d1} doesn't match stride $stride!")
-  assert(_d2 % stride == 0, s"Height ${_d2} doesn't match stride $stride!")
+  assert(_d1 % stride._1 == 0, s"Width ${_d1} doesn't match stride ${stride._1}!")
+  assert(_d2 % stride._2 == 0, s"Height ${_d2} doesn't match stride ${stride._2}!")
 
 }
 

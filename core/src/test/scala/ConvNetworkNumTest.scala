@@ -19,8 +19,8 @@ class ConvNetworkNumTest  extends Specification {
   def is: SpecStructure =
     s2"""
 
-    This spec will test the gradients from ConvNetwork by comparison of
-    analytical gradients with the approximated ones.
+    This spec will test the gradients from ConvNetwork by
+    comparing the analytical gradients with the approximated ones (finite diffs).
 
       - Check the gradients on CPU                       $gradCheckCPU
       - Check the gradients on GPU                       $gradCheckGPU
@@ -30,83 +30,22 @@ class ConvNetworkNumTest  extends Specification {
   def gradCheckCPU = {
 
     import neuroflow.nets.cpu.ConvNetwork._
-    import neuroflow.core.WeightProvider.Double.CNN.{convoluted, randomD}
-
-    val dim = (50, 25, 5)
-    val out = 2
-
-    val f = ReLU
-
-    val debuggableA = Debuggable[Double]()
-    val debuggableB = Debuggable[Double]()
-
-    val a = Convolution(dimIn = dim,      field = (6, 3), filters = 16, stride = 2, f)
-    val b = Convolution(dimIn = a.dimOut, field = (2, 4), filters = 8, stride = 1, f)
-    val c = Convolution(dimIn = b.dimOut, field = (1, 1), filters = 12, stride = 1, f)
-
-    val convs = a :: b :: c :: HNil
-    val fullies = Output(out, f) :: HNil
-
-    val layout = convs ::: fullies
-
-    val rand = convoluted(layout.toList, randomD(0.01, 0.1))
-
-    implicit val wp = new WeightProvider[Double] {
-      def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
-    }
-
-    val settings = Settings[Double](
-      prettyPrint = true,
-      approximation = None,
-      learningRate = { case (_, _) => 1.0 },
-      iterations = 1
-    )
-
-    val netA: CNN[Double] = Network(layout, settings.copy(updateRule = debuggableA))
-    val netB: CNN[Double] = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
-
-    val m = DenseMatrix.rand[Double](dim._1, dim._2)
-    val n = DenseVector.rand[Double](out)
-
-    val xs = Seq((1 to dim._3).map(_ => m))
-    val ys = Seq(n)
-
-    println(netA)
-    println(netB)
-
-    netA.train(xs, ys)
-    netB.train(xs, ys)
-
-    println(netA)
-    println(netB)
-
-    val tolerance = 1E-7
-
-    val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
-      case ((i, a), (_, b)) =>
-        println(s"i = $i")
-        (a - b).forall { (w, v) =>
-          val e = v.abs
-          val x = debuggableA.lastGradients(i)(w)
-          val y = debuggableB.lastGradients(i)(w)
-          val m = math.max(x.abs, y.abs)
-          val r = e / m
-          println(s"e = $e")
-          println(s"r = $r")
-          r < tolerance
-        }
-    }.reduce { (l, r) => l && r }
-
-    if (equal) success else failure
+    check()
 
   }
 
   def gradCheckGPU = {
 
     import neuroflow.nets.gpu.ConvNetwork._
-    import neuroflow.core.WeightProvider.Double.CNN.{convoluted, randomD}
+    check()
 
-    val dim = (50, 25, 5)
+  }
+
+  def check[Net <: CNN[Double]]()(implicit net: Constructor[Double, Net]) = {
+
+    import neuroflow.core.WeightProvider.Double.CNN.{convoluted, normalD}
+
+    val dim = (50, 25, 2)
     val out = 2
 
     val f = ReLU
@@ -114,16 +53,16 @@ class ConvNetworkNumTest  extends Specification {
     val debuggableA = Debuggable[Double]()
     val debuggableB = Debuggable[Double]()
 
-    val a = Convolution(dimIn = dim,      field = (6, 3), filters = 16, stride = 2, f)
-    val b = Convolution(dimIn = a.dimOut, field = (2, 4), filters = 8, stride = 1, f)
-    val c = Convolution(dimIn = b.dimOut, field = (1, 1), filters = 12, stride = 1, f)
+    val a = Convolution(dimIn = dim,      padding = (4, 4), field = (6, 3), stride = (2, 2), filters = 2, activator = f)
+    val b = Convolution(dimIn = a.dimOut, padding = (2, 2), field = (2, 4), stride = (1, 1), filters = 2, activator = f)
+    val c = Convolution(dimIn = b.dimOut, padding = (1, 1), field = (1, 1), stride = (1, 2), filters = 2, activator = f)
 
     val convs = a :: b :: c :: HNil
     val fullies = Output(out, f) :: HNil
 
     val layout = convs ::: fullies
 
-    val rand = convoluted(layout.toList, randomD(0.01, 0.1))
+    val rand = convoluted(layout.toList, normalD(0.0, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -136,8 +75,8 @@ class ConvNetworkNumTest  extends Specification {
       iterations = 1
     )
 
-    val netA: CNN[Double] = Network(layout, settings.copy(updateRule = debuggableA))
-    val netB: CNN[Double] = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
+    val netA = Network(layout, settings.copy(updateRule = debuggableA))
+    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
     val m = DenseMatrix.rand[Double](dim._1, dim._2)
     val n = DenseVector.rand[Double](out)
@@ -155,21 +94,30 @@ class ConvNetworkNumTest  extends Specification {
     println(netB)
 
     val tolerance = 1E-7
+    var zeroCount = 0
 
     val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
       case ((i, a), (_, b)) =>
         println(s"i = $i")
         (a - b).forall { (w, v) =>
           val e = v.abs
-          val x = debuggableA.lastGradients(i)(w)
-          val y = debuggableB.lastGradients(i)(w)
-          val m = math.max(x.abs, y.abs)
-          val r = e / m
-          println(s"e = $e")
-          println(s"r = $r")
-          r < tolerance
+          if (e == 0.0) {
+            println(s"e = $e     ( a($w) = ${a(w)}, b($w) = ${b(w)} )")
+            zeroCount += 1
+            true
+          } else {
+            val x = debuggableA.lastGradients(i)(w)
+            val y = debuggableB.lastGradients(i)(w)
+            val m = math.max(x.abs, y.abs)
+            val r = e / m
+            println(s"e = $e")
+            println(s"r = $r")
+            r < tolerance
+          }
         }
     }.reduce { (l, r) => l && r }
+
+    println(s"zeroCount = $zeroCount")
 
     if (equal) success else failure
 
