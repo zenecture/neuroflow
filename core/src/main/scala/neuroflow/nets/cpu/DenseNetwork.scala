@@ -351,7 +351,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
     run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
   }

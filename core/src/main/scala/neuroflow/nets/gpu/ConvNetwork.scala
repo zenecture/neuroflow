@@ -50,8 +50,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   implicit val handle = new cublasHandle
   JCublas2.cublasCreate(handle)
 
-  import Convolution.IntTupler
-
   type Vector   = Network.Vector[Double]
   type Vectors  = Network.Vectors[Double]
   type Matrix   = Network.Matrix[Double]
@@ -125,7 +123,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
     run(xsys, learningRate(1 -> 1.0), xs.size, batchSize, precision, 1, iterations)
   }
@@ -165,7 +163,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(_in: Matrices, i: Int): Unit = {
       val l = _convLayers(i)
-      val c = CuMatrix.fromDense(im2col(_in, l.field, l.stride`²`)._1)
+      val c = CuMatrix.fromDense(im2col(_in, l.field, l.padding, l.stride)._1)
       val p = _cuWeights(i) * c
       val a = p.toDense.map(l.activator)
       c.release()
@@ -195,9 +193,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   }
 
 
-  private def im2col(ms: Matrices, field: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
+  private def im2col(ms: Matrices, field: (Int, Int), padding: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
     val dim = (ms.head.rows, ms.head.cols, ms.size)
-    val dimOut = ((dim._1 - field._1) / stride._1 + 1, (dim._2 - field._2) / stride._2 + 1)
+    val dimOut = (
+      (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
+      (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
+    )
     val fieldSq = field._1 * field._2
     val out = DenseMatrix.zeros[Double](fieldSq * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
@@ -206,17 +207,19 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       }.toMap
     } else null
     _parArrayPool(dim._3).foreach { z =>
-      var (w, h, i) = (0, 0, 0)
-      while (w < ((dim._1 - field._1) / stride._1) + 1) {
-        while (h < ((dim._2 - field._2) / stride._2) + 1) {
+      var (w, h, i) = (-padding._1, -padding._2, 0)
+      while (w < ((dim._1 + padding._1 - field._1) / stride._1) + 1) {
+        while (h < ((dim._2 + padding._2 - field._2) / stride._2) + 1) {
           var (x, y, wi) = (0, 0, 0)
           while (x < field._1) {
             while (y < field._2) {
               val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
-              val value = ms(z)(a, b)
-              val lin = c + wi
-              out.update(lin, i, value)
-              if (withIndices) idc(a, b).update(x, y, i + 1)
+              if (a >= 0 && a < dim._1 && b >= 0 && b < dim._2) {
+                val value = ms(z)(a, b)
+                val lin = c + wi
+                out.update(lin, i, value)
+                if (withIndices) idc(a, b).update(x, y, i + 1)
+              }
               wi += 1
               y += 1
             }
@@ -293,7 +296,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
         val seen = _indices.isDefinedAt(i)
-        val (cd, x) = im2col(_in, l.field, l.stride`²`, withIndices = !seen)
+        val (cd, x) = im2col(_in, l.field, l.padding, l.stride, withIndices = !seen)
         val c = CuMatrix.fromDense(cd)
         val p = _cuWeights(i) * c
         val pd = p.toDense
@@ -502,8 +505,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
   implicit val handle = new cublasHandle
   JCublas2.cublasCreate(handle)
 
-  import Convolution.IntTupler
-
   type Vector   = Network.Vector[Float]
   type Vectors  = Network.Vectors[Float]
   type Matrix   = Network.Matrix[Float]
@@ -577,7 +578,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batchize = $batchSize ...")
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
     run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
   }
@@ -617,7 +618,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(_in: Matrices, i: Int): Unit = {
       val l = _convLayers(i)
-      val c = CuMatrix.fromDense(im2col(_in, l.field, l.stride`²`)._1)
+      val c = CuMatrix.fromDense(im2col(_in, l.field, l.padding, l.stride)._1)
       val p = _cuWeights(i) * c
       val a = p.toDense.map(l.activator)
       c.release()
@@ -646,10 +647,12 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
   }
 
-
-  private def im2col(ms: Matrices, field: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
+  private def im2col(ms: Matrices, field: (Int, Int), padding: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
     val dim = (ms.head.rows, ms.head.cols, ms.size)
-    val dimOut = ((dim._1 - field._1) / stride._1 + 1, (dim._2 - field._2) / stride._2 + 1)
+    val dimOut = (
+      (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
+      (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
+    )
     val fieldSq = field._1 * field._2
     val out = DenseMatrix.zeros[Float](fieldSq * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
@@ -658,17 +661,19 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       }.toMap
     } else null
     _parArrayPool(dim._3).foreach { z =>
-      var (w, h, i) = (0, 0, 0)
-      while (w < ((dim._1 - field._1) / stride._1) + 1) {
-        while (h < ((dim._2 - field._2) / stride._2) + 1) {
+      var (w, h, i) = (-padding._1, -padding._2, 0)
+      while (w < ((dim._1 + padding._1 - field._1) / stride._1) + 1) {
+        while (h < ((dim._2 + padding._2 - field._2) / stride._2) + 1) {
           var (x, y, wi) = (0, 0, 0)
           while (x < field._1) {
             while (y < field._2) {
               val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
-              val value = ms(z)(a, b)
-              val lin = c + wi
-              out.update(lin, i, value)
-              if (withIndices) idc(a, b).update(x, y, i + 1)
+              if (a >= 0 && a < dim._1 && b >= 0 && b < dim._2) {
+                val value = ms(z)(a, b)
+                val lin = c + wi
+                out.update(lin, i, value)
+                if (withIndices) idc(a, b).update(x, y, i + 1)
+              }
               wi += 1
               y += 1
             }
@@ -745,7 +750,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
         val seen = _indices.isDefinedAt(i)
-        val (cd, x) = im2col(_in, l.field, l.stride`²`, withIndices = !seen)
+        val (cd, x) = im2col(_in, l.field, l.padding, l.stride, withIndices = !seen)
         val c = CuMatrix.fromDense(cd)
         val p = _cuWeights(i) * c
         val pd = p.toDense

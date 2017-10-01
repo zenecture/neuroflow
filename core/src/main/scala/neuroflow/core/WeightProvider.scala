@@ -50,16 +50,16 @@ trait BaseOps[V] {
     */
   def convoluted(layers: Seq[Layer], seed: Map[Int, () => V])(implicit ct: ClassTag[V], z: Zero[V]): Weights =
     layers.zipWithIndex.toArray.map {
-      case (Convolution(dimIn, filter, filters, _, _), idx) =>
+      case (Convolution(dimIn, _, field, _, filters, _), idx) =>
         val depth = dimIn._3
-        val field = filter._1 * filter._2 * depth
-        DenseMatrix.create[V](filters, field, Array.fill(field * filters)(seed(idx)()))
+        val receptive = field._1 * field._2 * depth
+        DenseMatrix.create[V](filters, receptive, Array.fill(receptive * filters)(seed(idx)()))
       case (Focus(inner), idx) =>
         inner match {
-          case Convolution(dimIn, filter, filters, _, _) =>
+          case Convolution(dimIn, _, field, _, filters, _) =>
             val depth = dimIn._3
-            val field = filter._1 * filter._2 * depth
-            DenseMatrix.create[V](filters, field, Array.fill(field * filters)(seed(idx)()))
+            val receptive = field._1 * field._2 * depth
+            DenseMatrix.create[V](filters, receptive, Array.fill(receptive * filters)(seed(idx)()))
           case layer =>
             val (neuronsLeft, neuronsRight) = (layers(idx - 1).neurons, layer.neurons)
             val product = neuronsLeft * neuronsRight
@@ -183,7 +183,7 @@ object WeightProvider {
 
       /**
         * Gives a weight provider with weights drawn from normal distribution.
-        * The parameters are specified for each layer individually using `config` (0-index based).
+        * The parameters μ, σ are specified for each layer individually using `config` (0-index based).
         */
       def normal(config: Map[Int, (Double, Double)]): WeightProvider[Double] = new WeightProvider[Double] {
         def apply(layers: Seq[Layer]): Weights = convoluted(layers, config.mapValues { case (μ, σ) => normalD(μ, σ) } )

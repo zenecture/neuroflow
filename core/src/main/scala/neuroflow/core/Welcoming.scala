@@ -34,7 +34,7 @@ trait Welcoming { self: Network[_, _, _] =>
 
   private def buildString(l: Layer): String =
     l match {
-      case c:  Convolution[_] => s"${c.dimIn._1}*${c.dimIn._2}*${c.dimIn._3} ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
+      case c:  Convolution[_] => s"${c.dimInPadded._1}*${c.dimInPadded._2}*${c.dimInPadded._3} ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
       case h: HasActivator[_] => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
       case _                  => s"${l.neurons} ${l.symbol}"
     }
@@ -47,18 +47,18 @@ trait Welcoming { self: Network[_, _, _] =>
   private def prettyPrint(): Unit = {
 
     val max = layers.map {
-      case c @ Convolution(dimIn, _, _, _, _) => math.max(math.max(dimIn._1, dimIn._2), math.max(c.dimOut._1, c.dimOut._2))
-      case l: Layer                           => l.neurons
+      case c: Convolution[_] => math.max(math.max(c.dimInPadded._1, c.dimInPadded._2), math.max(c.dimOut._1, c.dimOut._2))
+      case l: Layer                              => l.neurons
     }.max
 
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
 
     val potency = layers.zipWithIndex.flatMap {
-      case (c: Convolution[_], i) if i == 0  => Seq(c, c.copy(dimIn = c.dimOut, stride = 1 /* prevent sanity checks */))
-      case (c: Convolution[_], _)            => Seq(c.copy(dimIn = c.dimOut))
+      case (c: Convolution[_], i) if i == 0  => Seq(c, c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1) /* prevent sanity checks */))
+      case (c: Convolution[_], _)            => Seq(c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1) /* prevent sanity checks */))
       case (l: Layer, _)                     => Seq(l)
     }.flatMap {
-      case Convolution(dimIn, _, _, _, _) =>
+      case Convolution(dimIn, _, _, _, _, _) =>
         val m = (1 to math.ceil(dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
         val s = m.dropRight(1) :+ (m.last._1, m.last._2, false)
         s
