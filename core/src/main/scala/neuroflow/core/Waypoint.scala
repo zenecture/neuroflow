@@ -12,8 +12,10 @@ import scala.concurrent.Future
 
 /**
   * Performs `action` on every `nth` iteration during training.
+  * The function gets the iteration which triggered the waypoint
+  * execution and a snapshot of the weights as arguments.
   */
-case class Waypoint[V](nth: Int, action: Weights[V] => Unit)
+case class Waypoint[V](nth: Int, action: (Int, Weights[V]) => Unit)
 
 trait WaypointLogic[V] { self: Network[V, _, _] =>
 
@@ -22,7 +24,7 @@ trait WaypointLogic[V] { self: Network[V, _, _] =>
       case Some(Waypoint(nth, action)) =>
         if (iteration % nth == 0) {
           info("Waypoint ...")
-          action(self.weights)
+          action(iteration, self.weights)
         }
       case _ =>
     }
