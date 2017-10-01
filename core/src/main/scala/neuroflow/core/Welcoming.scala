@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.2.3
+      |            Version : 1.2.4
       |            Network : $identifier
       |
       |             Layout : ${layers.foldLeft("")((s, l) => s + buildString(l) + "\n                      ").dropRight(2)}
