@@ -24,7 +24,7 @@ object ImageRecognition {
   def apply = {
 
     val path = "/Users/felix/github/unversioned/cifar"
-    val wps  = "/Users/felix/github/unversioned/cifarWP.nf"
+    val wps  = "/Users/felix/github/unversioned/cifarWP"
     val efo  = "/Users/felix/github/unversioned/efo.txt"
 
     implicit val wp = neuroflow.core.WeightProvider.Float.CNN.normal(0.0f, 0.01f)
@@ -73,7 +73,7 @@ object ImageRecognition {
         batchSize       = Some(8),
         parallelism     = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
-        waypoint        = Some(Waypoint(nth = 3, ws => IO.File.write(ws, wps)))
+        waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"$iter.nf")))
       )
     )
 
