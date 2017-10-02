@@ -294,7 +294,7 @@ object WeightProvider {
         * The parameters are specified for each layer individually using `config` (0-index based).
         */
       def normal(config: Map[Int, (Float, Float)]): WeightProvider[Float] = new WeightProvider[Float] {
-        def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, config.mapValues { case (μ, σ) => normalF(μ, σ) } )
+        def apply(layers: Seq[Layer]): Weights = convoluted(layers, config.mapValues { case (μ, σ) => normalF(μ, σ) } )
       }
 
     }
