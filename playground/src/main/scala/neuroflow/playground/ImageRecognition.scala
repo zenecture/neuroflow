@@ -24,11 +24,8 @@ object ImageRecognition {
   def apply = {
 
     val path = "/Users/felix/github/unversioned/cifar"
-    val wps  = "/Users/felix/github/unversioned/cifarWP"
-    val efo  = "/Users/felix/github/unversioned/efo.txt"
-
-    implicit val wp = neuroflow.core.WeightProvider.Float.CNN.normal(0.0f, 0.01f)
-//    implicit val wp = IO.File.readFloat(wps)
+    val wps  = "/Users/felix/github/unversioned/cifar/waypoint"
+    val efo  = "/Users/felix/github/unversioned/cifar/efo.txt"
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -54,15 +51,21 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val a = Convolution(dimIn = (32, 32, 3), padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
-    val b = Convolution(dimIn = a.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
-    val c = Convolution(dimIn = b.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
+    val c1 = Convolution(dimIn = (32, 32, 3),  padding = 2`²`, field = 3`²`, stride = 1`²`, filters =  96, activator = f)
+    val c2 = Convolution(dimIn = c1.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters =  96, activator = f)
+    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters =  96, activator = f)
+    val c4 = Convolution(dimIn = c3.dimOut,    padding = 1`²`, field = 3`²`, stride = 3`²`, filters = 196, activator = f)
+    val c5 = Convolution(dimIn = c4.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 196, activator = f)
+    val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 196, activator = f)
 
-    val convs   = a :: b :: c :: HNil
+    val convs = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: HNil
 
     val fullies =
-      Dense(100, f)           ::
       Output(classes.size, f) :: HNil
+
+    val config = (0 to 5).map(_ -> (0.001f, 0.01f)) :+ 6 -> (0.001f, 0.001f)
+    implicit val wp = neuroflow.core.WeightProvider.Float.CNN.normal(config.toMap)
+//    implicit val wp = IO.File.readFloat(wps + "-iter-3.nf")
 
     val net = Network(convs ::: fullies,
       Settings[Float](
@@ -73,21 +76,19 @@ object ImageRecognition {
         batchSize       = Some(8),
         parallelism     = Some(8),
         errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
-        waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"$iter.nf")))
+        waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
       )
     )
 
     net.train(train.map(_._1), train.map(_._2))
 
-    val rate = train.map {
+    val rate = test.par.map {
       case (x, y) =>
         val v = net(x)
         val c = v.toArray.indexOf(max(v))
         val t = y.toArray.indexOf(max(y))
-        println(s"${classes(t)} classified as ${classes(c)}")
-        println(net(x))
         if (c == t) 1.0 else 0.0
-    }.sum / train.size.toDouble
+    }.sum / test.size.toDouble
 
     println(s"Recognition rate = ${rate * 100.0} %, Error rate = ${(1.0 - rate) * 100.0} %!")
 
