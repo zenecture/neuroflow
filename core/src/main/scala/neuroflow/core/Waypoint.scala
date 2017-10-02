@@ -2,9 +2,6 @@ package neuroflow.core
 
 import neuroflow.core.Network.Weights
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
 /**
   * @author bogdanski
   * @since 14.09.17
@@ -19,7 +16,7 @@ case class Waypoint[V](nth: Int, action: (Int, Weights[V]) => Unit)
 
 trait WaypointLogic[V] { self: Network[V, _, _] =>
 
-  def waypoint(iteration: Int): Unit = Future {
+  def waypoint(iteration: Int): Unit = {
     self.settings.waypoint match {
       case Some(Waypoint(nth, action)) =>
         if (iteration % nth == 0) {
