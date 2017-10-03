@@ -106,8 +106,8 @@ class CuMatrixTest  extends Specification {
     implicit val handle = new cublasHandle
     JCublas2.cublasCreate(handle)
 
-    Seq(50, 500, 5000).foreach(n => benchWithCreation(n))
-    Seq(50, 500, 5000).foreach(n => benchWithoutCreation(n))
+    Seq(50, 500, 2500).foreach(n => benchWithCreation(n))
+    Seq(50, 500, 2500).foreach(n => benchWithoutCreation(n))
 
     def benchWithCreation(n: Int) = {
 
@@ -180,8 +180,8 @@ class CuMatrixTest  extends Specification {
 
     val rand = breeze.stats.distributions.Rand.gaussian.map(_.toFloat)
 
-    Seq(50, 500, 5000).foreach(n => benchWithCreation(n))
-    Seq(50, 500, 5000).foreach(n => benchWithoutCreation(n))
+    Seq(50, 500, 2500).foreach(n => benchWithCreation(n))
+    Seq(50, 500, 2500).foreach(n => benchWithoutCreation(n))
 
     def benchWithCreation(n: Int) = {
 
