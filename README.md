@@ -69,7 +69,8 @@ val fullies    =
   Output (20,  f)           :: HNil
 val deeperNet = Network(
   bottleNeck ::: fullies, 
-  Settings[Double](precision = 1E-5, iterations = 250, 
+  Settings[Double](
+    lossFunction = SquaredMeanError(), precision = 1E-5, iterations = 250, 
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
     regularization = Some(KeepBest), batchSize = Some(8), parallelism = Some(8)
   )
@@ -96,7 +97,7 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys) // it's the XOR-Function :-)
 ```
 
-For feed-forward nets, the loss function can be defined as follows:
+For our XOR-feed-forward net, the loss function is defined as follows:
 
     E(W) = Σ1/2(t - net(x))²
 
