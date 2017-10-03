@@ -61,7 +61,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     case o: Output[Double]        => o
   }.toArray
 
-  private val _clusterLayer       = layers.collect { case c: Focus[_] => c }.headOption
+  private val _focusLayer         = layers.collect { case c: Focus[_] => c }.headOption
+  private val _hasSoftmax         = settings.lossFunction.isInstanceOf[Softmax[Double]]
   private val _lastWlayerIdx      = weights.size - 1
   private val _convLayers         = _allLayers.zipWithIndex.map(_.swap).filter {
     case (_, _: Convolution[_])   => true
@@ -81,11 +82,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     * Computes output for `x`.
     */
   def apply(x: Matrices): Vector = {
-    _clusterLayer.map { cl =>
-      flow(x, layers.indexOf(cl)).toDenseVector
+    _focusLayer.map { cl =>
+      flow(x, layers.indexOf(cl))
     }.getOrElse {
-      flow(x, _lastWlayerIdx).toDenseVector
-    }
+      val r = flow(x, _lastWlayerIdx)
+      if (_hasSoftmax) SoftmaxImpl(r) else r
+    }.toDenseVector
   }
 
   /**
@@ -103,7 +105,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Double, sampleSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Double, sampleSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val _em = xsys.map { batch =>
       val (x, y) = (batch.map(_._1), batch.map(_._2))
@@ -113,16 +115,16 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         else adaptWeights(x, y, stepSize)
       error
     }.reduce(_ + _)
-    val errorMean = mean(_em)
-    val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
+    val errorPerS = _em / sampleSize
+    val errorMean = mean(errorPerS)
+    if (settings.verbose) info(f"Iteration $iteration - Loss $errorMean%.6g - Loss Vector $errorPerS")
     maybeGraph(errorMean)
     keepBest(errorMean)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
+      info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
       takeBest()
     }
   }
@@ -216,6 +218,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     */
   private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Double): Matrix = {
 
+    import settings.lossFunction
+
     val xsys = xs.par.zip(ys)
     xsys.tasksupport = _forkJoinTaskSupport
 
@@ -249,8 +253,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     } - _lastC
 
     val _errSum  = DenseMatrix.zeros[Double](1, _outputDim)
-    val _square  = DenseMatrix.zeros[Double](1, _outputDim)
-    _square := 2.0
 
     xsys.map { xy =>
 
@@ -292,12 +294,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
       @tailrec def derive(i: Int): Unit = {
         if (i == _lastWlayerIdx) {
-          val yf = y - fa(i)
-          val d = -yf *:* fb(i)
+          val (err, grad) = lossFunction(y, fa(i))
+          val d = grad *:* fb(i)
           val dw = fa(i - 1).t * d
           dws += i -> dw
           ds += i -> d
-          e += yf
+          e += err
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
@@ -351,8 +353,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
-      e :^= _square
-      e *= 0.5
       (dws, e)
 
     }.seq.foreach { ab =>
@@ -385,7 +385,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par
       xsys.tasksupport = _forkJoinTaskSupport
-      xsys.map { case (x, y) => 0.5 * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
+      xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
@@ -453,7 +453,8 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     case o: Output[Double]        => o
   }.toArray
 
-  private val _clusterLayer       = layers.collect { case c: Focus[_] => c }.headOption
+  private val _focusLayer         = layers.collect { case c: Focus[_] => c }.headOption
+  private val _hasSoftmax         = settings.lossFunction.isInstanceOf[Softmax[Float]]
   private val _lastWlayerIdx      = weights.size - 1
   private val _fullLayers         = _allLayers.map { hd => hd.activator.map[Float](_.toDouble, _.toFloat) }
   private val _convLayers         = _allLayers.zipWithIndex.map(_.swap).filter {
@@ -474,11 +475,12 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     * Computes output for `x`.
     */
   def apply(x: Matrices): Vector = {
-    _clusterLayer.map { cl =>
-      flow(x, layers.indexOf(cl)).toDenseVector
+    _focusLayer.map { cl =>
+      flow(x, layers.indexOf(cl))
     }.getOrElse {
-      flow(x, _lastWlayerIdx).toDenseVector
-    }
+      val r = flow(x, _lastWlayerIdx)
+      if (_hasSoftmax) SoftmaxImpl(r) else r
+    }.toDenseVector
   }
 
   /**
@@ -490,13 +492,13 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
-    run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, batchSize, precision, 1, iterations)
+    run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
   }
 
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Float, sampleSize: Int, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[Seq[(Matrices, Matrix)]], stepSize: Float, sampleSize: Float, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val _em = xsys.map { batch =>
       val (x, y) = (batch.map(_._1), batch.map(_._2))
@@ -506,16 +508,16 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         else adaptWeights(x, y, stepSize)
       error
     }.reduce(_ + _)
-    val errorMean = mean(_em)
-    val errorRel  = math.sqrt((errorMean / sampleSize.toDouble) * 2.0)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g (≈ $errorRel%.3g rel.) - Error Vector ${_em}")
+    val errorPerS = _em / sampleSize
+    val errorMean = mean(errorPerS)
+    if (settings.verbose) info(f"Iteration $iteration - Loss $errorMean%.6g - Loss Vector $errorPerS")
     maybeGraph(errorMean)
     keepBest(errorMean)
     waypoint(iteration)
     if (errorMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize, precision, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
+      info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
       takeBest()
     }
   }
@@ -609,6 +611,8 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     */
   private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Float): Matrix = {
 
+    import settings.lossFunction
+
     val xsys = xs.par.zip(ys)
     xsys.tasksupport = _forkJoinTaskSupport
 
@@ -642,8 +646,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     } - _lastC
 
     val _errSum  = DenseMatrix.zeros[Float](1, _outputDim)
-    val _square  = DenseMatrix.zeros[Float](1, _outputDim)
-    _square := 2.0f
 
     xsys.map { xy =>
 
@@ -685,12 +687,12 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
       @tailrec def derive(i: Int): Unit = {
         if (i == _lastWlayerIdx) {
-          val yf = y - fa(i)
-          val d = -yf *:* fb(i)
+          val (err, grad) = lossFunction(y, fa(i))
+          val d = grad *:* fb(i)
           val dw = fa(i - 1).t * d
           dws += i -> dw
           ds += i -> d
-          e += yf
+          e += err
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
@@ -744,8 +746,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
-      e :^= _square
-      e *= 0.5f
+
       (dws, e)
 
     }.seq.foreach { ab =>

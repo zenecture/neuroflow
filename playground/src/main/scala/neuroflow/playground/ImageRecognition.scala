@@ -25,7 +25,7 @@ object ImageRecognition {
 
     val path = "/Users/felix/github/unversioned/cifar"
     val wps  = "/Users/felix/github/unversioned/cifar/waypoint"
-    val efo  = "/Users/felix/github/unversioned/cifar/efo.txt"
+    val lfo  = "/Users/felix/github/unversioned/cifar/lfo.txt"
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -51,31 +51,34 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val c1 = Convolution(dimIn = (32, 32, 3),  padding = 2`²`, field = 3`²`, stride = 1`²`, filters =  96, activator = f)
-    val c2 = Convolution(dimIn = c1.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters =  96, activator = f)
-    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters =  96, activator = f)
-    val c4 = Convolution(dimIn = c3.dimOut,    padding = 1`²`, field = 3`²`, stride = 3`²`, filters = 196, activator = f)
-    val c5 = Convolution(dimIn = c4.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 196, activator = f)
-    val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 196, activator = f)
+    val c1 = Convolution(dimIn = (32, 32, 3),  padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 24, activator = f)
+    val c2 = Convolution(dimIn = c1.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 24, activator = f)
+    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 24, activator = f)
+    val c4 = Convolution(dimIn = c3.dimOut,    padding = 1`²`, field = 3`²`, stride = 3`²`, filters = 48, activator = f)
+    val c5 = Convolution(dimIn = c4.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
+    val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
 
     val convs = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: HNil
 
     val fullies =
+      Dense(100, f)           ::
       Output(classes.size, f) :: HNil
 
-    val config = (0 to 5).map(_ -> (0.001f, 0.01f)) :+ 6 -> (0.001f, 0.001f)
+    val config = (0 to 5).map(_ -> (0.01f, 0.01f)) :+ (6 -> (0.001f, 0.001f)) :+ (7 -> (0.01f, 0.01f))
     implicit val wp = neuroflow.core.WeightProvider.Float.CNN.normal(config.toMap)
-//    implicit val wp = IO.File.readFloat(wps + "-iter-3.nf")
+//    implicit val wp = IO.File.readFloat(wps + "-iter-900.nf")
 
     val net = Network(convs ::: fullies,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case (_, _) => 1E-4 },
+        learningRate    = { case (_, _) => 1E-6 },
+        lossFunction    = Softmax(),
         updateRule      = Momentum(μ = 0.9f),
         iterations      = 20000,
+        precision       = 1E-3,
         batchSize       = Some(8),
         parallelism     = Some(8),
-        errorFuncOutput = Some(ErrorFuncOutput(Some(efo))),
+        lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
         waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
       )
     )

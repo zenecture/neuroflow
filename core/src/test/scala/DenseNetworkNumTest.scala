@@ -46,11 +46,11 @@ class DenseNetworkNumTest extends Specification {
     val f = Tanh
 
     val layout =
-        Input(2)      ::
-        Dense(7, f)   ::
-        Dense(8, f)   ::
-        Dense(7, f)   ::
-        Output(2, f)  :: HNil
+         Input(2)      ::
+         Dense(7, f)   ::
+         Dense(8, f)   ::
+         Dense(7, f)   ::
+        Output(2, f)   ::  HNil
 
     val rand = fullyConnected(layout.toList, randomD(-1, 1))
 
@@ -61,16 +61,25 @@ class DenseNetworkNumTest extends Specification {
     val debuggableA = Debuggable[Double]()
     val debuggableB = Debuggable[Double]()
 
-    val netA = Network(layout, Settings(prettyPrint = true, learningRate = { case (_, _) => 1.0 }, updateRule = debuggableA, iterations = 1, approximation = Some(Approximation(1E-5))))
-    val netB = Network(layout, Settings(prettyPrint = true, learningRate = { case (_, _) => 1.0 }, updateRule = debuggableB, iterations = 1))
 
-    val xs = Seq(DenseVector(0.5, 0.5), DenseVector(1.0, 1.0))
+    val settings = Settings[Double](
+      lossFunction = SquaredMeanError(),
+      prettyPrint = true,
+      learningRate = { case (_, _) => 1.0 },
+      iterations = 1
+    )
+
+    val netA = Network(layout, settings.copy(updateRule = debuggableA))
+    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
+
+    val xs = Seq(DenseVector(0.5, 0.5), DenseVector(0.7, 0.7))
+    val ys = Seq(DenseVector(1.0, 0.0), DenseVector(0.0, 1.0))
 
     println(netA)
     println(netB)
 
-    netA.train(xs, xs)
-    netB.train(xs, xs)
+    netA.train(xs, ys)
+    netB.train(xs, ys)
 
     println(netA)
     println(netB)
@@ -79,20 +88,19 @@ class DenseNetworkNumTest extends Specification {
 
     val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
       case ((i, a), (_, b)) =>
-        println(s"i = $i")
         (a - b).forall { (w, v) =>
           val e = v.abs
-          if (e == 0.0) {
-            println(s"e = $e     ( a($w) = ${a(w)}, b($w) = ${b(w)} )")
-            true
-          } else {
+          if (e == 0.0) true else {
             val x = debuggableA.lastGradients(i)(w)
             val y = debuggableB.lastGradients(i)(w)
             val m = math.max(x.abs, y.abs)
             val r = e / m
-            println(s"e = $e")
-            println(s"r = $r")
-            r < tolerance
+            if (r >= tolerance) {
+              println(s"i = $i")
+              println(s"e = $e")
+              println(s"r = $r")
+              false
+            } else true
           }
         }
     }.reduce { (l, r) => l && r }

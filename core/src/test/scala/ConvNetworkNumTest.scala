@@ -71,6 +71,7 @@ class ConvNetworkNumTest  extends Specification {
     val settings = Settings[Double](
       prettyPrint = true,
       approximation = None,
+      lossFunction = SquaredMeanError(),
       learningRate = { case (_, _) => 1.0 },
       iterations = 1
     )
@@ -79,7 +80,8 @@ class ConvNetworkNumTest  extends Specification {
     val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
     val m = DenseMatrix.rand[Double](dim._1, dim._2)
-    val n = DenseVector.rand[Double](out)
+    val n = DenseVector.zeros[Double](out)
+    n.update(0, 1.0)
 
     val xs = Seq((1 to dim._3).map(_ => m))
     val ys = Seq(n)
@@ -94,30 +96,25 @@ class ConvNetworkNumTest  extends Specification {
     println(netB)
 
     val tolerance = 1E-7
-    var zeroCount = 0
 
     val equal = debuggableA.lastGradients.zip(debuggableB.lastGradients).map {
       case ((i, a), (_, b)) =>
-        println(s"i = $i")
         (a - b).forall { (w, v) =>
           val e = v.abs
-          if (e == 0.0) {
-            println(s"e = $e     ( a($w) = ${a(w)}, b($w) = ${b(w)} )")
-            zeroCount += 1
-            true
-          } else {
+          if (e == 0.0) true else {
             val x = debuggableA.lastGradients(i)(w)
             val y = debuggableB.lastGradients(i)(w)
             val m = math.max(x.abs, y.abs)
             val r = e / m
-            println(s"e = $e")
-            println(s"r = $r")
-            r < tolerance
+            if (r >= tolerance) {
+              println(s"i = $i")
+              println(s"e = $e")
+              println(s"r = $r")
+              false
+            } else true
           }
         }
     }.reduce { (l, r) => l && r }
-
-    println(s"zeroCount = $zeroCount")
 
     if (equal) success else failure
 

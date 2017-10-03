@@ -46,7 +46,7 @@ case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Hi
 /**
   * A focus layer is used if the desired model output
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
-  *   `inner`      The inner layer
+  *   `inner`      The inner layer used as model output
   */
 case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
@@ -57,11 +57,11 @@ case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   *
   * Convolutes the input volume, where:
   *
-  *   `dimIn`      Input dimension. (width, height, depth)
-  *   `padding`    A padding can be specified to ensure full convolution. (width, height)
-  *   `field`      The receptive field. (width, height)
+  *   `dimIn`      Input dimension. (x, y, z)
+  *   `padding`    A padding can be specified to ensure full convolution. (x, y)
+  *   `field`      The receptive field. (x, y)
   *   `filters`    Number of independent filters attached to the input.
-  *   `stride`     Sliding the receptive field over the input volume with stride. (width, height)
+  *   `stride`     Sliding the receptive field over the input volume with stride. (x, y)
   *   `activator`  The activator function gets applied on the output element-wise.
   *
   */

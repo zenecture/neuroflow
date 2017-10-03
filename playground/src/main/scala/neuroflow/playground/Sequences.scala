@@ -75,7 +75,7 @@ object Sequences {
     val net = Network(Input(1) :: Dense(3, f) :: Dense(3, f) :: Output(1, f) :: HNil,
       Settings[Double](iterations = 5000, learningRate = { case _ => 0.2 },
         approximation = Some(Approximation(1E-12)),
-        errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
+        lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
@@ -178,7 +178,7 @@ object Sequences {
       Settings[Double](iterations = 2000,
         learningRate = { case _ => 0.5 },
         approximation = Some(Approximation(1E-9)),
-        errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/lstm.txt"))),
+        lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/lstm.txt"))),
         partitions = Some(Π(3, 3))))
 
     net.train(xs, ys)
@@ -214,7 +214,7 @@ object Sequences {
       Settings[Double](iterations = 2500,
         learningRate = { case _ => 0.2 },
         partitions = Some(Π(c, n)),
-        errorFuncOutput = Some(ErrorFuncOutput(file = Some("/Users/felix/Downloads/pointClass.txt"))),
+        lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/pointClass.txt"))),
         regularization = Some(KeepBest),
         approximation = Some(Approximation(1E-9))))
 
