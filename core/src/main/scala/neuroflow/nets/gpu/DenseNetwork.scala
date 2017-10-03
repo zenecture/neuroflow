@@ -19,7 +19,7 @@ import scala.concurrent.forkjoin.ForkJoinPool
 /**
   *
   * This is a feed-forward neural network with fully connected layers running on CUDA.
-  * It uses gradient descent to optimize the error function Σ1/2(y - net(x))².
+  * It uses gradient descent to optimize the specified loss function.
   *
   * @author bogdanski
   * @since 15.01.16
