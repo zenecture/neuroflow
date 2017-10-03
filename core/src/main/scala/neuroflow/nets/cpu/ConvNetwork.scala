@@ -16,7 +16,7 @@ import scala.concurrent.forkjoin.ForkJoinPool
 /**
   *
   * This is a convolutional feed-forward neural network.
-  * It uses gradient descent to optimize the error function Σ1/2(y - net(x))².
+  * It uses gradient descent to optimize the specified loss function.
   *
   * Use the parallelism parameter with care, as it greatly affects memory usage.
   *
