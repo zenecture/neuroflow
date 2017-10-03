@@ -1,6 +1,7 @@
 package neuroflow.core
 
 import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.math.Field
 import neuroflow.common._
 import neuroflow.core.Network._
 import shapeless._
@@ -57,23 +58,31 @@ trait Constructor[V, +T <: Network[_, _, _]] {
 
 
 /**
-  * The `verbose` flag indicates logging behavior.
-  * The `learningRate` is a function from current iteration and learning rate, producing a new learning rate.
-  * The `updateRule` defines the relationship between gradient, weights and learning rate during training.
-  * The network will terminate either if `precision` is high enough or `iterations` is reached.
-  * If `prettyPrint` is true, the layout will be rendered graphically.
-  * For distributed training, `coordinator` and `transport` specific settings may be configured.
-  * The level of `parallelism` controls how many threads will be used for training.
-  * The `batchSize` controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
-  * The `errorFuncOutput` option prints the error func graph to the specified file/closure.
-  * When `regularization` is provided, the respective regulator will try to avoid over-fitting.
-  * A `waypoint` action can be specified, e.g. saving the weights along the way.
-  * With `approximation`  the gradients will be approximated numerically.
-  * With `partitions` a sequential training sequence can be partitioned for RNNs (0 index-based).
-  * Some nets use specific parameters set in the `specifics` map.
+  *
+  * Settings of a neural network, where:
+  *
+  *   `verbose`             Indicates logging behavior on console.
+  *   `lossFunction`        The loss function used during training.
+  *   `learningRate`        A function from current iteration and learning rate, producing a new learning rate.
+  *   `updateRule`          Defines the relationship between gradient, weights and learning rate during training.
+  *   `precision`           The training will stop if precision is high enough
+  *   `iterations`          The training will stop if maximum iterations is reached.
+  *   `prettyPrint`         If true, the layout will be rendered graphically on console.
+  *   `coordinator`         For distributed training, the coordinator host needs to be set
+  *   `transport`           For distributed training, the transport details need to be set
+  *   `parallelism`         Controls how many threads will be used for training.
+  *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
+  *   `lossFuncOutput`      Prints the loss to the specified file/closure.
+  *   `regularization`      The respective regulator will try to avoid over-fitting.
+  *   `waypoint`            A waypoint action can be specified, e.g. saving the weights along the way.
+  *   `approximation`       If true, the gradients will be approximated numerically.
+  *   `partitions`          A sequential training sequence can be partitioned for RNNs. (0 index-based)
+  *   `specifics`           Some nets use specific parameters set in the `specifics` map.
+  *
   */
 case class Settings[V]
                    (verbose           :  Boolean                      =  true,
+                    lossFunction      :  Loss[V]                      =  SquaredMeanError[V],
                     learningRate      :  Learning                     =  { case (_, _) => 1E-4 },
                     updateRule        :  Update[V]                    =  Vanilla[V],
                     precision         :  Double                       =  1E-5,
@@ -83,7 +92,7 @@ case class Settings[V]
                     transport         :  Transport                    =  Transport(100000, "128 MiB"),
                     parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),
                     batchSize         :  Option[Int]                  =  None,
-                    errorFuncOutput   :  Option[ErrorFuncOutput]      =  None,
+                    lossFuncOutput    :  Option[LossFuncOutput]       =  None,
                     regularization    :  Option[Regularization]       =  None,
                     waypoint          :  Option[Waypoint[V]]          =  None,
                     approximation     :  Option[Approximation]        =  None,
@@ -110,7 +119,7 @@ object IllusionBreaker {
 }
 
 
-trait Network[V, In, Out] extends (In => Out) with Logs with ErrorFuncGrapher with IllusionBreaker with Welcoming with Serializable {
+trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher with IllusionBreaker with Welcoming with Serializable {
 
   checkSettings()
 

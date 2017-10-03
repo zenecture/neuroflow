@@ -12,26 +12,26 @@ import scala.util.Try
   */
 
 
-trait ErrorFuncGrapher { self: Network[_, _, _] =>
+trait LossFuncGrapher { self: Network[_, _, _] =>
 
   /**
-    * Appends the `error` to the specified output file, if any,
+    * Appends the `loss` to the specified output file, if any,
     * and executes given `action`, if any. This does not block.
     */
-  def maybeGraph(error: Double): Unit =
-    self.settings.errorFuncOutput.foreach {
-      efo =>
+  def maybeGraph(loss: Double): Unit =
+    self.settings.lossFuncOutput.foreach {
+      lfo =>
         Future {
           Try {
-            val handleOpt = efo.file
+            val handleOpt = lfo.file
               .map(f => new PrintWriter(new FileOutputStream(new File(f), true)))
-            handleOpt.foreach(_.println(error))
+            handleOpt.foreach(_.println(loss))
             handleOpt.foreach(_.close())
-            efo.action.foreach(_ (error))
+            lfo.action.foreach(_ (loss))
           }
         }
     }
 
 }
 
-case class ErrorFuncOutput(file: Option[String] = None, action: Option[Double => Unit] = None)
+case class LossFuncOutput(file: Option[String] = None, action: Option[Double => Unit] = None)

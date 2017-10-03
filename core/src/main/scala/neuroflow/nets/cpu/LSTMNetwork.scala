@@ -107,7 +107,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
       waypoint(iteration)
       run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.3g")
+      info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.3g")
       takeBest()
       reset() // finally reset one more time
     }

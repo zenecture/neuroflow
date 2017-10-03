@@ -41,7 +41,7 @@ object XOR {
     val settings = Settings[Double](
       learningRate = { case (_, _) => 1.0 },
       iterations = 10000,
-      errorFuncOutput = Some(ErrorFuncOutput(Some("/Users/felix/github/unversioned/errorFunc.txt"), None)))
+      lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
     val net = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 

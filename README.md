@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.2.4",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.2.4"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.2.5",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.2.5"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -96,7 +96,7 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 net.train(xs, ys) // it's the XOR-Function :-)
 ```
 
-For feed-forward nets, the error function is defined as follows:
+For feed-forward nets, the loss function can be defined as follows:
 
     E(W) = Σ1/2(t - net(x))²
 
@@ -104,31 +104,31 @@ Where `W` are the weights, `t` is the target and `net(x)` the prediction. The su
 the square `²` gives a convex functional form, which is convenient for gradient descent.
 
 The training progress will appear on console so we can track it. 
-If you want to visualize the error function, you can pipe the errors to a `file` like this:
+If you want to visualize the loss function, you can pipe the values to a `file` like this:
 
 ```scala
   Settings(
-    errorFuncOutput = Some(
-      ErrorFuncOutput(
-        file = Some("~/NF/errorFunc.txt"), 
-        action = Some(error => sendToDashboard(error))
+    lossFuncOutput = Some(
+      LossFuncOutput(
+        file = Some("~/NF/lossFunc.txt"), 
+        action = Some(loss => sendToDashboard(loss))
       )
     )
   )
 ```
 
-This way we can use beloved gnuplot to plot the error during training:
+This way we can use beloved gnuplot to plot the loss during training:
 
 ```bash
 gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
-gnuplot> plot '~/NF/errorFunc.txt' with linespoints ls 1
+gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 ```
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph3.png" width=448 height=321 />
 
-If you want to be more flexible, e.g. piping the error over the wire to a real-time dashboard, 
+If you want to be more flexible, e.g. piping the loss over the wire to a real-time dashboard, 
 you can provide a function closure `action` of type `Double => Unit` which gets executed in the background after each training epoch, 
-using the respective error as input.
+using the respective loss as input.
 
 After work is done, the trained net can be evaluated like a regular function:
 
@@ -148,7 +148,7 @@ Let's consider this fully connected FFN:
     Number of Weights: 592.200 (≈ 4,51813 MB)
 
 On the JVM, a `Double` takes 8 bytes, meaning the derivative of this network requires roughly 4,5 MB per sample. Training with,
-let's say, 1 million samples would require ≈ 4,5 TB of RAM for vanilla gradient descent. Luckily, the error function `Σ1/2(t - net(x))²` 
+let's say, 1 million samples would require ≈ 4,5 TB of RAM for vanilla gradient descent. Luckily, the loss function `Σ1/2(t - net(x))²` 
 is parallelizable with respect to the sum operator. So, if a single machine offering this amount of memory is not available, 
 we can spread the load across several machines instead of batching it.  
 
