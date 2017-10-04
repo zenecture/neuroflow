@@ -91,13 +91,23 @@ If a network doesn't follow this rule, it won't compile.
 
 # Training
 
-Let's train our `net` with the `train` method. It expects the inputs `xs` and, since it is supervised training, their desired outputs `ys`.
-In NeuroFlow, you work with Breeze vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). Let's quickly define the training data using the vector notation:
+We want to map from a two-dimensional vector `x` to a one-dimensional vector `y` with our architecture.
+There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
+so we can check whether our net can capture this non-linearity.
+
+Let's train our `net` with the `train` method. In NeuroFlow, you work with Breeze vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). 
+To define the training data we use the built-in vector notation:
 
 ```scala
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
 val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-net.train(xs, ys) // it's the XOR-Function :-)
+
+/*
+  It's the XOR-Function :-).
+  Or: the net learns to add binary digits modulo 2.
+*/
+
+net.train(xs, ys)
 ```
 
 For our XOR-feed-forward net, the loss function is defined as follows:
