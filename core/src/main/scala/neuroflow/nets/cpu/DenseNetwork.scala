@@ -65,8 +65,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 
-  private val _hasSoftmax     = settings.lossFunction.isInstanceOf[Softmax[Double]]
-
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
   private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
@@ -115,7 +113,11 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       r
     }.getOrElse {
       val r = flow(input, _lastWlayerIdx)
-      if (_hasSoftmax) SoftmaxImpl(r) else r
+      settings.lossFunction match {
+        case _: SquaredMeanError[_] => r
+        case _: Softmax[_]          => SoftmaxImpl(r)
+        case _                      => r
+      }
     }.toDenseVector
   }
 
@@ -329,8 +331,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 
-  private val _hasSoftmax     = settings.lossFunction.isInstanceOf[Softmax[Float]]
-
   private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
 
   private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
@@ -379,7 +379,11 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       r
     }.getOrElse {
       val r = flow(input, _lastWlayerIdx)
-      if (_hasSoftmax) SoftmaxImpl(r) else r
+      settings.lossFunction match {
+        case _: SquaredMeanError[_] => r
+        case _: Softmax[_]          => SoftmaxImpl(r)
+        case _                      => r
+      }
     }.toDenseVector
   }
 

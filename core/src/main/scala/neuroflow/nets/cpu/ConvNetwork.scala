@@ -62,7 +62,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   }.toArray
 
   private val _focusLayer         = layers.collect { case c: Focus[_] => c }.headOption
-  private val _hasSoftmax         = settings.lossFunction.isInstanceOf[Softmax[Double]]
   private val _lastWlayerIdx      = weights.size - 1
   private val _convLayers         = _allLayers.zipWithIndex.map(_.swap).filter {
     case (_, _: Convolution[_])   => true
@@ -86,7 +85,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       flow(x, layers.indexOf(cl))
     }.getOrElse {
       val r = flow(x, _lastWlayerIdx)
-      if (_hasSoftmax) SoftmaxImpl(r) else r
+      settings.lossFunction match {
+        case _: SquaredMeanError[_] => r
+        case _: Softmax[_]          => SoftmaxImpl(r)
+        case _                      => r
+      }
     }.toDenseVector
   }
 
@@ -454,7 +457,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
   }.toArray
 
   private val _focusLayer         = layers.collect { case c: Focus[_] => c }.headOption
-  private val _hasSoftmax         = settings.lossFunction.isInstanceOf[Softmax[Float]]
   private val _lastWlayerIdx      = weights.size - 1
   private val _fullLayers         = _allLayers.map { hd => hd.activator.map[Float](_.toDouble, _.toFloat) }
   private val _convLayers         = _allLayers.zipWithIndex.map(_.swap).filter {
@@ -479,7 +481,11 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       flow(x, layers.indexOf(cl))
     }.getOrElse {
       val r = flow(x, _lastWlayerIdx)
-      if (_hasSoftmax) SoftmaxImpl(r) else r
+      settings.lossFunction match {
+        case _: SquaredMeanError[_] => r
+        case _: Softmax[_]          => SoftmaxImpl(r)
+        case _                      => r
+      }
     }.toDenseVector
   }
 
