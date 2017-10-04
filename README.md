@@ -56,9 +56,11 @@ rates and rules defined through a `Settings` instance, could look like this:
 
 ```scala
 val (e, f) = (Linear, Sigmoid)
+
 val bottleNeck =
   Input  (50)               ::
   Focus  (Dense(10, e))     :: HNil
+
 val fullies    =
   Dense  (20,  f)           ::
   Dense  (30,  f)           ::
@@ -67,6 +69,7 @@ val fullies    =
   Dense  (40,  f)           ::
   Dense  (30,  f)           :: 
   Output (20,  f)           :: HNil
+
 val deeperNet = Network(
   bottleNeck ::: fullies, 
   Settings[Double](
