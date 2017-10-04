@@ -1,5 +1,6 @@
 package neuroflow.nets.gpu
 
+import breeze.linalg.Options.{Dimensions2, Zero}
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
@@ -366,10 +367,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           val l1 = _convLayers(i + 1)
           val id = _indices(i + 1)
           val de = ds(i + 1).toDense
+          val dp = padLeft(de, Dimensions2(de.rows, de.cols + 1), Zero)
           val fs = l1.field._1 * l1.field._2
           val dc = DenseMatrix.zeros[Double](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
           _parArrayPool(de.rows).foreach { f =>
-            val _de = 0.0 +: de(f, ::).inner.toArray
+            val _de = dp(f, ::)
             var (x, y, q) = (0, 0, 0)
             while (x < l1.dimIn._1) {
               while (y < l1.dimIn._2) {
@@ -822,10 +824,11 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           val l1 = _convLayers(i + 1)
           val id = _indices(i + 1)
           val de = ds(i + 1).toDense
+          val dp = padLeft(de, Dimensions2(de.rows, de.cols + 1), Zero)
           val fs = l1.field._1 * l1.field._2
           val dc = DenseMatrix.zeros[Float](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
           _parArrayPool(de.rows).foreach { f =>
-            val _de = 0.0f +: de(f, ::).inner.toArray
+            val _de = dp(f, ::)
             var (x, y, q) = (0, 0, 0)
             while (x < l1.dimIn._1) {
               while (y < l1.dimIn._2) {
