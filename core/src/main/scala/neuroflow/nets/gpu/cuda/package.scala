@@ -22,7 +22,7 @@ package object cuda extends Logs {
     val ptr = new CuPointer()
     val tpe = implicitly[ClassTag[V]].runtimeClass
     val io = PointerIO.getInstance[V](tpe)
-    val ok: Boolean = true hasFreeMemory(size * io.getTargetSize)
+    val ok: Boolean = hasFreeMemory(size * io.getTargetSize)
 
     if(!ok) {
       throw new OutOfMemoryError(s"CUDA Memory")
