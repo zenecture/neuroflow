@@ -4,6 +4,7 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
 import jcuda.jcublas.{JCublas2, cublasHandle}
+import neuroflow.core.Activator._
 import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
@@ -65,7 +66,16 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
   private val _focusLayer     = layers.collect { case c: Focus[_] => c }.headOption
 
-  private val _activators     = _layers.tail.map { case h: HasActivator[Double] => h }
+  private val _activators     = _layers.tail.map {
+    case h: HasActivator[_] => h.activator match {
+      case ReLU    => CuMatrix.Activators.relu[Double]    -> CuMatrix.Activators.relu_derivative[Double]
+      case Linear  => CuMatrix.Activators.linear[Double]  -> CuMatrix.Activators.linear_derivative[Double]
+      case Sigmoid => CuMatrix.Activators.sigmoid[Double] -> CuMatrix.Activators.sigmoid_derivative[Double]
+      case Tanh    => CuMatrix.Activators.tanh[Double]    -> CuMatrix.Activators.tanh_derivative[Double]
+      case x       => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
+    }
+  }
+
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
@@ -163,11 +173,9 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val _in = CuMatrix.fromDense(in)
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
     @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
-      val p  = in * _cuWeights(i)
-      val pd = p.toDense
+      val p = in * _cuWeights(i)
+      val a = _activators(i)._1(p)
       p.release()
-      val ad = pd.map(_activators(i).activator)
-      val a  = CuMatrix.fromDense(ad)
       fa += i -> a
       if (i < outLayer) forward(a, i + 1)
     }
@@ -205,12 +213,9 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
       @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
         val p = in * _cuWeights(i)
-        val pd = p.toDense // activator can be arbitrary, CPU.
+        val a = _activators(i)._1(p)
+        val b = _activators(i)._2(p)
         p.release()
-        val ad = pd.map(_activators(i).activator)
-        val bd = pd.map(_activators(i).activator.derivative)
-        val a = CuMatrix.fromDense(ad)
-        val b = CuMatrix.fromDense(bd)
         fa += i -> a
         fb += i -> b
         if (i < _lastWlayerIdx) forward(a, i + 1)
@@ -381,7 +386,16 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
   private val _focusLayer     = layers.collect { case c: Focus[_] => c }.headOption
 
-  private val _activators     = _layers.tail.map { case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat) }
+  private val _activators     = _layers.tail.map {
+    case h: HasActivator[_] => h.activator match {
+      case ReLU    => CuMatrix.Activators.relu[Float]    -> CuMatrix.Activators.relu_derivative[Float]
+      case Linear  => CuMatrix.Activators.linear[Float]  -> CuMatrix.Activators.linear_derivative[Float]
+      case Sigmoid => CuMatrix.Activators.sigmoid[Float] -> CuMatrix.Activators.sigmoid_derivative[Float]
+      case Tanh    => CuMatrix.Activators.tanh[Float]    -> CuMatrix.Activators.tanh_derivative[Float]
+      case x       => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
+    }
+  }
+
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
@@ -480,11 +494,9 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
     @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
       val p  = in * _cuWeights(i)
-      val pd = p.toDense
-      p.release()
-      val ad = pd.map(_activators(i))
-      val a  = CuMatrix.fromDense(ad)
+      val a  = _activators(i)._1(p)
       fa += i -> a
+      p.release()
       if (i < outLayer) forward(a, i + 1)
     }
     forward(_in, 0)
@@ -521,14 +533,11 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
       @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
         val p = in * _cuWeights(i)
-        val pd = p.toDense // activator can be arbitrary, CPU.
-        p.release()
-        val ad = pd.map(_activators(i))
-        val bd = pd.map(_activators(i).derivative)
-        val a = CuMatrix.fromDense(ad)
-        val b = CuMatrix.fromDense(bd)
+        val a = _activators(i)._1(p)
+        val b = _activators(i)._2(p)
         fa += i -> a
         fb += i -> b
+        p.release()
         if (i < _lastWlayerIdx) forward(a, i + 1)
       }
 
