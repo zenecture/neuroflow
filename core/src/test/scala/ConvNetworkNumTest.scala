@@ -62,7 +62,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val layout = convs ::: fullies
 
-    val rand = convoluted(layout.toList, normalD(0.0, 0.1))
+    val rand = convoluted(layout.toList, normalD(0.1, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)

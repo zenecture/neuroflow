@@ -2,18 +2,19 @@ package neuroflow.nets.gpu.cuda
 
 import breeze.linalg.operators._
 import breeze.linalg._
-import breeze.linalg.support.{CanCollapseAxis, CanTranspose, CanSlice2}
+import breeze.linalg.support.{CanCollapseAxis, CanSlice2, CanTranspose}
 import org.bridj.Pointer
-
-import jcuda.jcublas.{cublasOperation, cublasHandle, JCublas2}
-import jcuda.runtime.{cudaMemcpyKind, cudaStream_t, JCuda}
+import jcuda.jcublas.{JCublas2, cublasHandle, cublasOperation}
+import jcuda.runtime.{JCuda, cudaMemcpyKind, cudaStream_t}
 import jcuda.driver.CUstream
-import jcuda.jcurand.{curandRngType, curandGenerator}
-import breeze.math.{Semiring, Ring}
+import jcuda.jcurand.{curandGenerator, curandRngType}
+import breeze.math.{Ring, Semiring}
 import breeze.numerics._
 import breeze.generic.UFunc
 import breeze.generic.UFunc.InPlaceImpl2
 import breeze.stats.distributions.{Rand, RandBasis}
+import neuroflow.core.Activator._
+
 import scala.reflect._
 
 
@@ -681,6 +682,19 @@ trait CuMatrixFuns extends CuMatrixKernels { this: CuMatrix.type =>
 
   implicit val kernelsFloat  = new KernelBroker[Float]("float")
   implicit val kernelsDouble = new KernelBroker[Double]("double")
+
+  object Activators {
+
+    def relu[T](implicit broker: KernelBroker[T])               =  broker.implFor[ReLU.type]("relu_a")
+    def relu_derivative[T](implicit broker: KernelBroker[T])    =  broker.implFor[ReLU.type]("relu_d")
+    def linear[T](implicit broker: KernelBroker[T])             =  broker.implFor[Linear.type]("linear_a")
+    def linear_derivative[T](implicit broker: KernelBroker[T])  =  broker.implFor[Linear.type]("linear_d")
+    def tanh[T](implicit broker: KernelBroker[T])               =  broker.implFor[Tanh.type]("tanh_a")
+    def tanh_derivative[T](implicit broker: KernelBroker[T])    =  broker.implFor[Tanh.type]("tanh_d")
+    def sigmoid[T](implicit broker: KernelBroker[T])            =  broker.implFor[Sigmoid.type]("sigmoid_a")
+    def sigmoid_derivative[T](implicit broker: KernelBroker[T]) =  broker.implFor[Sigmoid.type]("sigmoid_d")
+
+  }
 
   implicit def acosImpl[T](implicit broker: KernelBroker[T]) =  broker.implFor[acos.type]("acos")
   implicit def asinImpl[T](implicit broker: KernelBroker[T]) =  broker.implFor[asin.type]("asin")

@@ -2,7 +2,7 @@ package neuroflow.nets.gpu
 
 import breeze.macros.arityize
 import jcuda.NativePointerObject
-import jcuda.driver.{CUfunction, CUstream}
+import jcuda.driver.{CUfunction, CUstream, JCudaDriver}
 import jcuda.jcublas.{JCublas2, cublasHandle}
 import jcuda.runtime.{JCuda, cudaStream_t}
 import neuroflow.common.Logs
@@ -18,22 +18,31 @@ package object cuda extends Logs {
 
   type CuPointer = jcuda.Pointer
 
-  def allocate[V:ClassTag](size: Long): Pointer[V] = {
-    val maxTryCount = 10
-    var tries = 0
-    var res: Pointer[V] = null
-    def tryMalloc(): Pointer[V] = {
-      val ptr = new CuPointer()
-      val tpe = implicitly[ClassTag[V]].runtimeClass
-      val io = PointerIO.getInstance[V](tpe)
-      JCuda.cudaMalloc(ptr, size * io.getTargetSize)
-      Pointer.pointerToAddress(nativePtr(ptr), size, io, DeviceFreeReleaser)
+  def allocate[V:ClassTag](size: Long) = {
+    val ptr = new CuPointer()
+    val tpe = implicitly[ClassTag[V]].runtimeClass
+    val io = PointerIO.getInstance[V](tpe)
+    val ok: Boolean = true hasFreeMemory(size * io.getTargetSize)
+
+    if(!ok) {
+      throw new OutOfMemoryError(s"CUDA Memory")
     }
-    while ({ res = tryMalloc(); res == null && tries < maxTryCount }) {
-      tries += 1
+
+    JCuda.cudaMalloc(ptr, size * io.getTargetSize)
+    Pointer.pointerToAddress(nativePtr(ptr), size, io, DeviceFreeReleaser)
+  }
+
+  def hasFreeMemory(size: Long): Boolean = {
+    val free, total = Array[Long](0)
+    JCudaDriver.cuMemGetInfo(free, total)
+    val ok = (free(0) >= size) || {
+      debug("Running GC because we're running low on RAM!")
+      System.gc()
+      Runtime.getRuntime.runFinalization()
+      JCudaDriver.cuMemGetInfo(free, total)
+      free(0) >= size
     }
-    if (res == null) error(s"Couldn't allocate matrix of rows*cols=$size on CUDA device. Tried $tries times ...")
-    res
+    ok
   }
 
   def allocateHost[V:ClassTag](size: Long): Pointer[V] = {

@@ -18,7 +18,8 @@ object NeuroflowBuild extends Build {
     },
     autoCompilerPlugins := true,
     addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
-    parallelExecution in ThisBuild := false
+    parallelExecution in ThisBuild := false,
+    fork in ThisBuild := true
 
   )
 
