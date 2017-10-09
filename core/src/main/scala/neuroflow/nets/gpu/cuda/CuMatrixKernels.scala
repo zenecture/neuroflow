@@ -11,7 +11,6 @@ import neuroflow.common.Logs
 
 /**
   * @author dlwh
-  * @author bogdanski
   **/
 trait CuMatrixKernels extends Logs { this: CuMatrix.type =>
   class KernelBroker[T: ClassTag](typeName: String) {
