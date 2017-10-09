@@ -98,7 +98,7 @@ class DenseNetworkNumTest extends Specification {
             if (r >= tolerance) {
               println(s"i = $i")
               println(s"e = $e")
-              println(s"r = $r")
+              println(s"$r >= $tolerance")
               false
             } else true
           }
