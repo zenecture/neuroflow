@@ -15,7 +15,7 @@ import jcuda.{CudaException, Pointer}
   **/
 class CuModule(val module: CUmodule) {
 
-  @arityize(10)
+  @arityize(20)
   def getKernel[@arityize.replicate T](name: String): (CuKernel[T@arityize.replicate]@arityize.relative(getKernel)) = {
     val fn = new CUfunction
     try {
@@ -87,4 +87,3 @@ object CuModule {
     }
   }
 }
-

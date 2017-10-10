@@ -9,7 +9,7 @@ __device__ inline TYPE linear_a(TYPE a) { return a; }
 __device__ inline TYPE linear_d(TYPE a) { return 1.0; }
 
 __device__ inline TYPE tanh_a(TYPE a) { return tanh(a); }
-__device__ inline TYPE tanh_d(TYPE a) { return 1 - pow(tanh(a), 2.0); }
+__device__ inline TYPE tanh_d(TYPE a) { return 1.0 - pow(tanh(a), 2.0); }
 
 __device__ inline TYPE sigmoid_a(TYPE a) { return 1.0 / (1.0 + exp(-a)); }
 __device__ inline TYPE sigmoid_d(TYPE a) { return exp(a) / pow(exp(a) + 1.0, 2.0); }
@@ -91,6 +91,6 @@ MAP_FUN_2(max, TYPE)
 MAP_FUN_2(min, TYPE)
 MAP_FUN_2(set, TYPE)
 
-REDUCE_FUN(add, TYPE, 0)         
+REDUCE_FUN(add, TYPE, 0)
 REDUCE_FUN(max, TYPE, -INFINITY)         
-REDUCE_FUN(min, TYPE, INFINITY) 
+REDUCE_FUN(min, TYPE, INFINITY)

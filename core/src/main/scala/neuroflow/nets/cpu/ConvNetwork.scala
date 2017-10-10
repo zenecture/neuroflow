@@ -172,19 +172,20 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
-    var (w, h, i) = (-padding._1, -padding._2, 0)
-    while (w < ((dim._1 + padding._1 - field._1) / stride._1) + 1) {
-      while (h < ((dim._2 + padding._2 - field._2) / stride._2) + 1) {
+    var (w, h, i) = (0, 0, 0)
+    while (w < dimOut._1) {
+      while (h < dimOut._2) {
         var (x, y, z, wi) = (0, 0, 0, 0)
         while (x < field._1) {
           while (y < field._2) {
             while (z < dim._3) {
               val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
-              if (a >= 0 && a < dim._1 && b >= 0 && b < dim._2) {
-                val value = ms(z)(a, b)
+              if (a >= padding._1 && a < (dim._1 + padding._1) && b >= padding._2 && b < (dim._2 + padding._2)) {
+                val (_a, _b) = (a - padding._1, b - padding._2)
+                val value = ms(z)(_a, _b)
                 val lin = c + wi
                 out.update(lin, i, value)
-                if (withIndices) idc(a, b).update(x, y, i + 1)
+                if (withIndices) idc(_a, _b).update(x, y, i + 1)
               }
               z += 1
             }
@@ -568,19 +569,20 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
-    var (w, h, i) = (-padding._1, -padding._2, 0)
-    while (w < ((dim._1 + padding._1 - field._1) / stride._1) + 1) {
-      while (h < ((dim._2 + padding._2 - field._2) / stride._2) + 1) {
+    var (w, h, i) = (0, 0, 0)
+    while (w < dimOut._1) {
+      while (h < dimOut._2) {
         var (x, y, z, wi) = (0, 0, 0, 0)
         while (x < field._1) {
           while (y < field._2) {
             while (z < dim._3) {
               val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
-              if (a >= 0 && a < dim._1 && b >= 0 && b < dim._2) {
-                val value = ms(z)(a, b)
+              if (a >= padding._1 && a < (dim._1 + padding._1) && b >= padding._2 && b < (dim._2 + padding._2)) {
+                val (_a, _b) = (a - padding._1, b - padding._2)
+                val value = ms(z)(_a, _b)
                 val lin = c + wi
                 out.update(lin, i, value)
-                if (withIndices) idc(a, b).update(x, y, i + 1)
+                if (withIndices) idc(_a, _b).update(x, y, i + 1)
               }
               z += 1
             }
