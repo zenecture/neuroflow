@@ -18,7 +18,7 @@ sealed trait Hidden
 
 
 /**
-  * A dense input layer is the first fully connected one in a FFN, where:
+  * A dense input layer is the first fully connected, where:
   *   `neurons`      Number of neurons in this layer
   */
 case class Input(neurons: Int) extends Layer with In {
@@ -26,7 +26,7 @@ case class Input(neurons: Int) extends Layer with In {
 }
 
 /**
-  * A dense output layer is the last fully connected one in a FFN, where:
+  * A dense output layer is the last fully connected, where:
   *   `neurons`      Number of neurons in this layer
   *   `activator`    The activator function gets applied on the output element-wise.
   */
@@ -35,7 +35,7 @@ case class Output[V](neurons: Int, activator: Activator[V]) extends Layer with H
 }
 
 /**
-  * A dense layer is a fully connected one, where:
+  * A dense layer is fully connected, where:
   *   `neurons`      Number of neurons in this layer
   *   `activator`    The activator function gets applied on the output element-wise.
   */
@@ -65,12 +65,12 @@ case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   *   `activator`  The activator function gets applied on the output element-wise.
   *
   */
-case class Convolution[V](dimIn:    (Int, Int, Int),
-                          padding:  (Int, Int),
-                          field:    (Int, Int),
-                          stride:   (Int, Int),
-                          filters:   Int,
-                          activator: Activator[V]) extends Layer with HasActivator[V] with Hidden with In {
+case class Convolution[V](dimIn      :  (Int, Int, Int),
+                          padding    :  (Int, Int),
+                          field      :  (Int, Int),
+                          stride     :  (Int, Int),
+                          filters    :   Int,
+                          activator  :   Activator[V]) extends Layer with HasActivator[V] with Hidden with In {
 
   val symbol: String = "Convolution"
 
@@ -89,7 +89,7 @@ case class Convolution[V](dimIn:    (Int, Int, Int),
   private val _d1 = dimIn._1 + (2 * padding._1) - field._1
   private val _d2 = dimIn._2 + (2 * padding._2) - field._2
 
-  assert(filters  > 0, "Filters must be positive!")
+  assert(filters > 0, "Filters must be positive!")
   assert(stride._1 > 0 && stride._2 > 0, "Strides must be positive!")
   assert(field._1 > 0 && field._2 > 0, "Field must be positive!")
   assert(dimIn._1 > 0 && dimIn._2 > 0 && dimIn._3 > 0, "Input dimension must be positive!")

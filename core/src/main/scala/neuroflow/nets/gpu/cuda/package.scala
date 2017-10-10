@@ -22,12 +22,8 @@ package object cuda extends Logs {
     val ptr = new CuPointer()
     val tpe = implicitly[ClassTag[V]].runtimeClass
     val io = PointerIO.getInstance[V](tpe)
-    val ok: Boolean = hasFreeMemory(size * io.getTargetSize)
-
-    if(!ok) {
-      throw new OutOfMemoryError(s"CUDA Memory")
-    }
-
+    val ok = hasFreeMemory(size * io.getTargetSize)
+    if (!ok) throw new OutOfMemoryError(s"CUDA Memory")
     JCuda.cudaMalloc(ptr, size * io.getTargetSize)
     Pointer.pointerToAddress(nativePtr(ptr), size, io, DeviceFreeReleaser)
   }
@@ -133,7 +129,7 @@ package object cuda extends Logs {
 
   private[cuda] val contextLock = new Object()
 
-  @arityize(10)
+  @arityize(20)
   class CuKernel[@arityize.replicate T](module: CuModule, fn: CUfunction) {
     def apply(gridDims: Dim3 = Dim3.default, blockDims: Dim3 = Dim3.default, sharedMemorySize: Int = 0)(@arityize.replicate t: T @arityize.relative(t))(implicit context: CuContext):Unit = {
       CuKernel.invoke(fn, gridDims, blockDims, sharedMemorySize)((t: @arityize.replicate ))

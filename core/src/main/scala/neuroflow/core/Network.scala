@@ -68,8 +68,8 @@ trait Constructor[V, +T <: Network[_, _, _]] {
   *   `precision`           The training will stop if precision is high enough
   *   `iterations`          The training will stop if maximum iterations is reached.
   *   `prettyPrint`         If true, the layout will be rendered graphically on console.
-  *   `coordinator`         For distributed training, the coordinator host needs to be set
-  *   `transport`           For distributed training, the transport details need to be set
+  *   `coordinator`         The coordinator host needs to be set for distributed training.
+  *   `transport`           Transport details need to be set for distributed training.
   *   `parallelism`         Controls how many threads will be used for training.
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
