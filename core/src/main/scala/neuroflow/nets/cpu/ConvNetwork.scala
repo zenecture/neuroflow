@@ -165,38 +165,37 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
       (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
     )
-    val fieldSq = field._1 * field._2
-    val out = DenseMatrix.zeros[Double](fieldSq * dim._3, dimOut._1 * dimOut._2)
+    val out = DenseMatrix.zeros[Double](field._1 * field._2 * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
         k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
-    var (w, h, i) = (0, 0, 0)
+    var (w, h) = (0, 0)
     while (w < dimOut._1) {
       while (h < dimOut._2) {
-        var (x, y, z, wi) = (0, 0, 0, 0)
+        var (x, y, z) = (0, 0, 0)
         while (x < field._1) {
           while (y < field._2) {
             while (z < dim._3) {
-              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
+              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * field._1 * field._2)
               if (a >= padding._1 && a < (dim._1 + padding._1) && b >= padding._2 && b < (dim._2 + padding._2)) {
                 val (_a, _b) = (a - padding._1, b - padding._2)
                 val value = ms(z)(_a, _b)
-                val lin = c + wi
+                val i = (w * dimOut._1) + h
+                val k = x * field._2 + y
+                val lin = c + k
                 out.update(lin, i, value)
                 if (withIndices) idc(_a, _b).update(x, y, i + 1)
               }
               z += 1
             }
             z   = 0
-            wi += 1
             y += 1
           }
           y  = 0
           x += 1
         }
-        i += 1
         h += 1
       }
       h  = 0
@@ -562,38 +561,37 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
       (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
     )
-    val fieldSq = field._1 * field._2
-    val out = DenseMatrix.zeros[Float](fieldSq * dim._3, dimOut._1 * dimOut._2)
+    val out = DenseMatrix.zeros[Float](field._1 * field._2 * dim._3, dimOut._1 * dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
         k -> DenseMatrix.zeros[Int](field._1, field._2)
       }.toMap
     } else null
-    var (w, h, i) = (0, 0, 0)
+    var (w, h) = (0, 0)
     while (w < dimOut._1) {
       while (h < dimOut._2) {
-        var (x, y, z, wi) = (0, 0, 0, 0)
+        var (x, y, z) = (0, 0, 0)
         while (x < field._1) {
           while (y < field._2) {
             while (z < dim._3) {
-              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
+              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * field._1 * field._2)
               if (a >= padding._1 && a < (dim._1 + padding._1) && b >= padding._2 && b < (dim._2 + padding._2)) {
                 val (_a, _b) = (a - padding._1, b - padding._2)
                 val value = ms(z)(_a, _b)
-                val lin = c + wi
+                val i = (w * dimOut._1) + h
+                val k = x * field._2 + y
+                val lin = c + k
                 out.update(lin, i, value)
                 if (withIndices) idc(_a, _b).update(x, y, i + 1)
               }
               z += 1
             }
             z   = 0
-            wi += 1
             y += 1
           }
           y  = 0
           x += 1
         }
-        i += 1
         h += 1
       }
       h  = 0
