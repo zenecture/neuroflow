@@ -301,8 +301,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys).par
-      xsys.tasksupport = _forkJoinTaskSupport
+      val xsys = xs.zip(ys)
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
@@ -621,8 +620,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys).par
-      xsys.tasksupport = _forkJoinTaskSupport
+      val xsys = xs.zip(ys)
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
