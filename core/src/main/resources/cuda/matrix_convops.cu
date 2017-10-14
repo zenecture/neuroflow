@@ -1,3 +1,6 @@
+/**
+  * Author: Felix Bogdanski, since 10/2017
+  */
 
 #define MAKE_NAME(prefix, T) prefix ## _ ## T
 
