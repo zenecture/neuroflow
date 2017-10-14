@@ -17,8 +17,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.2.6",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.2.6"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.2.7",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.2.7"
 )
 
 resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/")
@@ -31,24 +31,23 @@ If you want to use neural nets in your project, you can expect a journey full of
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=443 height=320 />
 
-Let's construct the fully connected feed-forward net (FFN) depicted above. We have to import everything we need:
+Let's construct the fully connected feed-forward net (FFN) depicted above.
 
 ```scala
 import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
-```
 
-This gives a fully connected `DenseNetwork`, which is initialized with random weights by `WeightProvider`.
-We import all `Activator` functions so we can place a `Sigmoid` on the layers:
+implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
-```scala
 val (g, h) = (Sigmoid, Sigmoid)
 val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
+
+This gives a fully connected `DenseNetwork`, which is initialized with random weights by `WeightProvider`.
+Further, we have pre-defined activators, so we can place a `Sigmoid` on the layers.
 
 In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
 They give type-safety and a humble ability to compose groups of layers. For instance, a little deeper net, with some 

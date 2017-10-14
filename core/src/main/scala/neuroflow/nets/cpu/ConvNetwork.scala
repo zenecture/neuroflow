@@ -138,7 +138,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(_in: Matrices, i: Int): Unit = {
       val l = _convLayers(i)
-      val p = weights(i) * im2col(_in, l.field, l.padding, l.stride)._1
+      val p = weights(i) * im2col(_in, l)._1
       val a = p.map(l.activator)
       _fa += a
       if (i < _lastC) conv(col2im(a, l.dimOut), i + 1)
@@ -159,56 +159,77 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def im2col(ms: Matrices, field: (Int, Int), padding: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
-    val dim = (ms.head.rows, ms.head.cols, ms.size)
-    val dimOut = (
-      (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
-      (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
-    )
-    val out = DenseMatrix.zeros[Double](field._1 * field._2 * dim._3, dimOut._1 * dimOut._2)
+  private def im2col(ms: Matrices, l: Convolution[_], withIndices: Boolean = false): (Matrix, Indices) = {
+    val out = DenseMatrix.zeros[Double](l.field._1 * l.field._2 * l.dimIn._3, l.dimOut._1 * l.dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
-        k -> DenseMatrix.zeros[Int](field._1, field._2)
+        k -> DenseMatrix.zeros[Int](l.field._1, l.field._2)
       }.toMap
     } else null
-    var (w, h) = (0, 0)
-    while (w < dimOut._1) {
-      while (h < dimOut._2) {
-        var (x, y, z) = (0, 0, 0)
-        while (x < field._1) {
-          while (y < field._2) {
-            while (z < dim._3) {
-              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * field._1 * field._2)
-              if (a >= padding._1 && a < (dim._1 + padding._1) && b >= padding._2 && b < (dim._2 + padding._2)) {
-                val (_a, _b) = (a - padding._1, b - padding._2)
+    var (x, y, i) = (0, 0, 0)
+    while (x < l.dimOut._1) {
+      while (y < l.dimOut._2) {
+        var (fX, fY) = (0, 0)
+        while (fX < l.field._1) {
+          while (fY < l.field._2) {
+            var z = 0
+            val (a, b) = (fY + (y * l.stride._2), fX + (x * l.stride._1))
+            if (a >= l.padding._2 && a < (l.dimIn._2 + l.padding._2) && b >= l.padding._1 && b < (l.dimIn._1 + l.padding._1)) {
+              while (z < l.dimIn._3) {
+                val c = z * l.field._1 * l.field._2
+                val (_a, _b) = (a - l.padding._2, b - l.padding._1)
                 val value = ms(z)(_a, _b)
-                val i = (w * dimOut._1) + h
-                val k = x * field._2 + y
-                val lin = c + k
-                out.update(lin, i, value)
-                if (withIndices) idc(_a, _b).update(x, y, i + 1)
+                val k = fX * l.field._2 + fY
+                out.update(c + k, x * l.dimOut._2 + y, value)
+                if (withIndices) idc(_a, _b).update(fX, fY, i + 1)
+                z += 1
               }
-              z += 1
             }
-            z   = 0
-            y += 1
+            fY += 1
           }
-          y  = 0
-          x += 1
+          fY  = 0
+          fX += 1
         }
-        h += 1
+        i += 1
+        y += 1
       }
-      h  = 0
-      w += 1
+      y  = 0
+      x += 1
     }
     (out, idc)
+  }
+
+  private def im2col_backprop(d: Matrix, c: Convolution[_], idx: Indices): Matrix = {
+    val dp = padLeft(d, Dimensions2(d.rows, d.cols + 1), Zero)
+    val dc = DenseMatrix.zeros[Double](c.field._1 * c.field._2 * c.filters, c.dimIn._1 * c.dimIn._2)
+    var z  = 0
+    while (z < c.filters) {
+      val _de = dp(z, ::)
+      var (x, y, q) = (0, 0, 0)
+      while (x < c.dimIn._1) {
+        while (y < c.dimIn._2) {
+          var p = 0
+          idx(y, x).foreachPair { (pp, v) =>
+            val t = (z * c.field._1 * c.field._2 + p, q)
+            dc.update(t, _de(v))
+            p += 1
+          }
+          y += 1
+          q += 1
+        }
+        y = 0
+        x += 1
+      }
+      z += 1
+    }
+    dc
   }
 
   private def col2im(matrix: Matrix, dim: (Int, Int, Int)): Matrices = {
     var i = 0
     val out = new Array[Matrix](dim._3)
     while (i < dim._3) {
-      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1).t
+      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1)
       out(i) = v
       i += 1
     }
@@ -270,7 +291,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
         val seen = _indices.isDefinedAt(i)
-        val (c, x) = im2col(_in, l.field, l.padding, l.stride, withIndices = !seen)
+        val (c, x) = im2col(_in, l, withIndices = !seen)
         val p = weights(i) * c
         var a = p.map(l.activator)
         var b = p.map(l.activator.derivative)
@@ -319,32 +340,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           ds += i -> d
           if (i > 0) derive(i - 1)
         } else {
-          val l1 = _convLayers(i + 1)
-          val id = _indices(i + 1)
-          val de = ds(i + 1)
-          val dp = padLeft(de, Dimensions2(de.rows, de.cols + 1), Zero)
-          val fs = l1.field._1 * l1.field._2
-          val dc = DenseMatrix.zeros[Double](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
-          var f  = 0
-          while (f < dp.rows) {
-            val _de = dp(f, ::)
-            var (x, y, q) = (0, 0, 0)
-            while (x < l1.dimIn._1) {
-              while (y < l1.dimIn._2) {
-                var p = 0
-                id(x, y).foreachPair { (_, v) =>
-                  val t = (f * fs + p, q)
-                  dc.update(t, _de(v))
-                  p += 1
-                }
-                y += 1
-                q += 1
-              }
-              y = 0
-              x += 1
-            }
-            f += 1
-          }
+          val dc = im2col_backprop(ds(i + 1), _convLayers(i + 1), _indices(i + 1))
           val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
           dws += i -> dw
@@ -391,6 +387,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
+    val out = errorFunc()
+
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
@@ -428,7 +426,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     _rule.lastGradients = debug
 
-    errorFunc()
+    out
 
   }
 
@@ -458,7 +456,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
   private val _focusLayer         = layers.collect { case c: Focus[_] => c }.headOption
   private val _lastWlayerIdx      = weights.size - 1
-  private val _fullLayers         = _allLayers.map { hd => hd.activator.map[Float](_.toDouble, _.toFloat) }
+  private val _activators         = _allLayers.map { hd => hd.activator.map[Float](_.toDouble, _.toFloat) }
   private val _convLayers         = _allLayers.zipWithIndex.map(_.swap).filter {
     case (_, _: Convolution[_])   => true
     case _                        => false
@@ -534,14 +532,14 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(_in: Matrices, i: Int): Unit = {
       val l = _convLayers(i)
-      val p = weights(i) * im2col(_in, l.field, l.padding, l.stride)._1
+      val p = weights(i) * im2col(_in, l)._1
       val a = p.map(l.activator)
       _fa += a
       if (i < _lastC) conv(col2im(a, l.dimOut), i + 1)
     }
 
     @tailrec def fully(_in: Matrix, i: Int): Unit = {
-      val l = _fullLayers(i)
+      val l = _activators(i)
       val p = _in * weights(i)
       val a = p.map(l)
       _fa += a
@@ -555,56 +553,77 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def im2col(ms: Matrices, field: (Int, Int), padding: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
-    val dim = (ms.head.rows, ms.head.cols, ms.size)
-    val dimOut = (
-      (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
-      (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
-    )
-    val out = DenseMatrix.zeros[Float](field._1 * field._2 * dim._3, dimOut._1 * dimOut._2)
+  private def im2col(ms: Matrices, l: Convolution[_], withIndices: Boolean = false): (Matrix, Indices) = {
+    val out = DenseMatrix.zeros[Float](l.field._1 * l.field._2 * l.dimIn._3, l.dimOut._1 * l.dimOut._2)
     val idc = if (withIndices) {
       ms.head.keysIterator.map { k =>
-        k -> DenseMatrix.zeros[Int](field._1, field._2)
+        k -> DenseMatrix.zeros[Int](l.field._1, l.field._2)
       }.toMap
     } else null
-    var (w, h) = (0, 0)
-    while (w < dimOut._1) {
-      while (h < dimOut._2) {
-        var (x, y, z) = (0, 0, 0)
-        while (x < field._1) {
-          while (y < field._2) {
-            while (z < dim._3) {
-              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * field._1 * field._2)
-              if (a >= padding._1 && a < (dim._1 + padding._1) && b >= padding._2 && b < (dim._2 + padding._2)) {
-                val (_a, _b) = (a - padding._1, b - padding._2)
+    var (x, y, i) = (0, 0, 0)
+    while (x < l.dimOut._1) {
+      while (y < l.dimOut._2) {
+        var (fX, fY) = (0, 0)
+        while (fX < l.field._1) {
+          while (fY < l.field._2) {
+            var z = 0
+            val (a, b) = (fY + (y * l.stride._2), fX + (x * l.stride._1))
+            if (a >= l.padding._2 && a < (l.dimIn._2 + l.padding._2) && b >= l.padding._1 && b < (l.dimIn._1 + l.padding._1)) {
+              while (z < l.dimIn._3) {
+                val c = z * l.field._1 * l.field._2
+                val (_a, _b) = (a - l.padding._2, b - l.padding._1)
                 val value = ms(z)(_a, _b)
-                val i = (w * dimOut._1) + h
-                val k = x * field._2 + y
-                val lin = c + k
-                out.update(lin, i, value)
-                if (withIndices) idc(_a, _b).update(x, y, i + 1)
+                val k = fX * l.field._2 + fY
+                out.update(c + k, x * l.dimOut._2 + y, value)
+                if (withIndices) idc(_a, _b).update(fX, fY, i + 1)
+                z += 1
               }
-              z += 1
             }
-            z   = 0
-            y += 1
+            fY += 1
           }
-          y  = 0
-          x += 1
+          fY  = 0
+          fX += 1
         }
-        h += 1
+        i += 1
+        y += 1
       }
-      h  = 0
-      w += 1
+      y  = 0
+      x += 1
     }
     (out, idc)
+  }
+
+  private def im2col_backprop(d: Matrix, c: Convolution[_], idx: Indices): Matrix = {
+    val dp = padLeft(d, Dimensions2(d.rows, d.cols + 1), Zero)
+    val dc = DenseMatrix.zeros[Float](c.field._1 * c.field._2 * c.filters, c.dimIn._1 * c.dimIn._2)
+    var z  = 0
+    while (z < c.filters) {
+      val _de = dp(z, ::)
+      var (x, y, q) = (0, 0, 0)
+      while (x < c.dimIn._1) {
+        while (y < c.dimIn._2) {
+          var p = 0
+          idx(y, x).foreachPair { (pp, v) =>
+            val t = (z * c.field._1 * c.field._2 + p, q)
+            dc.update(t, _de(v))
+            p += 1
+          }
+          y += 1
+          q += 1
+        }
+        y = 0
+        x += 1
+      }
+      z += 1
+    }
+    dc
   }
 
   private def col2im(matrix: Matrix, dim: (Int, Int, Int)): Matrices = {
     var i = 0
     val out = new Array[Matrix](dim._3)
     while (i < dim._3) {
-      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1).t
+      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1)
       out(i) = v
       i += 1
     }
@@ -666,7 +685,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       @tailrec def conv(_in: Matrices, i: Int): Unit = {
         val l = _convLayers(i)
         val seen = _indices.isDefinedAt(i)
-        val (c, x) = im2col(_in, l.field, l.padding, l.stride, withIndices = !seen)
+        val (c, x) = im2col(_in, l, withIndices = !seen)
         val p = weights(i) * c
         var a = p.map(l.activator)
         var b = p.map(l.activator.derivative)
@@ -682,7 +701,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       }
 
       @tailrec def fully(_in: Matrix, i: Int): Unit = {
-        val l = _fullLayers(i)
+        val l = _activators(i)
         val p = _in * weights(i)
         val a = p.map(l)
         val b = p.map(l.derivative)
@@ -715,32 +734,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           ds += i -> d
           if (i > 0) derive(i - 1)
         } else {
-          val l1 = _convLayers(i + 1)
-          val id = _indices(i + 1)
-          val de = ds(i + 1)
-          val dp = padLeft(de, Dimensions2(de.rows, de.cols + 1), Zero)
-          val fs = l1.field._1 * l1.field._2
-          val dc = DenseMatrix.zeros[Float](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
-          var f  = 0
-          while (f < dp.rows) {
-            val _de = dp(f, ::)
-            var (x, y, q) = (0, 0, 0)
-            while (x < l1.dimIn._1) {
-              while (y < l1.dimIn._2) {
-                var p = 0
-                id(x, y).foreachPair { (_, v) =>
-                  val t = (f * fs + p, q)
-                  dc.update(t, _de(v))
-                  p += 1
-                }
-                y += 1
-                q += 1
-              }
-              y = 0
-              x += 1
-            }
-            f += 1
-          }
+          val dc = im2col_backprop(ds(i + 1), _convLayers(i + 1), _indices(i + 1))
           val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
           dws += i -> dw
@@ -752,7 +746,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       conv(x, 0)
       fully(fa(_lastC), _lastC + 1)
       derive(_lastWlayerIdx)
-
       (dws, e)
 
     }.seq.foreach { ab =>
@@ -785,8 +778,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     def errorFunc(): Matrix = {
       val xsys = xs.zip(ys).par
       xsys.tasksupport = _forkJoinTaskSupport
-      xsys.map { case (x, y) => 0.5f * pow(y - flow(x, _lastWlayerIdx), 2) }.reduce(_ + _)
+      xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
+
+    val out = errorFunc()
 
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ.toFloat
@@ -825,7 +820,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
     _rule.lastGradients = debug
 
-    errorFunc()
+    out
 
   }
 

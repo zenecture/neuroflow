@@ -4,7 +4,6 @@ import breeze.numerics._
 import breeze.stats._
 import neuroflow.core.Activator.Linear
 import neuroflow.core.EarlyStoppingLogic.CanAverage
-import neuroflow.core.WeightProvider.Double.FFN.oneWeights
 import neuroflow.core.Network.Vector
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
@@ -34,6 +33,8 @@ class RegularizationTest extends Specification {
   def earlyStopping = {
 
     import neuroflow.common.VectorTranslation._
+
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].static(1.0)
 
     val (xs, ys) = (Vector(Vector(1.0).dv, Vector(2.0).dv, Vector(3.0).dv), Vector(Vector(3.2).dv, Vector(5.8).dv, Vector(9.2).dv))
 

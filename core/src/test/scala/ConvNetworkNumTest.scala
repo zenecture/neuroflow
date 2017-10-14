@@ -32,6 +32,8 @@ class ConvNetworkNumTest  extends Specification {
     import neuroflow.nets.cpu.ConvNetwork._
     check()
 
+    success
+
   }
 
   def gradCheckGPU = {
@@ -43,7 +45,8 @@ class ConvNetworkNumTest  extends Specification {
 
   def check[Net <: CNN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
-    import neuroflow.core.WeightProvider.Double.CNN.{convoluted, normalD}
+    import neuroflow.core.WeightProvider.cnn_double.convoluted
+    import neuroflow.core.WeightProvider.normalSeed
 
     val dim = (50, 25, 2)
     val out = 2
@@ -62,7 +65,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val layout = convs ::: fullies
 
-    val rand = convoluted(layout.toList, normalD(0.1, 0.1))
+    val rand = convoluted(layout.toList, normalSeed[Double](0.1, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -79,21 +82,15 @@ class ConvNetworkNumTest  extends Specification {
     val netA = Network(layout, settings.copy(updateRule = debuggableA))
     val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
-    val m = DenseMatrix.rand[Double](dim._1, dim._2)
+    val m = DenseMatrix.rand[Double](dim._2, dim._1)
     val n = DenseVector.zeros[Double](out)
     n.update(0, 1.0)
 
     val xs = Seq((1 to dim._3).map(_ => m))
     val ys = Seq(n)
 
-    println(netA)
-    println(netB)
-
     netA.train(xs, ys)
     netB.train(xs, ys)
-
-    println(netA)
-    println(netB)
 
     val tolerance = 1E-7
 

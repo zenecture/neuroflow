@@ -4,7 +4,6 @@ import breeze.linalg.DenseVector
 import breeze.stats.distributions.Gaussian
 import neuroflow.common.Logs
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.distributed.DenseExecutor
 import neuroflow.nets.distributed.DenseNetwork._
@@ -25,6 +24,8 @@ object DistributedTraining extends Logs {
   val out    = 210
 
   def coordinator = {
+
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val f   = ReLU
 

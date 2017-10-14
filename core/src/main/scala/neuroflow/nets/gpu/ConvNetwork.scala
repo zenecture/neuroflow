@@ -56,8 +56,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   type Matrix   = Network.Matrix[Double]
   type Matrices = Network.Matrices[Double]
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
-
   private val _allLayers = layers.map {
     case f: Focus[_]         => f.inner
     case d: Dense[_]         => d
@@ -90,6 +88,9 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   private val _lastL     = _allLayers.indices.last
 
   private val _cuWeights = weights.map(m => CuMatrix.fromDense(m))
+  private val _cuIndices = collection.mutable.HashMap.empty ++ _convLayers.mapValues { c =>
+    CuMatrix.zeros[Int](c.dimIn._2 * c.field._2, c.dimIn._1 * c.field._1)
+  }
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -167,7 +168,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(in: CuMatrix[Double], i: Int): Unit = {
       val l = _convLayers(i)
-      val c = CuMatrix.ConvOps.im2col(in, i, l.dimIn, l.field, l.padding, l.stride)
+      val (c, _) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
       val p = _cuWeights(i) * c
       val a = _activators(i)._1(p)
       fa += a
@@ -251,7 +252,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
       @tailrec def conv(in: CuMatrix[Double], i: Int): Unit = {
         val l = _convLayers(i)
-        val c = CuMatrix.ConvOps.im2col(in, i, l.dimIn, l.field, l.padding, l.stride)
+        val (c, idc) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
+        _cuIndices.update(i, idc)
         val p = _cuWeights(i) * c
         var a = _activators(i)._1(p)
         var b = _activators(i)._2(p)
@@ -288,6 +290,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           err.release()
           grad.release()
           dw.release()
+
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
@@ -309,9 +312,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           dw.release()
           if (i > 0) derive(i - 1)
         } else {
-          val l = _convLayers(i)
-          val de = ds(i + 1)
-          val dc = CuMatrix.ConvOps.im2col_backprop(de, l.dimOut, i + 1)
+          val l = _convLayers(i + 1)
+          val dc = CuMatrix.ConvOps.im2col_backprop(ds(i + 1), _cuIndices(i + 1), (l.dimIn._1, l.dimIn._2, l.filters), l.field)
           val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
           _dws(i) += dw
@@ -362,10 +364,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys).par
-      xsys.tasksupport = _forkJoinTaskSupport
+      val xsys = xs.zip(ys)
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
+
+    val out = errorFunc()
 
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ
@@ -415,7 +418,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     syncWeightsBack()
 
-    errorFunc()
+    out
 
   }
 
@@ -437,8 +440,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
   type Matrix   = Network.Matrix[Float]
   type Matrices = Network.Matrices[Float]
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
-
   private val _allLayers = layers.map {
     case f: Focus[_]         => f.inner
     case d: Dense[_]         => d
@@ -449,7 +450,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
   private val _focusLayer         = layers.collect { case c: Focus[_] => c }.headOption
   private val _lastWlayerIdx      = weights.size - 1
 
-  private val _fullLayers         = _allLayers.map { l =>
+  private val _activators         = _allLayers.map { l =>
     l.activator match {
       case ReLU    => CuMatrix.Activators.relu[Float]    ->  CuMatrix.Activators.relu_derivative[Float]
       case Linear  => CuMatrix.Activators.linear[Float]  ->  CuMatrix.Activators.linear_derivative[Float]
@@ -463,25 +464,17 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     case (_, _: Convolution[_])   => true
     case _                        => false
   }.toMap.mapValues {
-    case c: Convolution[_]   => c
-  }
-
-  private val _parArrayPool = {
-    val range = _convLayers.flatMap(l => Seq(l._2.dimIn._3, l._2.dimOut._3))
-    range.map { size =>
-      val pa = (0 until size).toParArray
-      pa.tasksupport = _forkJoinTaskSupport
-      size -> pa
-    }.toMap
+    case c: Convolution[Float]   => c
   }
 
   private val _outputDim = _allLayers.last.neurons
   private val _lastC     = _convLayers.maxBy(_._1)._1
   private val _lastL     = _allLayers.indices.last
 
-  private type Indices   = Map[(Int, Int), DenseMatrix[Int]]
-  private val _indices   = collection.mutable.Map.empty[Int, Indices]
   private val _cuWeights = weights.map(m => CuMatrix.fromDense(m))
+  private val _cuIndices = collection.mutable.HashMap.empty ++ _convLayers.mapValues { c =>
+    CuMatrix.zeros[Int](c.dimIn._2 * c.field._2, c.dimIn._1 * c.field._1)
+  }
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -557,26 +550,27 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
     val fa = ArrayBuffer.empty[CuMatrix[Float]]
 
-    @tailrec def conv(in: Matrices, i: Int): Unit = {
+    @tailrec def conv(in: CuMatrix[Float], i: Int): Unit = {
       val l = _convLayers(i)
-      val c = CuMatrix.fromDense(im2col(in, l.field, l.padding, l.stride)._1)
+      val (c, _) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
       val p = _cuWeights(i) * c
-      val a = _fullLayers(i)._1(p)
+      val a = _activators(i)._1(p)
       fa += a
+      in.release()
       c.release()
       p.release()
-      if (i < _lastC) conv(col2im(a.toDense, l.dimOut), i + 1)
+      if (i < _lastC) conv(a, i + 1)
     }
 
     @tailrec def fully(in: CuMatrix[Float], i: Int): Unit = {
       val p = in * _cuWeights(i)
-      val a = _fullLayers(i)._1(p)
+      val a = _activators(i)._1(p)
       fa += a
       p.release()
       if (i < _lastL) fully(a, i + 1)
     }
 
-    conv(in, 0)
+    conv(ms2CuMat(in), 0)
     val cuIn = fa(_lastC).reshape(1, _convLayers(_lastC).neurons)
     fully(cuIn, _lastC + 1)
 
@@ -586,68 +580,20 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
   }
 
-
-  // TODO: move to CUDA.
-  private def im2col(ms: Matrices, field: (Int, Int), padding: (Int, Int), stride: (Int, Int), withIndices: Boolean = false): (Matrix, Indices) = {
-    val dim = (ms.head.rows, ms.head.cols, ms.size)
-    val dimOut = (
-      (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
-      (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
-    )
-    val fieldSq = field._1 * field._2
-    val out = DenseMatrix.zeros[Float](fieldSq * dim._3, dimOut._1 * dimOut._2)
-    val idc = if (withIndices) {
-      ms.head.keysIterator.map { k =>
-        k -> DenseMatrix.zeros[Int](field._1, field._2)
-      }.toMap
-    } else null
-    _parArrayPool(dim._3).foreach { z =>
-      var (w, h, i) = (-padding._1, -padding._2, 0)
-      while (w < ((dim._1 + padding._1 - field._1) / stride._1) + 1) {
-        while (h < ((dim._2 + padding._2 - field._2) / stride._2) + 1) {
-          var (x, y, wi) = (0, 0, 0)
-          while (x < field._1) {
-            while (y < field._2) {
-              val (a, b, c) = (x + (w * stride._1), y + (h * stride._2), z * fieldSq)
-              if (a >= 0 && a < dim._1 && b >= 0 && b < dim._2) {
-                val value = ms(z)(a, b)
-                val lin = c + wi
-                out.update(lin, i, value)
-                if (withIndices) idc(a, b).update(x, y, i + 1)
-              }
-              wi += 1
-              y += 1
-            }
-            y = 0
-            x += 1
-          }
-          i += 1
-          h += 1
-        }
-        h = 0
-        w += 1
-      }
-    }
-    (out, idc)
-  }
-
-  private def col2im(matrix: Matrix, dim: (Int, Int, Int)): Matrices = {
-    var i = 0
-    val out = new Array[Matrix](dim._3)
-    while (i < dim._3) {
-      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1).t
-      out(i) = v
-      i += 1
-    }
-    out
+  private def ms2CuMat(ms: Matrices): CuMatrix[Float] = {
+    val dm = ms.map { m =>
+      m.reshape(1, m.size)
+    }.reduce(DenseMatrix.vertcat(_, _))
+    CuMatrix.fromDense(dm)
   }
 
   private def adaptWeights(xs: Seq[Matrices], ys: Seq[Matrix], stepSize: Float): Matrix = {
 
     import settings.lossFunction
 
+    val cuxs = xs.map(ms => ms2CuMat(ms))
     val cuys = ys.map(m => CuMatrix.fromDense(m))
-    val xsys = xs.zip(cuys)
+    val xsys = cuxs.zip(cuys)
 
     val _dws = (0 to _lastWlayerIdx).map { i =>
       i -> CuMatrix.zeros[Float](weights(i).rows, weights(i).cols)
@@ -688,14 +634,13 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
       val fc  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
       val ds  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
 
-      @tailrec def conv(_in: Matrices, i: Int): Unit = {
+      @tailrec def conv(in: CuMatrix[Float], i: Int): Unit = {
         val l = _convLayers(i)
-        val seen = _indices.isDefinedAt(i)
-        val (cd, x) = im2col(_in, l.field, l.padding, l.stride, withIndices = !seen)
-        val c = CuMatrix.fromDense(cd)
+        val (c, idc) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
+        _cuIndices.update(i, idc)
         val p = _cuWeights(i) * c
-        var a = _fullLayers(i)._1(p)
-        var b = _fullLayers(i)._2(p)
+        var a = _activators(i)._1(p)
+        var b = _activators(i)._2(p)
         if (i == _lastC) {
           a = a.reshape(1, l.neurons)
           b = b.reshape(1, l.neurons)
@@ -703,15 +648,15 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         fa += i -> a
         fb += i -> b
         fc += i -> c
+        in.release()
         p.release()
-        if (!seen) _indices += i -> x
-        if (i < _lastC) conv(col2im(a.toDense, l.dimOut), i + 1)
+        if (i < _lastC) conv(a, i + 1)
       }
 
       @tailrec def fully(_in: CuMatrix[Float], i: Int): Unit = {
-        val p  = _in * _cuWeights(i)
-        val a  = _fullLayers(i)._1(p)
-        val b  = _fullLayers(i)._2(p)
+        val p = _in * _cuWeights(i)
+        val a = _activators(i)._1(p)
+        val b = _activators(i)._2(p)
         fa += i -> a
         fb += i -> b
         p.release()
@@ -729,6 +674,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           err.release()
           grad.release()
           dw.release()
+
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
@@ -750,37 +696,13 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           dw.release()
           if (i > 0) derive(i - 1)
         } else {
-          val l1 = _convLayers(i + 1)
-          val id = _indices(i + 1)
-          val de = ds(i + 1).toDense
-          val dp = padLeft(de, Dimensions2(de.rows, de.cols + 1), Zero)
-          val fs = l1.field._1 * l1.field._2
-          val dc = DenseMatrix.zeros[Float](fs * l1.filters, l1.dimIn._1 * l1.dimIn._2)
-          // TODO: move to CUDA.
-          _parArrayPool(de.rows).foreach { f =>
-            val _de = dp(f, ::)
-            var (x, y, q) = (0, 0, 0)
-            while (x < l1.dimIn._1) {
-              while (y < l1.dimIn._2) {
-                var p = 0
-                id(x, y).foreachPair { (_, v) =>
-                  val t = (f * fs + p, q)
-                  dc.update(t, _de(v))
-                  p += 1
-                }
-                y += 1
-                q += 1
-              }
-              y = 0
-              x += 1
-            }
-          }
-          val cdc = CuMatrix.fromDense(dc)
-          val d = _ww(i) * cdc *:* fb(i)
+          val l = _convLayers(i + 1)
+          val dc = CuMatrix.ConvOps.im2col_backprop(ds(i + 1), _cuIndices(i + 1), (l.dimIn._1, l.dimIn._2, l.filters), l.field)
+          val d = _ww(i) * dc *:* fb(i)
           val dw = d * fc(i).t
           _dws(i) += dw
           ds += i -> d
-          cdc.release()
+          dc.release()
           dw.release()
           if (i > 0) derive(i - 1)
         }
@@ -826,10 +748,11 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys).par
-      xsys.tasksupport = _forkJoinTaskSupport
+      val xsys = xs.zip(ys)
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
+
+    val out = errorFunc()
 
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ.toFloat
@@ -879,7 +802,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
     syncWeightsBack()
 
-    errorFunc()
+    out
 
   }
 

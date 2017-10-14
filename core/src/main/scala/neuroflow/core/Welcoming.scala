@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.2.6
+      |            Version : 1.2.7
       |
       |            Network : $identifier
       |               Loss : ${self.settings.lossFunction.getClass.getCanonicalName}
@@ -56,8 +56,10 @@ trait Welcoming { self: Network[_, _, _] =>
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
 
     val potency = layers.zipWithIndex.flatMap {
-      case (c: Convolution[_], i) if i == 0  => Seq(c, c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1) /* prevent sanity checks */))
-      case (c: Convolution[_], _)            => Seq(c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1) /* prevent sanity checks */))
+      case (c: Convolution[_], _)            => Seq( /* field, stride: prevent sanity checks */
+                                                  c.copy(dimIn = c.dimInPadded, field = (1, 1), stride = (1, 1)),
+                                                  c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1))
+                                                )
       case (l: Layer, _)                     => Seq(l)
     }.flatMap {
       case Convolution(dimIn, _, _, _, _, _) =>

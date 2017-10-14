@@ -2,7 +2,6 @@ package neuroflow.playground
 
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -27,7 +26,7 @@ object Sinusoidal {
 
     */
 
-  implicit val wp = FFN(-0.2, 0.2)
+  implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-0.2, 0.2)
 
   def apply = {
 

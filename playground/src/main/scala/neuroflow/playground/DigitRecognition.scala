@@ -35,14 +35,15 @@ object DigitRecognition {
 
   def apply = {
 
+    val config = (0 to 2).map(_ -> (0.01, 0.01)) :+ 3 -> (0.1, 0.1)
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].normal(config.toMap)
+
     val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/").toVector)
     val nets = sets.head.head.indices.par.map { segment =>
 
       val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
       val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
 
-      val config = (0 to 2).map(_ -> (0.01, 0.01)) :+ 3 -> (0.1, 0.1)
-      implicit val wp = neuroflow.core.WeightProvider.Double.FFN.normal(config.toMap)
 
       val fn = ReLU
 
