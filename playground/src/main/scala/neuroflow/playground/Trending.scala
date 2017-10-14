@@ -3,7 +3,6 @@ package neuroflow.playground
 import neuroflow.application.plugin.Notation._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -26,7 +25,10 @@ object Trending {
    */
 
   def apply = {
+
     import neuroflow.application.plugin.Notation
+
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     def noise = if (Random.nextDouble > 0.5) 0.0625 else -0.0625
 

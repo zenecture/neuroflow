@@ -4,7 +4,6 @@ package neuroflow.playground
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork.double
 import shapeless._
@@ -37,7 +36,11 @@ object AgeEarnings {
     //val test = src.drop(1000)
     val sets = Settings[Double](learningRate = { case (_, _) => 1E-2 }, precision = 0.001, iterations = 10000,
       regularization = None, approximation = None, specifics = None)
+
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
+
     val network = Network(Input(1) :: Dense(20, Sigmoid) :: Output(1, Sigmoid) :: HNil, sets)
+
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => ->(a._1 / maxAge))
     val ys = train.map(a => ->(a._2))

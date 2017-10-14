@@ -4,7 +4,6 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator.Tanh
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -31,6 +30,8 @@ object AudioRecognition {
   }
 
   def apply = {
+
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val fn = Tanh
     val sets = Settings[Double](iterations = 2000, precision = 1E-4)

@@ -26,7 +26,7 @@ class IoTest extends Specification {
 
   val layers = Input(2) :: Dense(3, Sigmoid) :: Output(2, Sigmoid) :: HNil
   val measure: FFN[Double] = {
-    import neuroflow.core.WeightProvider.Double.FFN.zeroWeights
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].static(0.0)
     Network(layers)
   }
   val asJson = "[{\"rows\":2,\"cols\":3,\"precision\":\"double\",\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]},{\"rows\":3,\"cols\":2,\"precision\":\"double\",\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]}]"

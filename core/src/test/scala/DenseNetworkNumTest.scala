@@ -2,7 +2,6 @@ package neuroflow.nets
 
 import breeze.linalg._
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN.{fullyConnected, randomD}
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 import org.specs2.Specification
@@ -42,6 +41,9 @@ class DenseNetworkNumTest extends Specification {
   }
 
   def check[Net <: FFN[Double]]()(implicit net: Constructor[Double, Net]) = {
+
+    import neuroflow.core.WeightProvider.ffn_double.fullyConnected
+    import neuroflow.core.WeightProvider.normalSeed
     
     val f = Tanh
 
@@ -52,7 +54,7 @@ class DenseNetworkNumTest extends Specification {
          Dense(7, f)   ::
         Output(2, f)   ::  HNil
 
-    val rand = fullyConnected(layout.toList, randomD(-1, 1))
+    val rand = fullyConnected(layout.toList, normalSeed[Double](0.1, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -75,14 +77,8 @@ class DenseNetworkNumTest extends Specification {
     val xs = Seq(DenseVector(0.5, 0.5), DenseVector(0.7, 0.7))
     val ys = Seq(DenseVector(1.0, 0.0), DenseVector(0.0, 1.0))
 
-    println(netA)
-    println(netB)
-
     netA.train(xs, ys)
     netB.train(xs, ys)
-
-    println(netA)
-    println(netB)
 
     val tolerance = 1E-7
 

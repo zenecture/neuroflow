@@ -7,7 +7,6 @@ import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core.WeightProvider.Double.FFN.randomWeights
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
@@ -57,6 +56,8 @@ object PokeMonCluster {
 
     val  xs = pokemons.map(p => p -> toVector(p).dv)
     val dim = xs.head._2.size
+
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val net =
       Network(

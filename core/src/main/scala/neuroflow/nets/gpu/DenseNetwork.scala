@@ -305,6 +305,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
+    val out = errorFunc()
+
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
@@ -354,7 +356,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     syncWeightsBack()
 
-    errorFunc()
+    out
 
   }
 
@@ -492,10 +494,10 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val _in = CuMatrix.fromDense(in)
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
     @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
-      val p  = in * _cuWeights(i)
-      val a  = _activators(i)._1(p)
-      fa += i -> a
+      val p = in * _cuWeights(i)
+      val a = _activators(i)._1(p)
       p.release()
+      fa += i -> a
       if (i < outLayer) forward(a, i + 1)
     }
     forward(_in, 0)
@@ -534,9 +536,9 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
         val p = in * _cuWeights(i)
         val a = _activators(i)._1(p)
         val b = _activators(i)._2(p)
+        p.release()
         fa += i -> a
         fb += i -> b
-        p.release()
         if (i < _lastWlayerIdx) forward(a, i + 1)
       }
 
@@ -624,6 +626,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
+    val out = errorFunc()
+
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ.toFloat
       val v = weights(weightLayer)(weight)
@@ -673,7 +677,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     syncWeightsBack()
 
-    errorFunc()
+    out
 
   }
 

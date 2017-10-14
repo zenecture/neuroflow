@@ -31,7 +31,7 @@ object Word2Vec {
     val output = "/Users/felix/github/unversioned/word2vec.txt"
     val wps = "/Users/felix/github/unversioned/word2vecWp.nf"
 
-    implicit val wp = neuroflow.core.WeightProvider.Double.FFN(-1, 1)
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 //     implicit val wp = IO.File.readDouble(wps)
 
     val corpus = Source.fromFile(getResourceFile("file/newsgroup/reduced.txt")).mkString.split(" ").map(_ -> 1)

@@ -31,7 +31,7 @@ object ParityCluster {
   def apply = {
 
     import Extensions.VectorOps
-    import neuroflow.core.WeightProvider.Double.FFN.randomWeights
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val classes = (0 until dimension) map (i => (i, Random.nextInt(2))) map {
       case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))

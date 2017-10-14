@@ -264,6 +264,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
+    val out = errorFunc()
+
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ
       val v = weights(weightLayer)(weight)
@@ -301,7 +303,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     _rule.lastGradients = debug
 
-    errorFunc()
+    out
 
   }
 
@@ -530,6 +532,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
     }
 
+    val out = errorFunc()
+
     def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
       val Δ = settings.approximation.get.Δ.toFloat
       val v = weights(weightLayer)(weight)
@@ -567,7 +571,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     _rule.lastGradients = debug
 
-    errorFunc()
+    out
 
   }
 
