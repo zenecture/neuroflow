@@ -13,16 +13,12 @@ There are three modules:
     
 # Getting Started
 
-To use NeuroFlow within your project, add these dependencies (Scala Version 2.12.x):
+To use NeuroFlow within your project, add these dependencies (Scala Version 2.12.x, oss.sonatype.org):
 
 ```scala
 libraryDependencies ++= Seq(
   "com.zenecture"   %%   "neuroflow-core"          %   "1.3.0",
   "com.zenecture"   %%   "neuroflow-application"   %   "1.3.0"
-)
-
-resolvers ++= Seq(
-  "neuroflow-libs" at "https://github.com/zenecture/neuroflow-libs/raw/master/"
 )
 ```
 
@@ -154,6 +150,24 @@ val result = net(x)
 ```
 
 The resulting vector has dimension = 1, as specified for the XOR-example.
+
+# Using GPU
+
+If you have a graphics card supporting <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a>, you can train nets on the GPU.
+
+With both CUDA driver and toolbox (>=0.8.0) installed, add these <a href="http://jcuda.org">jCUDA</a> dependencies to your project:
+
+```scala
+resolvers ++= Seq(
+  "neuroflow-libs" at "https://github.com/zenecture/neuroflow-libs/raw/master/"
+)
+```
+
+Then, simply import the GPU implementation:
+
+```scala
+import neuroflow.nets.gpu.DenseNetwork._
+```
 
 # Distributed Training
 
