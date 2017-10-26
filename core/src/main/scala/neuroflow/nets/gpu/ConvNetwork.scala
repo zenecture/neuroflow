@@ -1,6 +1,5 @@
 package neuroflow.nets.gpu
 
-import breeze.linalg.Options.{Dimensions2, Zero}
 import breeze.linalg._
 import breeze.stats._
 import jcuda.jcublas.{JCublas2, cublasHandle}
@@ -8,13 +7,11 @@ import neuroflow.core.Activator._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.gpu.cuda.CuMatrix
+import neuroflow.cuda._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.concurrent.forkjoin.ForkJoinPool
 
 /**
   *

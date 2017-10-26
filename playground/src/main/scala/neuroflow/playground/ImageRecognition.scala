@@ -71,13 +71,12 @@ object ImageRecognition {
     val net = Network(convs ::: fullies,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case (_, _) => 5E-4 },
+        learningRate    = { case (_, _) => 1E-4 },
         lossFunction    = Softmax(),
-        updateRule      = Momentum(μ = 0.6f),
+        updateRule      = Momentum(μ = 0.8f),
         iterations      = 2000,
         precision       = 1E-3,
         batchSize       = Some(8),
-        parallelism     = Some(8),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
         waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
       )

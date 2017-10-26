@@ -1,4 +1,4 @@
-package neuroflow.nets.gpu
+package neuroflow
 
 import breeze.macros.arityize
 import jcuda.NativePointerObject

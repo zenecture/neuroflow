@@ -5,7 +5,7 @@ import breeze.linalg.operators._
 import breeze.math.Field
 import breeze.numerics._
 import jcuda.jcublas.cublasHandle
-import neuroflow.nets.gpu.cuda.CuMatrix
+import neuroflow.cuda._
 
 import scala.reflect.ClassTag
 
