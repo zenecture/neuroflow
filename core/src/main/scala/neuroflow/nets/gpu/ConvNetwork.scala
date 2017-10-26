@@ -290,7 +290,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
           err.release()
           grad.release()
           dw.release()
-
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
@@ -674,7 +673,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
           err.release()
           grad.release()
           dw.release()
-
           derive(i - 1)
         } else if (i < _lastWlayerIdx && i > _lastC) {
           val d1 = ds(i + 1) * _cuWeights(i + 1).t
