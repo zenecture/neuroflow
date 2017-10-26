@@ -153,9 +153,9 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # Using GPU
 
-If you have a graphics card supporting <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a>, you can train nets on the GPU.
+If you have a graphics card supporting <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU.
 
-With both CUDA driver and toolbox (>=0.8.0) installed, add these <a href="http://jcuda.org">jCUDA</a> dependencies to your project:
+With both CUDA driver and toolbox (>= 0.8.0) installed, add these <a href="http://jcuda.org">jCUDA</a> dependencies to your project:
 
 ```scala
 resolvers ++= Seq(
