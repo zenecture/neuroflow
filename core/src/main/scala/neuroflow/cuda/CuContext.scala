@@ -1,4 +1,4 @@
-package neuroflow.nets.gpu.cuda
+package neuroflow.cuda
 
 import jcuda.driver.CUcontext
 import jcuda.driver.JCudaDriver._

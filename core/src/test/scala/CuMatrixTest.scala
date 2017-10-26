@@ -1,4 +1,4 @@
-package neuroflow.nets.gpu.cuda
+package neuroflow.cuda
 
 import breeze.linalg.DenseMatrix
 import breeze.numerics.sin

@@ -3,7 +3,7 @@ package neuroflow.core
 import breeze.linalg._
 import breeze.linalg.operators._
 import jcuda.jcublas._
-import neuroflow.nets.gpu.cuda.CuMatrix
+import neuroflow.cuda._
 
 /**
   * @author bogdanski

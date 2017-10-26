@@ -1,4 +1,4 @@
-package neuroflow.nets.gpu.cuda
+package neuroflow.cuda
 
 import breeze.generic.UFunc
 import jcuda.Pointer

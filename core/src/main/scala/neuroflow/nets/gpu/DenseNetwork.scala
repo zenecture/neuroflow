@@ -9,7 +9,7 @@ import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.nets.gpu.cuda.CuMatrix
+import neuroflow.cuda._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
