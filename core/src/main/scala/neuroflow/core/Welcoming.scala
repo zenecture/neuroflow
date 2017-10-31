@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.3.0
+      |            Version : 1.3.1
       |
       |            Network : $identifier
       |               Loss : ${self.settings.lossFunction.getClass.getCanonicalName}
@@ -42,8 +42,9 @@ trait Welcoming { self: Network[_, _, _] =>
     }
 
   private def sizeOf(p: String): Double = p match {
-    case "Double"           => 8.0
-    case "Float" | "Single" => 4.0
+    case "Double"           => TypeSize.TypeSizeDouble()
+    case "Float" | "Single" => TypeSize.TypeSizeFloat()
+    case "Integer"          => TypeSize.TypeSizeInt()
   }
 
   private def prettyPrint(): Unit = {

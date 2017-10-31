@@ -35,12 +35,12 @@ object ImageRecognition {
       c -> ~>(ζ[Float](classes.size)).io(_.update(i, 1.0f)).t
     }.toMap
 
-    val train = new File(path + "/train").list().take(8).map { s =>
+    val train = new File(path + "/train").list().take(50000).map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/train/" + s, None).map(_.mapValues(_.toFloat)) -> classVecs(c)
     }
 
-    val test = new File(path + "/test").list().take(0).map { s =>
+    val test = new File(path + "/test").list().take(10000).map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/test/" + s, None).map(_.mapValues(_.toFloat)) -> classVecs(c)
     }
@@ -64,25 +64,29 @@ object ImageRecognition {
       Dense(100, f)           ::
       Output(classes.size, f) :: HNil
 
-    val config = (0 to 5).map(_ -> (0.001, 0.001)) :+ (6 -> (0.0001, 0.0001)) :+ (7 -> (0.001, 0.001))
-    implicit val wp = neuroflow.core.WeightProvider.CNN[Float].normal(config.toMap)
-//    implicit val wp = IO.File.readFloat(wps + "-iter-315.nf")
+    val config = (0 to 5).map(_ -> (0.001, 0.001)) :+ (6 -> (0.0001, 0.0001)) :+ (7 -> (0.01, 0.01))
+  implicit val wp = neuroflow.core.WeightProvider.CNN[Float].normal(config.toMap)
+//    implicit val wp = IO.File.readFloat(wps + "-iter-670.nf")
 
     val net = Network(convs ::: fullies,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case (_, _) => 1E-4 },
+        learningRate    = { 
+          case (_, _)                  => 5E-6
+//        case (i, r) if i % 1000 == 0 => r / 2.0
+//        case (i, r)                  => r 
+        },
         lossFunction    = Softmax(),
         updateRule      = Momentum(μ = 0.8f),
-        iterations      = 2000,
+        iterations      = 20000,
         precision       = 1E-3,
-        batchSize       = Some(8),
+        batchSize       = Some(32),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
-        waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
+        waypoint        = Some(Waypoint(nth = 10, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
       )
     )
 
-    net.train(train.map(_._1), train.map(_._2))
+  net.train(train.map(_._1), train.map(_._2))
 
     val rate = test.map {
       case (x, y) =>

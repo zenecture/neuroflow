@@ -128,6 +128,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    GcThreshold.set(this, batchSize * 2)
     run(xsys, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
   }
 
@@ -511,6 +512,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    GcThreshold.set(this, batchSize * 2)
     run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
   }
 

@@ -116,6 +116,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    GcThreshold.set(this, batchSize * 2)
     run(xsys, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
   }
 
@@ -437,6 +438,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
     val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    GcThreshold.set(this, batchSize * 2)
     run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
   }
 
