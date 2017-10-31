@@ -1,7 +1,6 @@
 package neuroflow.core
 
 import breeze.linalg.{DenseMatrix, DenseVector}
-import breeze.math.Field
 import neuroflow.common._
 import neuroflow.core.Network._
 import shapeless._

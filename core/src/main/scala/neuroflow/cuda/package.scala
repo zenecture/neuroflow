@@ -17,14 +17,12 @@ import scala.reflect.ClassTag
 package object cuda extends Logs {
 
   type CuPointer = jcuda.Pointer
-  private val gcTrigger = 1024L * 1024L * 100L // 100 MB
 
   def allocate[V:ClassTag](size: Long) = {
     val ptr = new CuPointer()
     val tpe = implicitly[ClassTag[V]].runtimeClass
     val io = PointerIO.getInstance[V](tpe)
-    val ok = hasFreeMemory(size * io.getTargetSize)
-    if (!ok) throw new OutOfMemoryError(s"CUDA Memory")
+    if (!hasFreeMemory(size * io.getTargetSize)) throw new OutOfMemoryError(s"CUDA Memory")
     JCuda.cudaMalloc(ptr, size * io.getTargetSize)
     Pointer.pointerToAddress(nativePtr(ptr), size, io, DeviceFreeReleaser)
   }
@@ -32,7 +30,7 @@ package object cuda extends Logs {
   def hasFreeMemory(size: Long): Boolean = {
     val free, total = Array[Long](0)
     JCudaDriver.cuMemGetInfo(free, total)
-    val ok = (free(0) >= gcTrigger) || {
+    val ok = (free(0) >= GcThreshold()) || {
       debug(s"Running GC because we're running low on RAM!")
       System.gc()
       Runtime.getRuntime.runFinalization()
