@@ -39,7 +39,7 @@ object IO extends Logs {
     import io.circe.syntax._
 
     /**
-      * Deserializes weights from `json` to construct a `WeightProvider`, casts to `Double`.
+      * Deserializes weights from `json` to construct a `WeightProvider`.
       */
     def readDouble(json: String): WeightProvider[Double] = new WeightProvider[Double] {
       def apply(v1: Seq[Layer]): Weights[Double] = decode[Array[RawMatrix]](json) match {
