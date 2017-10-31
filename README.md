@@ -44,7 +44,7 @@ val (g, h) = (Sigmoid, Sigmoid)
 val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
-This gives a fully connected `DenseNetwork`, which is initialized with random weights by `WeightProvider`.
+This gives a fully connected `DenseNetwork`, which is initialized with random weights in range (-1, 1) by `WeightProvider`.
 Further, we have pre-defined activators, so we can place a `Sigmoid` on the layers.
 
 In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
@@ -109,7 +109,7 @@ net.train(xs, ys)
 
 For our XOR-feed-forward net, the loss function is defined as follows:
 
-    E(W) = Σ1/2(t - net(x))²
+    L(W) = Σ1/2(t - net(x))²
 
 Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form, which is convenient for gradient descent.
@@ -153,7 +153,7 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # Using GPU
 
-If you have a graphics card supporting <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU.
+If your graphics card supports <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU.
 
 With both CUDA driver and toolbox (>= 0.8.0) installed, add these <a href="http://jcuda.org">jCUDA</a> dependencies to your project:
 
@@ -163,7 +163,7 @@ resolvers ++= Seq(
 )
 ```
 
-Then, simply import the GPU implementation:
+Then, simply import a GPU implementation:
 
 ```scala
 import neuroflow.nets.gpu.DenseNetwork._
@@ -227,9 +227,9 @@ object Executor extends App {
 
 The `Executor`, a single node, loads the local data source, boots the networking subsystem and listens for incoming jobs.
 
-# IO
+# Saving and Loading
 
-Using `neuroflow.application.plugin.IO` we can store the weights represented as JSON strings. Look at this:
+Using `neuroflow.application.plugin.IO`, we can save and load the weights of a network represented as a JSON string. Look at this:
 
 ```scala
 val file = "/path/to/net.nf"
@@ -240,6 +240,5 @@ IO.File.write(net.weights, file)
 ```
 
 Here, `IO.File.read` will yield an implicit `WeightProvider` from file to construct a net.
-The weights will be saved to the same file with `IO.File.write`. 
-If the desired target is a database, simply use `IO.Json.write` instead and save it as a raw JSON string. 
-However, all important types extend `Serializable`, so feel free to work with the bytes on your own.
+After work is done, the weights will be saved back with `IO.File.write`. If the desired target is a database, 
+you could use `IO.Json.write` instead and save it as a raw JSON string.
