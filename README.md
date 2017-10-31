@@ -76,11 +76,12 @@ val deeperNet = Network(
 )
 ```
 
-The learning rate is a partial function from iteration and old learning rate to new learning rate for gradient descent. 
-The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
+The learning rate is a partial function from current iteration and learning rate to new learning rate for gradient descent. The `lossFunction` computes loss and gradient, 
+which will be backpropped into the raw output layer of a net. The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
 since a batch can be processed in parallel. Another important aspect is the numerical type of the net, which is set by explicitly annotating
-the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` (single) instead of `Double` precision. 
-Have a look at the `Settings` class for the full list of options.
+the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`. 
+
+Have a look at the `Settings` class for the complete list of options.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
