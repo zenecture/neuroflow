@@ -126,7 +126,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
     GcThreshold.set(this, batchSize * 2)
     run(xsys, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
@@ -143,6 +143,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         if (settings.approximation.isDefined)
           adaptWeightsApprox(x, y, stepSize)
         else adaptWeights(x, y, stepSize)
+        debug(s"Batch Error: $error")
       error
     }.reduce(_ + _)
     val errorPerS = _em / sampleSize
@@ -510,7 +511,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batchSize = $batchSize ...")
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
     GcThreshold.set(this, batchSize * 2)
     run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
@@ -527,6 +528,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         if (settings.approximation.isDefined)
           adaptWeightsApprox(x, y, stepSize)
         else adaptWeights(x, y, stepSize)
+        debug(s"Batch Error: $error")
       error
     }.reduce(_ + _)
     val errorPerS = _em / sampleSize

@@ -31,10 +31,11 @@ package object cuda extends Logs {
     val free, total = Array[Long](0)
     JCudaDriver.cuMemGetInfo(free, total)
     val ok = (free(0) >= GcThreshold()) || {
-      debug(s"Running GC because we're running low on RAM!")
+      debug(s"Running GC because we're running low on GPU RAM!")
       System.gc()
       Runtime.getRuntime.runFinalization()
       JCudaDriver.cuMemGetInfo(free, total)
+      debug(f"Total: ${ total(0) / 1024.0 / 1024.0 }%.6g MB, Free: ${ free(0) / 1024.0 / 1024.0 }%.6g MB, GcThreshold: ${ GcThreshold() / 1024.0 / 1024.0 }%.6g MB")
       free(0) >= size
     }
     ok
