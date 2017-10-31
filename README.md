@@ -184,7 +184,7 @@ we can spread the load across several machines instead of batching it.
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
 
 Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
-In our example, the overhead is 2*4,5=9 MB network traffic per node and iteration, while gaining computational parallelism.
+In our example, the overhead is 2*4,5=9 MB network traffic per node and iteration, while gaining computational parallelism
 
 <em>However, note that on-line or mini-batch training can have much faster convergence (depending on the level of redundancy within the data) 
 than a full distributed batch, even when using several machines.</em>
@@ -235,10 +235,10 @@ Using `neuroflow.application.plugin.IO`, we can save and load the weights of a n
 val file = "/path/to/net.nf"
 implicit val weightProvider = IO.File.readDouble(file)
 val net = Network(layers)
-// ... do work.
+// training ...
 IO.File.write(net.weights, file)
 ```
 
 Here, `IO.File.read` will yield an implicit `WeightProvider` from file to construct a net.
-After work is done, the weights will be saved back with `IO.File.write`. If the desired target is a database, 
-you could use `IO.Json.write` instead and save it as a raw JSON string.
+After training is done, the weights can be saved back with `IO.File.write`. If the desired target is a database, 
+you could use `IO.Json.write` to retrieve a raw JSON string and then fire a SQL query with it.
