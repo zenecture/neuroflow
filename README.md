@@ -1,7 +1,6 @@
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
 
 NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
-It is written in Scala, matrix and vector operations are performed with <a href="https://github.com/scalanlp/breeze">Breeze</a>.
 
 # Introduction
 
@@ -92,7 +91,7 @@ We want to map from a two-dimensional vector `x` to a one-dimensional vector `y`
 There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
 so we can check whether our net can capture this non-linearity.
 
-Let's train our `net` with the `train` method. In NeuroFlow, you work with Breeze vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). 
+Let's train our `net` with the `train` method. In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a> vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). 
 To define the training data we use the built-in vector notation:
 
 ```scala
