@@ -60,7 +60,7 @@ case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   *   `dimIn`      Input dimension. (x, y, z)
   *   `padding`    A padding can be specified to ensure full convolution. (x, y)
   *   `field`      The receptive field. (x, y)
-  *   `filters`    Number of independent filters attached to the input.
+  *   `filters`    Number of filters attached to the input.
   *   `stride`     Sliding the receptive field over the input volume with stride. (x, y)
   *   `activator`  The activator function gets applied on the output element-wise.
   *
