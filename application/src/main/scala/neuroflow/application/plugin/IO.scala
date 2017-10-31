@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import breeze.linalg.DenseMatrix
 import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
-import neuroflow.core.{Layer, Network, WeightProvider}
+import neuroflow.core.{Layer, WeightProvider}
 
 import scala.io.Source
 
@@ -56,7 +56,7 @@ object IO extends Logs {
     }
 
     /**
-      * Serializes weights of `network` to json string
+      * Serializes weights of `network` to json string.
       */
     def write[V](weights: Weights[V])(implicit c: CanProduceRaw[V]): String = weights.map(m => c(m)).asJson.noSpaces
 
@@ -65,13 +65,13 @@ object IO extends Logs {
 
   object File {
     /**
-      * Deserializes weights as json from `file` to construct a `WeightProvider`
+      * Deserializes weights as json from `file` to construct a `WeightProvider`.
       */
     def readDouble(file: String): WeightProvider[Double] = ~> (Source.fromFile(file).mkString) map Json.readDouble
     def readFloat(file: String): WeightProvider[Float] = ~> (Source.fromFile(file).mkString) map Json.readFloat
 
     /**
-      * Serializes weights of `network` to `file` as json
+      * Serializes weights of `network` to `file` as json.
       */
     def write[V](weights: Weights[V], file: String)(implicit c: CanProduceRaw[V]): Unit =
       ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
