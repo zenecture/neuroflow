@@ -155,25 +155,17 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 If your graphics card supports <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU.
 
-To install the CUDA driver and toolbox (0.8.x) for Linux (Ubuntu 16.04), follow these steps:
+To enable the GPU for NeuroFlow, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
 
 ```bash
-# Oracle JVM 1.8
-
-sudo add-apt-repository ppa:webupd8team/java
-sudo apt-get update
-sudo apt-get install oracle-java8-installer
-
-# nVidia CUDA 8.0
-
 curl -O http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
 sudo dpkg -i ./cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
 sudo apt-get update
 sudo apt-get install cuda
 sudo apt-get install cuda-toolkit-8-0
-```
+``` 
 
-With both driver and toolbox installed, add these <a href="http://jcuda.org">jCUDA</a> dependencies to your project:
+With both driver and toolkit installed, add the <a href="http://jcuda.org">jCUDA</a> dependencies to your SBT project:
 
 ```scala
 resolvers ++= Seq(
@@ -181,7 +173,7 @@ resolvers ++= Seq(
 )
 ```
 
-Then, simply import a GPU implementation:
+Then, you can import a GPU implementation for your model:
 
 ```scala
 import neuroflow.nets.gpu.DenseNetwork._
