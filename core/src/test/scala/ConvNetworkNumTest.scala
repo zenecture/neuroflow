@@ -32,8 +32,6 @@ class ConvNetworkNumTest  extends Specification {
     import neuroflow.nets.cpu.ConvNetwork._
     check()
 
-    success
-
   }
 
   def gradCheckGPU = {

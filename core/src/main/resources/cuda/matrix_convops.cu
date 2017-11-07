@@ -11,7 +11,7 @@ __global__ void MAKE_NAME(im2col, T)( \
     int X, int Y, int Z, \
     int fieldX, int fieldY, \
     int paddingX, int paddingY, \
-    int strideX, int strideY) { \
+    int strideX, int strideY, int withIndices) { \
   int x = threadIdx.x + blockIdx.x * blockDim.x; \
   int y = threadIdx.y + blockIdx.y * blockDim.y; \
   int z = threadIdx.z + blockIdx.z * blockDim.z; \
@@ -33,10 +33,12 @@ __global__ void MAKE_NAME(im2col, T)( \
           int i = (x * YM) + y; \
           int c = z * fieldX * fieldY; \
           int l = c + (fX * fieldY + fY); \
-          int id_r = a_nop * fieldY + fY; \
-          int id_c = b_nop * fieldX + fX; \
           out[i * outStride + l] = in[ab_lin * Z + z]; \
-          idc[id_c * idcStride + id_r] = i + 1; \
+          if (withIndices == 1) { \
+            int id_r = a_nop * fieldY + fY; \
+            int id_c = b_nop * fieldX + fX; \
+            idc[id_c * idcStride + id_r] = i + 1; \
+          } \
         } \
         fY++; \
       } \
