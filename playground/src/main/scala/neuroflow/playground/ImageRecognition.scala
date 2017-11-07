@@ -23,9 +23,9 @@ object ImageRecognition {
 
   def apply = {
 
-    val path = "/Users/felix/github/unversioned/cifar"
-    val wps  = "/Users/felix/github/unversioned/cifar/waypoint"
-    val lfo  = "/Users/felix/github/unversioned/cifar/lfo.txt"
+    val path = "/home/felix/cifar"
+    val wps  = "/home/felix/cifar/waypoint"
+    val lfo  = "/home/felix/cifar/lfo.txt"
 
     val classes =
       Seq("airplane", "automobile", "bird", "cat", "deer",
@@ -35,15 +35,19 @@ object ImageRecognition {
       c -> ~>(ζ[Float](classes.size)).io(_.update(i, 1.0f)).t
     }.toMap
 
-    val train = new File(path + "/train").list().take(50000).map { s =>
+    println("Loading data ...")
+
+    val limits = (50000, 10000)
+
+    val train = new File(path + "/train").list().take(limits._1).par.map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/train/" + s, None).map(_.mapValues(_.toFloat)) -> classVecs(c)
-    }
+    }.seq
 
-    val test = new File(path + "/test").list().take(10000).map { s =>
+    val test = new File(path + "/test").list().take(limits._2).par.map { s =>
       val c = classes.find(z => s.contains(z)).get
       extractRgb3d(path + "/test/" + s, None).map(_.mapValues(_.toFloat)) -> classVecs(c)
-    }
+    }.seq
 
     classes.foreach { c =>
       println(s"|$c| = " + train.count(l => l._2 == classVecs(c)))
@@ -65,24 +69,20 @@ object ImageRecognition {
       Output(classes.size, f) :: HNil
 
     val config = (0 to 5).map(_ -> (0.001, 0.001)) :+ (6 -> (0.0001, 0.0001)) :+ (7 -> (0.01, 0.01))
-  implicit val wp = neuroflow.core.WeightProvider.CNN[Float].normal(config.toMap)
+    implicit val wp = neuroflow.core.WeightProvider.CNN[Float].normal(config.toMap)
 //    implicit val wp = IO.File.readFloat(wps + "-iter-670.nf")
 
     val net = Network(convs ::: fullies,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { 
-          case (_, _)                  => 5E-6
-//        case (i, r) if i % 1000 == 0 => r / 2.0
-//        case (i, r)                  => r 
-        },
+        learningRate    = { case (_, _) => 5E-6 },
         lossFunction    = Softmax(),
         updateRule      = Momentum(μ = 0.8f),
         iterations      = 20000,
         precision       = 1E-3,
         batchSize       = Some(32),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
-        waypoint        = Some(Waypoint(nth = 10, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
+        waypoint        = Some(Waypoint(nth = 3, (iter, ws) => IO.File.write(ws, wps + s"-iter-$iter.nf")))
       )
     )
 
