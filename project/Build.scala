@@ -8,13 +8,13 @@ object NeuroflowBuild extends Build {
 
     name in ThisBuild         := "neuroflow",
     organization in ThisBuild := "com.zenecture",
-    version                   := "1.3.2",
+    version                   := "1.3.3",
     scalaVersion              := "2.12.3",
     assemblyMergeStrategy
                   in assembly := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
       case "reference.conf"              => MergeStrategy.concat
-      case x                             => MergeStrategy.first
+      case _                             => MergeStrategy.first
     },
     autoCompilerPlugins := true,
     addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),

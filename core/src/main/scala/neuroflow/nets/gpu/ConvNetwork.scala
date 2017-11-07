@@ -88,6 +88,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   private val _cuIndices = collection.mutable.HashMap.empty ++ _convLayers.mapValues { c =>
     CuMatrix.zeros[Int](c.dimIn._2 * c.field._2, c.dimIn._1 * c.field._1)
   }
+  private var _withIdx   = true
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -143,7 +144,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         if (settings.approximation.isDefined)
           adaptWeightsApprox(x, y, stepSize)
         else adaptWeights(x, y, stepSize)
-        debug(s"Batch Error: $error")
+      debug(s"Batch Error: $error")
+      _withIdx = false
       error
     }.reduce(_ + _)
     val errorPerS = _em / sampleSize
@@ -167,7 +169,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(in: CuMatrix[Double], i: Int): Unit = {
       val l = _convLayers(i)
-      val (c, _) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
+      val c = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride, withIndices = false)
       val p = _cuWeights(i) * c
       val a = _activators(i)._1(p)
       fa += a
@@ -251,8 +253,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
       @tailrec def conv(in: CuMatrix[Double], i: Int): Unit = {
         val l = _convLayers(i)
-        val (c, idc) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
-        _cuIndices.update(i, idc)
+        val c = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride, _withIdx)
         val p = _cuWeights(i) * c
         var a = _activators(i)._1(p)
         var b = _activators(i)._2(p)
@@ -473,6 +474,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
   private val _cuIndices = collection.mutable.HashMap.empty ++ _convLayers.mapValues { c =>
     CuMatrix.zeros[Int](c.dimIn._2 * c.field._2, c.dimIn._1 * c.field._1)
   }
+  private var _withIdx   = true
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -528,7 +530,8 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
         if (settings.approximation.isDefined)
           adaptWeightsApprox(x, y, stepSize)
         else adaptWeights(x, y, stepSize)
-        debug(s"Batch Error: $error")
+      debug(s"Batch Error: $error")
+      _withIdx = false
       error
     }.reduce(_ + _)
     val errorPerS = _em / sampleSize
@@ -552,7 +555,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
     @tailrec def conv(in: CuMatrix[Float], i: Int): Unit = {
       val l = _convLayers(i)
-      val (c, _) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
+      val c = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride, withIndices = false)
       val p = _cuWeights(i) * c
       val a = _activators(i)._1(p)
       fa += a
@@ -636,8 +639,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], settings: Setting
 
       @tailrec def conv(in: CuMatrix[Float], i: Int): Unit = {
         val l = _convLayers(i)
-        val (c, idc) = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride)
-        _cuIndices.update(i, idc)
+        val c = CuMatrix.ConvOps.im2col(in, _cuIndices(i), l.dimIn, l.field, l.padding, l.stride, _withIdx)
         val p = _cuWeights(i) * c
         var a = _activators(i)._1(p)
         var b = _activators(i)._2(p)
