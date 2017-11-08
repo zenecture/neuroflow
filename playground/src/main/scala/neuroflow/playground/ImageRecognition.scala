@@ -70,12 +70,12 @@ object ImageRecognition {
 
     val config = (0 to 5).map(_ -> (0.001, 0.001)) :+ (6 -> (0.0001, 0.0001)) :+ (7 -> (0.01, 0.01))
     implicit val wp = neuroflow.core.WeightProvider.CNN[Float].normal(config.toMap)
-//    implicit val wp = IO.File.readFloat(wps + "-iter-670.nf")
+//    implicit val wp = IO.File.readFloat(wps + "-iter-15.nf")
 
     val net = Network(convs ::: fullies,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case (_, _) => 5E-6 },
+        learningRate    = { case (_, _) => 1E-5 },
         lossFunction    = Softmax(),
         updateRule      = Momentum(μ = 0.8f),
         iterations      = 20000,
