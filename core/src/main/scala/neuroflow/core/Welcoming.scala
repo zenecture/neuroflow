@@ -25,6 +25,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |
       |            Network : $identifier
       |               Loss : ${self.settings.lossFunction.getClass.getCanonicalName}
+      |             Update : ${self.settings.updateRule.getClass.getCanonicalName}
       |
       |             Layout : ${layers.foldLeft("")((s, l) => s + buildString(l) + "\n                      ").dropRight(2)}
       |            Weights : ${ formatter.format(weights.map(_.size).sum) } (≈ ${ weights.map(_.size).sum.toDouble * sizeOf(numericPrecision) / 1024.0 / 1024.0 }%.6g MB)
