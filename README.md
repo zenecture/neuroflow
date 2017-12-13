@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-If you are new to Neural Nets, you can read about the core principles here
+If you are new to Neural Nets, you can read about the core principles here:
 
   - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
   
