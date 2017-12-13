@@ -16,12 +16,16 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.3.3",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.3.3"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.3.4",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.3.4"
 )
 ```
 
-Seeing code examples is a good way to get started. You may have a look at the playground for some inspiration.
+If you are new to Neural Nets, you can read about the core principles here
+
+  - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
+  
+Seeing code examples is also a good way to get started. You may have a look at the playground for some basic inspiration.
 If you want to use neural nets in your project, you can expect a journey full of fun and experiments. 
 
 # Construction of a Net  
