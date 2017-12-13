@@ -22,6 +22,8 @@ import scala.collection._
   * where the current layer gets input from the lower layers at the same time step
   * and from itself at the previous time step.
   *
+  * Gradients are approximated, don't use it with big data.
+  *
   *
   * @author bogdanski
   * @since 07.07.16
