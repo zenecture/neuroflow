@@ -8,7 +8,7 @@ import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator.ReLU
 import neuroflow.core._
-import neuroflow.nets.gpu.DenseNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
 import scala.collection.immutable
@@ -35,11 +35,11 @@ object DigitRecognition {
 
   def apply = {
 
-    val config = (0 to 2).map(_ -> (0.01, 0.01)) :+ 3 -> (0.1, 0.1)
-    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].normal(config.toMap)
+    val config = (0 to 2).map(_ -> (0.0001, 0.0001)) :+ 3 -> (0.1, 0.1)
+    implicit val wp = neuroflow.core.WeightProvider.FFN[Float].normal(config.toMap)
 
     val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/").toVector)
-    val nets = sets.head.head.indices.par.map { segment =>
+    val nets = sets.head.head.indices.map { segment =>
 
       val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
       val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
@@ -48,21 +48,21 @@ object DigitRecognition {
       val fn = ReLU
 
       val settings = Settings(
-        learningRate = { case (_, _) => 1E-5 },
-        updateRule = Momentum(0.8),
+        learningRate = { case (_, _) => 1E-50 },
+        updateRule = Momentum(0.8f),
         lossFunction = Softmax(),
         precision = 1E-4,
-        prettyPrint = true, iterations = 15000,
+        iterations = 15000,
         regularization = Some(KeepBest))
 
       val net = Network(
            Input(xs.head.size)   ::
-           Dense(400, fn)        ::
+           Dense(160000, fn)        ::
            Dense(200, fn)        ::
            Dense(50, fn)         ::
            Output(10, fn)        ::  HNil, settings)
 
-      net.train(xs.map(l => DenseVector(l)), ys.map(_.dv))
+      net.train(xs.map(l => DenseVector(l.map(_.toFloat))), ys.map(_.map(_.toFloat).dv))
 
       val posWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ > 0.0).size)
       val negWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ < 0.0).size)
@@ -73,7 +73,7 @@ object DigitRecognition {
 
     }
 
-    val setsResult = sets map { set => set map { d => d flatMap { xs => nets map { _.evaluate(DenseVector(xs)) } } reduce(_ + _) map (end => end / nets.size) } }
+    val setsResult = sets map { set => set map { d => d flatMap { xs => nets map { _.evaluate(DenseVector(xs.map(_.toFloat))) } } reduce(_ + _) map (end => end / nets.size) } }
 
     ('a' to 'h') zip setsResult foreach {
       case (char, res) =>
@@ -90,6 +90,7 @@ object DigitRecognition {
 
 
 
+
                      _   __                      ________
                     / | / /__  __  ___________  / ____/ /___ _      __
                    /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
@@ -97,9 +98,11 @@ object DigitRecognition {
                  /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
 
 
-                    Version : 1.2.4
+                    Version : 1.3.4
+
                     Network : neuroflow.nets.cpu.DenseNetwork
                        Loss : neuroflow.core.Softmax
+                     Update : neuroflow.core.Momentum
 
                      Layout : 200 In
                               400 Dense (R)
@@ -107,8 +110,8 @@ object DigitRecognition {
                               50 Dense (R)
                               10 Out (R)
 
-                    Weights : 170.500 (≈ 1,30081 MB)
-                  Precision : Double
+                    Weights : 170.500 (≈ 0,650406 MB)
+                  Precision : Single
 
 
 
@@ -126,27 +129,23 @@ object DigitRecognition {
 
 
 
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:08:847] Training with 70 samples, batchize = 70 ...
-        Okt 03, 2017 7:00:08 PM com.github.fommil.jni.JniLoader liberalLoad
-        INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader2845731484237263048netlib-native_system-osx-x86_64.jnilib
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:064] Iteration 1 - Loss 0,566935 - Loss Vector 0.06797198067471424  0.3917490757095061  1.2132633531520545  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:209] Iteration 2 - Loss 0,511307 - Loss Vector 0.08499523032105315  0.35229324500325926  1.135623026717559  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:245] Iteration 3 - Loss 0,432285 - Loss Vector 0.12251421015227973  0.2941788377991336  1.016693403844844  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:282] Iteration 4 - Loss 0,364590 - Loss Vector 0.18401166798151963  0.23872347778994105  0.8947084502385266  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:318] Iteration 5 - Loss 0,317478 - Loss Vector 0.2517408863639056  0.1981951408905487  0.7853158346366302  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:349] Iteration 6 - Loss 0,300827 - Loss Vector 0.3272640018536161  0.18281651866851517  0.6994208759998832  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:386] Iteration 7 - Loss 0,295964 - Loss Vector 0.3864266942021326  0.1877941838305194  0.6213750503074743  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:432] Iteration 8 - Loss 0,287068 - Loss Vector 0.41300497483783577  0.20211363120302944  0.5380031384571229  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:493] Iteration 9 - Loss 0,276471 - Loss Vector 0.4139268066586661  0.22046959850310044  0.4522435106791206  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:553] Iteration 10 - Loss 0,267513 - Loss Vector 0.3968239719463647  0.23979640970927787  0.36857703338881476  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:00:09:639] Iteration 11 - Loss 0,257345 - Loss Vector 0.3613530116752733  0.256995592325175  0.2871951551539933  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:26:824] Training with 70 samples, batch size = 70, batches = 1 ...
+        Dez 14, 2017 5:03:26 PM com.github.fommil.jni.JniLoader liberalLoad
+        INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader7879827578054582548netlib-native_system-osx-x86_64.jnilib
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:090] Iteration 1 - Loss 0,842867 - Loss Vector 1.3594189  1.0815932  0.06627092  1.2282351  0.40324837  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:152] Iteration 2 - Loss 0,760487 - Loss Vector 1.2405235  1.0218079  0.080294095  1.1119698  0.30945536  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:168] Iteration 3 - Loss 0,631473 - Loss Vector 1.0470318  0.9293458  0.10742891  0.92295074  0.16466755  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:178] Iteration 4 - Loss 0,528371 - Loss Vector 0.8682083  0.8433325  0.17737864  0.7455  0.062339883  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:188] Iteration 5 - Loss 0,439425 - Loss Vector 0.6963819  0.7676125  0.23556742  0.5764897  0.062838934  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:197] Iteration 6 - Loss 0,373034 - Loss Vector 0.5466118  0.70639104  0.2790047  0.43036366  0.1531757  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:205] Iteration 7 - Loss 0,328959 - Loss Vector 0.42401966  0.65744436  0.3100834  0.31236598  0.25140944  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:213] Iteration 8 - Loss 0,289892 - Loss Vector 0.30970943  0.61508274  0.32081065  0.20909563  0.32359478  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:03:27:220] Iteration 9 - Loss 0,290616 - Loss Vector 0.248706  0.5873246  0.34531453  0.16553785  0.39594984  ... (10 total)
         ...
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:08:33:528] Iteration 14998 - Loss 0,000305330 - Loss Vector 1.979127211258661E-4  3.269643859006314E-4  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:08:33:570] Iteration 14999 - Loss 0,000305285 - Loss Vector 1.9788607092391852E-4  3.2691588114313095E-4  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:08:33:605] Iteration 15000 - Loss 0,000305239 - Loss Vector 1.9785950144915357E-4  3.268669468383327E-4  ... (10 total)
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:08:33:605] Took 15000 iterations of 15000 with Loss = 0,000305239
-        [scala-execution-context-global-66] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.10.2017 19:08:33:605] Applying KeepBest strategy. Best test error so far: 0,000305239.
-        Pos: 128444, Neg: 42056
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:04:25:607] Iteration 15000 - Loss 0,000370492 - Loss Vector 2.0882876E-4  3.3544307E-4  3.2464182E-4  2.5632523E-4  ... (10 total)
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:04:25:607] Took 15000 iterations of 15000 with Loss = 0,000370492
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkSingle - [14.12.2017 17:04:25:608] Applying KeepBest strategy. Best test error so far: 0,000370492.
+        Pos: 128063, Neg: 42437
         set a:
         0 classified as 0
         1 classified as 1
@@ -235,6 +234,6 @@ object DigitRecognition {
         7 classified as 7
         8 classified as 8
         9 classified as 9
-        [success] Total time: 513 s, completed 03.10.2017 19:08:34
+        [success] Total time: 70 s, completed 14.12.2017 17:04:26
 
  */

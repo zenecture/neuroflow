@@ -69,7 +69,7 @@ trait Constructor[V, +T <: Network[_, _, _]] {
   *   `prettyPrint`         If true, the layout will be rendered graphically on console.
   *   `coordinator`         The coordinator host needs to be set for distributed training.
   *   `transport`           Transport details need to be set for distributed training.
-  *   `parallelism`         Controls how many threads will be used for training.
+  *   `parallelism`         Controls how many threads will be used for CPU training.
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
   *   `regularization`      The respective regulator will try to avoid over-fitting.
@@ -86,7 +86,7 @@ case class Settings[V]
                     updateRule        :  Update[V]                    =  Vanilla[V],
                     precision         :  Double                       =  1E-5,
                     iterations        :  Int                          =  100,
-                    prettyPrint       :  Boolean                      =  false,
+                    prettyPrint       :  Boolean                      =  true,
                     coordinator       :  Node                         =  Node("localhost", 2552),
                     transport         :  Transport                    =  Transport(100000, "128 MiB"),
                     parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),

@@ -300,7 +300,7 @@ object CuMatrix extends LowPriorityNativeMatrix with CuMatrixOps with CuMatrixSl
     mat
   }
 
-  def fromDense[V <: AnyVal](mat: DenseMatrix[V])(implicit ct: ClassTag[V]): CuMatrix[V] = {
+  def fromDense[V](mat: DenseMatrix[V])(implicit ct: ClassTag[V]): CuMatrix[V] = {
     val g = new CuMatrix[V](mat.rows, mat.cols)
     g := mat
     g
