@@ -52,7 +52,7 @@ trait Welcoming { self: Network[_, _, _] =>
 
     val max = layers.map {
       case c: Convolution[_] => math.max(math.max(c.dimInPadded._1, c.dimInPadded._2), math.max(c.dimOut._1, c.dimOut._2))
-      case l: Layer                              => l.neurons
+      case l: Layer          => l.neurons
     }.max
 
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
