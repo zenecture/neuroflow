@@ -155,7 +155,8 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # Using GPU
 
-If your graphics card supports <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, which is recommended for nets with millions of weights. 
+If your graphics card supports nVidia's <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, which is recommended for nets with millions of weights.
+On the contrary, smaller nets are faster to train on a strong CPU, because while GPU is busy copying batches between host, CPU is already done. 
 
 To enable the GPU for NeuroFlow, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
 
