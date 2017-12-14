@@ -17,8 +17,6 @@ import scala.collection.Seq
   * This is a feed-forward neural network with fully connected layers.
   * It uses gradient descent to optimize the specified loss function.
   *
-  * Use the parallelism parameter with care, as it greatly affects memory usage.
-  *
   * @author bogdanski
   * @since 15.01.16
   *
