@@ -95,7 +95,7 @@ We want to map from a two-dimensional vector `x` to a one-dimensional vector `y`
 There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
 so we can check whether our net can capture this non-linearity.
 
-Let's train our `net` with the `train` method. In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a> vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). 
+In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a> vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). 
 To define the training data we use the built-in vector notation:
 
 ```scala
@@ -109,8 +109,7 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 
 net.train(xs, ys)
 ```
-
-For our XOR-feed-forward net, the loss function is defined as follows:
+And then we can `train` our `net`. For our XOR-feed-forward net, the loss function is defined as follows:
 
     L(W) = Σ1/2(t - net(x))²
 
