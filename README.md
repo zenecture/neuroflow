@@ -80,8 +80,8 @@ val deeperNet = Network(
 ```
 
 The learning rate is a partial function from current iteration and learning rate to new learning rate. The `lossFunction` computes loss and gradient, 
-which will be backpropped into the raw output layer of a net. The `batchSize` defines how many samples are presented per weight update. The `updateRule` defines how weights are updated for gradient descent.
-Another important aspect is the numerical type of the net, which is set by explicitly annotating the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`.
+which will be backpropped into the raw output layer of a net. The `batchSize` defines how many samples are presented per weight update. The `updateRule` defines how weights are updated for gradient descent. Training terminates after `iterations`, or if loss satisfies `precision`.
+Another important aspect is the numerical type of the net, which is set by explicitly annotating `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`.
 
 Have a look at the `Settings` class for the complete list of options.
 
