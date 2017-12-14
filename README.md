@@ -79,7 +79,7 @@ val deeperNet = Network(
 )
 ```
 
-The learning rate is a partial function from current iteration and learning rate to new learning rate for gradient descent. The `lossFunction` computes loss and gradient, 
+The learning rate is a partial function from current iteration and learning rate to new learning rate. The `lossFunction` computes loss and gradient, 
 which will be backpropped into the raw output layer of a net. The `batchSize` defines how many samples are presented per weight update. The `updateRule` defines how weights are updated for gradient descent.
 Another important aspect is the numerical type of the net, which is set by explicitly annotating the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`.
 
@@ -155,8 +155,8 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # Using GPU
 
-If your graphics card supports nVidia's <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, which is recommended for nets with millions of weights.
-On the contrary, smaller nets are faster to train on a strong CPU, because while GPU is busy copying batches between host, CPU is already done. 
+If your graphics card supports nVidia's <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, which is recommended for large nets with millions of weights.
+On the contrary, smaller nets are faster to train on CPU, because while NeuroFlow is busy copying batches between host and graphic memory, CPU is already done. 
 
 To enable the GPU for NeuroFlow, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
 
