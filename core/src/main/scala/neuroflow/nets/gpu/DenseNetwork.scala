@@ -93,8 +93,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (settings.parallelism.getOrElse(1) > 1)
-      warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
@@ -405,8 +403,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (settings.parallelism.getOrElse(1) > 1)
-      warn("parallelism > 1: Batches are single-threaded for CUDA. This has no effect.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
     settings.regularization.foreach {
