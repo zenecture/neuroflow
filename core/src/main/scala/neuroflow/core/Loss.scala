@@ -86,7 +86,7 @@ case class SquaredMeanError[V]() extends Loss[V] {
 
     val `2`   = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
-    val exp   = DenseMatrix.zeros[V](1, y.cols)
+    val exp   = DenseMatrix.zeros[V](y.rows, y.cols)
     exp := `2`
     val r1 = y - x
     val r2 = r1 ^:^ exp
@@ -121,7 +121,7 @@ case class SquaredMeanError[V]() extends Loss[V] {
 
     val `2`   = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
-    val exp   = CuMatrix.zeros[V](1, y.cols)
+    val exp   = CuMatrix.zeros[V](y.rows, y.cols)
     exp := `2`
     val r1 = y - x
     val r2 = r1 ^:^ exp
@@ -160,12 +160,18 @@ case class Softmax[V]() extends Loss[V] {
             subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
             addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
 
-    val probs = SoftmaxImpl(x)
-    val mask = _sum(y *:* probs)
-    val err = y *:* -_log(mask)
-    val grad = probs - y
+    val batchSize = y.rows
 
-    (err, grad)
+    (0 until batchSize).map { i =>
+      val (_x, _y) = (x.t(::, i).asDenseMatrix, y.t(::, i).asDenseMatrix)
+      val probs = SoftmaxImpl(_x)
+      val mask = _sum(_y *:* probs)
+      val err = _y *:* -_log(mask)
+      val grad = probs - _y
+      (err, grad)
+    }.reduce { (a, b) =>
+      DenseMatrix.vertcat(a._1, b._1) -> DenseMatrix.vertcat(a._2, b._2)
+    }
 
   }
 
@@ -192,16 +198,23 @@ case class Softmax[V]() extends Loss[V] {
             subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
 
-    val probs = SoftmaxImpl(x)
-    val r1 = y *:* probs
-    val mask = _sum(r1)
-    val err = y *:* -_log(mask)
-    val grad = probs - y
+    val batchSize = y.rows
 
-    probs.release()
-    r1.release()
+    val (err, grad) = (0 until batchSize).map { i =>
+      val (_x, _y) = (x.t(::, i).t, y.t(::, i).t)
+      val probs = SoftmaxImpl(_x)
+      val r1 = _y *:* probs
+      val mask = _sum(r1)
+      val err = _y *:* -_log(mask)
+      val grad = probs - _y
+      probs.release()
+      r1.release()
+      (err.toDense, grad.toDense)
+    }.reduce { (a, b) =>
+      DenseMatrix.vertcat(a._1, b._1) -> DenseMatrix.vertcat(a._2, b._2)
+    }
 
-    (err, grad)
+    CuMatrix.fromDense(err) -> CuMatrix.fromDense(grad)
 
   }
 

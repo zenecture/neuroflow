@@ -13,8 +13,6 @@ import neuroflow.cuda._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.concurrent.forkjoin.ForkJoinPool
 
 
 /**
@@ -79,9 +77,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
-
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
-
+  
   private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
@@ -115,9 +111,11 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
-    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    val xsysBatched = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
+      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
+    }
     GcThreshold.set(this, batchSize * 2)
-    run(xsys, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
+    run(xsysBatched, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
   }
 
   /**
@@ -142,10 +140,10 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[Seq[(Matrix, Matrix)]], stepSize: Double, sampleSize: Double, precision: Double,
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, sampleSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val _em = xsys.map { batch =>
-      val (x, y) = (batch.map(_._1), batch.map(_._2))
+      val (x, y) = (batch._1, batch._2)
       val error =
         if (settings.approximation.isDefined)
           adaptWeightsApprox(x, y, stepSize)
@@ -189,104 +187,92 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   }
 
   /**
-    * Computes gradient for all weights, adapts their value using gradient descent
-    * and returns the error matrix.
+    * Copies batch to GPU, then computes gradient for all weights,
+    * adapts their value using gradient descent and returns the error matrix.
     */
-  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
+  private def adaptWeights(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
 
     import settings.lossFunction
 
-    val cuxs = xs.map(m => CuMatrix.fromDense(m))
-    val cuys = ys.map(m => CuMatrix.fromDense(m))
-    val xsys = cuxs.zip(cuys)
+    val x = CuMatrix.fromDense(xs)
+    val y = CuMatrix.fromDense(ys)
 
-    val _dws = (0 to _lastWlayerIdx).map { i =>
-      i -> CuMatrix.zeros[Double](weights(i).rows, weights(i).cols)
-    }.toMap
+    val errSum = CuMatrix.zeros[Double](xs.rows, _outputDim)
 
-    val _errSum = CuMatrix.zeros[Double](1, _outputDim)
+    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+    val fb  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+    val dws = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+    val ds  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
 
-    xsys.foreach { xy =>
-
-      val (x, y) = xy
-      val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
-      val fb  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
-      val ds  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
-
-      @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
-        val p = in * _cuWeights(i)
-        val a = _activators(i)._1(p)
-        val b = _activators(i)._2(p)
-        p.release()
-        fa += i -> a
-        fb += i -> b
-        if (i < _lastWlayerIdx) forward(a, i + 1)
-      }
-
-      @tailrec def derive(i: Int): Unit = {
-        if (i == 0 && _lastWlayerIdx == 0) {
-          val (err, grad) = lossFunction(y, fa(0))
-          val d = grad *:* fb(0)
-          val dw = x.t * d
-          _dws(0) += dw
-          _errSum += err
-          d.release()
-          dw.release()
-          err.release()
-          grad.release()
-        } else if (i == _lastWlayerIdx) {
-          val (err, grad) = lossFunction(y, fa(i))
-          val d = grad *:* fb(i)
-          val dw = fa(i - 1).t * d
-          _dws(i) += dw
-          ds += i -> d
-          _errSum += err
-          err.release()
-          grad.release()
-          dw.release()
-          derive(i - 1)
-        } else if (i < _lastWlayerIdx && i > 0) {
-          val d1 = ds(i + 1) * _cuWeights(i + 1).t
-          val d2 = d1 *:* fb(i)
-          val dw = fa(i - 1).t * d2
-          _dws(i) += dw
-          ds += i -> d2
-          d1.release()
-          dw.release()
-          derive(i - 1)
-        } else if (i == 0) {
-          val d1 = ds(i + 1) * _cuWeights(i + 1).t
-          val d2 = d1 *:* fb(i)
-          val dw = x.t * d2
-          _dws(i) += dw
-          d1.release()
-          dw.release()
-        }
-      }
-
-      forward(x, 0)
-      derive(_lastWlayerIdx)
-
-      ds.values.foreach(_.release())
-      fa.values.foreach(_.release())
-      fb.values.foreach(_.release())
-
+    @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
+      val p = in * _cuWeights(i)
+      val a = _activators(i)._1(p)
+      val b = _activators(i)._2(p)
+      p.release()
+      fa += i -> a
+      fb += i -> b
+      if (i < _lastWlayerIdx) forward(a, i + 1)
     }
+
+    @tailrec def derive(i: Int): Unit = {
+      if (i == 0 && _lastWlayerIdx == 0) {
+        val (err, grad) = lossFunction(y, fa(i))
+        val d = grad *:* fb(i)
+        val dw = x.t * d
+        dws += i -> dw
+        errSum += err
+        d.release()
+        err.release()
+        grad.release()
+      } else if (i == _lastWlayerIdx) {
+        val (err, grad) = lossFunction(y, fa(i))
+        val d = grad *:* fb(i)
+        val dw = fa(i - 1).t * d
+        dws += i -> dw
+        ds += i -> d
+        errSum += err
+        err.release()
+        grad.release()
+        derive(i - 1)
+      } else if (i < _lastWlayerIdx && i > 0) {
+        val d1 = ds(i + 1) * _cuWeights(i + 1).t
+        val d2 = d1 *:* fb(i)
+        val dw = fa(i - 1).t * d2
+        dws += i -> dw
+        ds += i -> d2
+        d1.release()
+        derive(i - 1)
+      } else if (i == 0) {
+        val d1 = ds(i + 1) * _cuWeights(i + 1).t
+        val d2 = d1 *:* fb(i)
+        val dw = x.t * d2
+        dws += i -> dw
+        d1.release()
+      }
+    }
+
+    forward(x, 0)
+    derive(_lastWlayerIdx)
+
+    ds.values.foreach(_.release())
+    fa.values.foreach(_.release())
+    fb.values.foreach(_.release())
 
     var i = 0
     while (i <= _lastWlayerIdx) {
-      settings.updateRule(_cuWeights(i), _dws(i), stepSize, i)
+      settings.updateRule(_cuWeights(i), dws(i), stepSize, i)
       i += 1
     }
 
-    xsys.foreach { xy =>
-      xy._1.release()
-      xy._2.release()
-    }
+    x.release()
+    y.release()
 
-    _dws.values.foreach(_.release())
+    dws.values.foreach(_.release())
 
-    _errSum.toDense
+    val errSumReduced = (errSum.toDense.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
+    errSum.release()
+
+    errSumReduced
 
   }
 
@@ -297,14 +283,15 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
-  private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Double): Matrix = {
+  private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
 
     require(settings.updateRule.isInstanceOf[Debuggable[Double]])
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys)
-      xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
+      val errSum = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
+      errSumReduced
     }
 
     val out = errorFunc()
@@ -403,8 +390,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
-  private val _forkJoinTaskSupport = new ForkJoinTaskSupport(new ForkJoinPool(settings.parallelism.getOrElse(1)))
-
   private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
     def averagedError(xs: Vectors, ys: Vectors): Double = {
       val errors = xs.map(evaluate).zip(ys).map {
@@ -437,10 +422,12 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
-    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toFloat / batchSize.toFloat).toInt} ...")
+    val xsysBatched = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
+      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
+    }
     GcThreshold.set(this, batchSize * 2)
-    run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
+    run(xsysBatched, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
   }
 
   /**
@@ -465,15 +452,15 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[Seq[(Matrix, Matrix)]], stepSize: Float, sampleSize: Float, precision: Double,
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, sampleSize: Float, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
     val _em = xsys.map { batch =>
-      val (x, y) = (batch.map(_._1), batch.map(_._2))
+      val (x, y) = (batch._1, batch._2)
       val error =
         if (settings.approximation.isDefined)
           adaptWeightsApprox(x, y, stepSize)
         else adaptWeights(x, y, stepSize)
-        debug(s"Batch Error: $error")
+      debug(s"Batch Error: $error")
       error
     }.reduce(_ + _)
     val errorPerS = _em / sampleSize
@@ -512,104 +499,92 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   }
 
   /**
-    * Computes gradient for all weights, adapts their value using gradient descent
-    * and returns the error matrix.
+    * Copies batch to GPU, then computes gradient for all weights,
+    * adapts their value using gradient descent and returns the error matrix.
     */
-  private def adaptWeights(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
+  private def adaptWeights(xs: Matrix, ys: Matrix, stepSize: Float): Matrix = {
 
     import settings.lossFunction
 
-    val cuxs = xs.map(m => CuMatrix.fromDense(m))
-    val cuys = ys.map(m => CuMatrix.fromDense(m))
-    val xsys = cuxs.zip(cuys)
+    val x = CuMatrix.fromDense(xs)
+    val y = CuMatrix.fromDense(ys)
 
-    val _dws = (0 to _lastWlayerIdx).map { i =>
-      i -> CuMatrix.zeros[Float](weights(i).rows, weights(i).cols)
-    }.toMap
+    val errSum = CuMatrix.zeros[Float](xs.rows, _outputDim)
 
-    val _errSum = CuMatrix.zeros[Float](1, _outputDim)
+    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
+    val fb  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
+    val dws = collection.mutable.Map.empty[Int, CuMatrix[Float]]
+    val ds  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
 
-    xsys.foreach { xy =>
-
-      val (x, y) = xy
-      val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
-      val fb  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
-      val ds  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
-
-      @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
-        val p = in * _cuWeights(i)
-        val a = _activators(i)._1(p)
-        val b = _activators(i)._2(p)
-        p.release()
-        fa += i -> a
-        fb += i -> b
-        if (i < _lastWlayerIdx) forward(a, i + 1)
-      }
-
-      @tailrec def derive(i: Int): Unit = {
-        if (i == 0 && _lastWlayerIdx == 0) {
-          val (err, grad) = lossFunction(y, fa(0))
-          val d = grad *:* fb(0)
-          val dw = x.t * d
-          _dws(0) += dw
-          _errSum += err
-          d.release()
-          dw.release()
-          err.release()
-          grad.release()
-        } else if (i == _lastWlayerIdx) {
-          val (err, grad) = lossFunction(y, fa(i))
-          val d = grad *:* fb(i)
-          val dw = fa(i - 1).t * d
-          _dws(i) += dw
-          ds += i -> d
-          _errSum += err
-          err.release()
-          grad.release()
-          dw.release()
-          derive(i - 1)
-        } else if (i < _lastWlayerIdx && i > 0) {
-          val d1 = ds(i + 1) * _cuWeights(i + 1).t
-          val d2 = d1 *:* fb(i)
-          val dw = fa(i - 1).t * d2
-          _dws(i) += dw
-          ds += i -> d2
-          d1.release()
-          dw.release()
-          derive(i - 1)
-        } else if (i == 0) {
-          val d1 = ds(i + 1) * _cuWeights(i + 1).t
-          val d2 = d1 *:* fb(i)
-          val dw = x.t * d2
-          _dws(i) += dw
-          d1.release()
-          dw.release()
-        }
-      }
-
-      forward(x, 0)
-      derive(_lastWlayerIdx)
-
-      ds.values.foreach(_.release())
-      fa.values.foreach(_.release())
-      fb.values.foreach(_.release())
-
+    @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
+      val p = in * _cuWeights(i)
+      val a = _activators(i)._1(p)
+      val b = _activators(i)._2(p)
+      p.release()
+      fa += i -> a
+      fb += i -> b
+      if (i < _lastWlayerIdx) forward(a, i + 1)
     }
+
+    @tailrec def derive(i: Int): Unit = {
+      if (i == 0 && _lastWlayerIdx == 0) {
+        val (err, grad) = lossFunction(y, fa(i))
+        val d = grad *:* fb(i)
+        val dw = x.t * d
+        dws += i -> dw
+        errSum += err
+        d.release()
+        err.release()
+        grad.release()
+      } else if (i == _lastWlayerIdx) {
+        val (err, grad) = lossFunction(y, fa(i))
+        val d = grad *:* fb(i)
+        val dw = fa(i - 1).t * d
+        dws += i -> dw
+        ds += i -> d
+        errSum += err
+        err.release()
+        grad.release()
+        derive(i - 1)
+      } else if (i < _lastWlayerIdx && i > 0) {
+        val d1 = ds(i + 1) * _cuWeights(i + 1).t
+        val d2 = d1 *:* fb(i)
+        val dw = fa(i - 1).t * d2
+        dws += i -> dw
+        ds += i -> d2
+        d1.release()
+        derive(i - 1)
+      } else if (i == 0) {
+        val d1 = ds(i + 1) * _cuWeights(i + 1).t
+        val d2 = d1 *:* fb(i)
+        val dw = x.t * d2
+        dws += i -> dw
+        d1.release()
+      }
+    }
+
+    forward(x, 0)
+    derive(_lastWlayerIdx)
+
+    ds.values.foreach(_.release())
+    fa.values.foreach(_.release())
+    fb.values.foreach(_.release())
 
     var i = 0
     while (i <= _lastWlayerIdx) {
-      settings.updateRule(_cuWeights(i), _dws(i), stepSize, i)
+      settings.updateRule(_cuWeights(i), dws(i), stepSize, i)
       i += 1
     }
 
-    xsys.foreach { xy =>
-      xy._1.release()
-      xy._2.release()
-    }
+    x.release()
+    y.release()
 
-    _dws.values.foreach(_.release())
+    dws.values.foreach(_.release())
 
-    _errSum.toDense
+    val errSumReduced = (errSum.toDense.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
+    errSum.release()
+
+    errSumReduced
 
   }
 
@@ -620,14 +595,15 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
-  private def adaptWeightsApprox(xs: Matrices, ys: Matrices, stepSize: Float): Matrix = {
+  private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Float): Matrix = {
 
     require(settings.updateRule.isInstanceOf[Debuggable[Float]])
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def errorFunc(): Matrix = {
-      val xsys = xs.zip(ys)
-      xsys.map { case (x, y) => settings.lossFunction(y, flow(x, _lastWlayerIdx))._1 }.reduce(_ + _)
+      val errSum = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val errSumReduced = (errSum.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
+      errSumReduced
     }
 
     val out = errorFunc()

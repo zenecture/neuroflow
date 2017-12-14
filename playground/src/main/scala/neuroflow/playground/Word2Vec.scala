@@ -74,6 +74,7 @@ object Word2Vec {
         Focus(Dense(20, Linear))   ::
         Output(dim, Sigmoid)       :: HNil,
         Settings[Double](
+          lossFunction    = SquaredMeanError(),
           learningRate    = { case (_, _) => 1E-4 },
           updateRule      = Momentum(0.9),
           iterations      = 10000,

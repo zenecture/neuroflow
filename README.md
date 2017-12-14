@@ -16,8 +16,8 @@ To use NeuroFlow within your project, add these dependencies (Scala Version 2.12
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.3.4",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.3.4"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.3.5",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.3.5"
 )
 ```
 
@@ -73,17 +73,15 @@ val fullies    =
 val deeperNet = Network(
   bottleNeck ::: fullies, 
   Settings[Double](
-    lossFunction = SquaredMeanError(), precision = 1E-5, iterations = 250, 
-    learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 },
-    regularization = Some(KeepBest), batchSize = Some(8), parallelism = Some(8)
+    lossFunction = SquaredMeanError(), updateRule = Vanilla(), batchSize = Some(8), iterations = 250,
+    learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 }, precision = 1E-5
   )
 )
 ```
 
 The learning rate is a partial function from current iteration and learning rate to new learning rate for gradient descent. The `lossFunction` computes loss and gradient, 
-which will be backpropped into the raw output layer of a net. The `batchSize` defines how many samples are presented per weight update and `parallelism` sets the thread pool size, 
-since a batch can be processed in parallel on the CPU. Another important aspect is the numerical type of the net, which is set by explicitly annotating
-the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`. 
+which will be backpropped into the raw output layer of a net. The `batchSize` defines how many samples are presented per weight update. The `updateRule` defines how weights are updated for gradient descent.
+Another important aspect is the numerical type of the net, which is set by explicitly annotating the type `Double` on the settings instance. For instance, on the GPU, you might want to work with `Float` instead of `Double`.
 
 Have a look at the `Settings` class for the complete list of options.
 
@@ -157,7 +155,7 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # Using GPU
 
-If your graphics card supports <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU.
+If your graphics card supports <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, which is recommended for nets with millions of weights. 
 
 To enable the GPU for NeuroFlow, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
 
