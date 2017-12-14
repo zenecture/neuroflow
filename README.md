@@ -240,9 +240,9 @@ object Executor extends App {
 
 The `Executor`, a single node, loads the local data source, boots the networking subsystem and listens for incoming jobs.
 
-# Saving and Loading
+# Saving, Loading a Model
 
-Using `neuroflow.application.plugin.IO`, we can save and load the weights of a network represented as a JSON string. Look at this:
+With `neuroflow.application.plugin.IO`, we can save and load the weights of a network represented as a JSON string. Look at this:
 
 ```scala
 val file = "/path/to/net.nf"
@@ -252,6 +252,6 @@ val net = Network(layers)
 IO.File.write(net.weights, file)
 ```
 
-Here, `IO.File.read` will yield an implicit `WeightProvider` from file to construct a net.
+Here, `IO.File.read` yields an implicit `WeightProvider` from file to construct a net.
 After training is done, the weights can be saved back with `IO.File.write`. If the desired target is a database, 
 you could use `IO.Json.write` to retrieve a raw JSON string and then fire a SQL query with it.
