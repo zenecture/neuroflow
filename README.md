@@ -10,7 +10,7 @@ There are three modules:
 - application: plugins, helpers, functionality related to various applications
 - playground: examples with resources
 
-To use NeuroFlow within your project, add these dependencies (Scala Version 2.12.x, oss.sonatype.org):
+To use NeuroFlow, add these dependencies (Scala Version 2.12.x, oss.sonatype.org) in your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
@@ -107,12 +107,13 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 
 net.train(xs, ys)
 ```
-And then we can `train` our `net`. For our XOR-feed-forward net, the loss function is defined as follows:
+And then we can `train` our `net`. The `SquaredMeanError` loss function is defined as follows:
 
     L(W) = Σ1/2(t - net(x))²
 
 Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
-the square `²` gives a convex functional form, which is convenient for gradient descent.
+the square `²` gives a convex functional form, because -1 + 1 = 0, and we don't want that. For 1-of-K classification, 
+there is also the `Softmax` loss function, but here we treat the XOR-adder as a regression challenge.
 
 The training progress will appear on console so we can track it. 
 If you want to visualize the loss function, you can pipe the values to a `file` like this:
