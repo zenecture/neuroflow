@@ -138,9 +138,9 @@ gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph3.png" width=448 height=321 />
 
-If you want to be more flexible, e.g. piping the loss over the wire to a real-time dashboard, 
-you can provide a function closure `action` of type `Double => Unit` which gets executed in the background after each training epoch, 
-using the respective loss as input.
+If you want to be more flexible, e.g. piping the loss over the wire to a real-time dashboard, you can provide function `action` of 
+type `Double => Unit` which gets executed in the background after each training epoch, using the respective loss as input. Melting loss 
+curves drawn on huge monitors are beautiful. 
 
 After work is done, the trained net can be evaluated like a regular function:
 
