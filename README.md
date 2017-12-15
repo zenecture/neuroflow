@@ -93,7 +93,7 @@ We want to map from a two-dimensional vector `x` to a one-dimensional vector `y`
 There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
 so we can check whether our net can capture this non-linearity.
 
-In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a> vectors and matrices (`DenseMatrix[V]`, `DenseVector[V]`). 
+In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, especially with `DenseVector[V]` and `DenseMatrix[V]`. 
 To define the training data we use the built-in vector notation:
 
 ```scala
@@ -112,8 +112,8 @@ And then we can `train` our `net`. The `SquaredMeanError` loss function is defin
     L(W) = Σ1/2(t - net(x))²
 
 Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
-the square `²` gives a convex functional form, because -1 + 1 = 0, and we don't want that. For 1-of-K classification, 
-there is also the `Softmax` loss function, but here we treat the XOR-adder as a regression challenge.
+the square `²` gives a convex functional form. For 1-of-K classification, there is also the `Softmax` loss function, 
+but here we treat the XOR-adder as a regression challenge.
 
 The training progress will appear on console so we can track it. 
 If you want to visualize the loss function, you can pipe the values to a `file` like this:
