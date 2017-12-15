@@ -93,7 +93,7 @@ We want to map from a two-dimensional vector `x` to a one-dimensional vector `y`
 There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
 so we can check whether our net can capture this non-linearity.
 
-In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, especially with `DenseVector[V]` and `DenseMatrix[V]`. 
+In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`. 
 To define the training data we use the built-in vector notation:
 
 ```scala
@@ -147,7 +147,7 @@ After work is done, the trained net can be evaluated like a regular function:
 ```scala
 val x = ->(0.0, 1.0)
 val result = net(x)
-// result: Vector(0.980237270455592)
+// result: DenseVector(0.980237270455592)
 ```
 
 The resulting vector has dimension = 1, as specified for the XOR-example.
