@@ -35,7 +35,7 @@ object DigitRecognition {
 
   def apply = {
 
-    val config = (0 to 2).map(_ -> (0.0001, 0.0001)) :+ 3 -> (0.1, 0.1)
+    val config = (0 to 2).map(_ -> (0.01, 0.01)) :+ 3 -> (0.1, 0.1)
     implicit val wp = neuroflow.core.WeightProvider.FFN[Float].normal(config.toMap)
 
     val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/").toVector)
@@ -48,7 +48,7 @@ object DigitRecognition {
       val fn = ReLU
 
       val settings = Settings(
-        learningRate = { case (_, _) => 1E-50 },
+        learningRate = { case (_, _) => 1E-5 },
         updateRule = Momentum(0.8f),
         lossFunction = Softmax(),
         precision = 1E-4,
@@ -57,7 +57,7 @@ object DigitRecognition {
 
       val net = Network(
            Input(xs.head.size)   ::
-           Dense(160000, fn)        ::
+           Dense(400, fn)        ::
            Dense(200, fn)        ::
            Dense(50, fn)         ::
            Output(10, fn)        ::  HNil, settings)
