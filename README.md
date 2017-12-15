@@ -2,15 +2,13 @@
 
 NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
 
-# Introduction
+# Getting Started
 
 There are three modules:
 
 - core: the building blocks to create neural network architectures
 - application: plugins, helpers, functionality related to various applications
 - playground: examples with resources
-    
-# Getting Started
 
 To use NeuroFlow within your project, add these dependencies (Scala Version 2.12.x, oss.sonatype.org):
 
