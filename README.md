@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/logo.png" width=471 height=126 />
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/newlogo.png" width=480 height=132 />
 
 NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
 
