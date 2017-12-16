@@ -5,7 +5,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
-import neuroflow.nets.cpu.DenseNetwork.double
+import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
 
@@ -34,8 +34,7 @@ object AgeEarnings {
 
     val train = src.take(2000)
     //val test = src.drop(1000)
-    val sets = Settings[Double](learningRate = { case (_, _) => 1E-2 }, precision = 0.001, iterations = 10000,
-      regularization = None, approximation = None, specifics = None)
+    val sets = Settings[Double](learningRate = { case (_, _) => 1E-2 }, precision = 1E-3, iterations = 10000)
 
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
