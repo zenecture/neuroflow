@@ -36,12 +36,15 @@ object XOR {
     }
 
     val fn = Sigmoid
+
     val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
+
     val settings = Settings[Double](
       learningRate = { case (_, _) => 1.0 },
       iterations = 10000,
-      lossFuncOutput = None) //Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
+      lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
+
     val net = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
     net.train(xs, ys)
 
