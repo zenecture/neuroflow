@@ -78,7 +78,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
   def apply(xs: Vectors): Vectors = {
     val in = xs.map(x => x.asDenseMatrix)
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
-    ~> (reset) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toDenseVector))
+    ~> (reset()) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toDenseVector))
   }
 
   /**
