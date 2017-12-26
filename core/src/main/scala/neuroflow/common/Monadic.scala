@@ -1,5 +1,7 @@
 package neuroflow.common
 
+import scala.language.implicitConversions
+
 /**
   * @author bogdanski
   * @since 09.01.16

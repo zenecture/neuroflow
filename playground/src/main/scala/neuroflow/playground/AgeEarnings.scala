@@ -29,7 +29,7 @@ object AgeEarnings {
   def apply = {
 
     val src = scala.io.Source.fromFile(getResourceFile("file/income.txt")).getLines.map(_.split(",")).flatMap(k => {
-      (if (k.size > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
+      (if (k.length > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
     }).toArray
 
     val train = src.take(2000)
@@ -46,8 +46,8 @@ object AgeEarnings {
     network.train(xs, ys)
 
     val allOver = src.filter(_._2 == 1.0)
-    val ratio = allOver.size / src.size
-    val mean = allOver.map(_._1).sum / allOver.size
+    val ratio = allOver.length / src.length
+    val mean = allOver.map(_._1).sum / allOver.length
 
     println(s"Mean of all $mean")
     println(s"Ratio $ratio")

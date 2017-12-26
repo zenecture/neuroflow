@@ -56,7 +56,7 @@ object DigitRecognition {
         regularization = Some(KeepBest))
 
       val net = Network(
-           Input(xs.head.size)   ::
+           Input(xs.head.length)   ::
            Dense(400, fn)        ::
            Dense(200, fn)        ::
            Dense(50, fn)         ::

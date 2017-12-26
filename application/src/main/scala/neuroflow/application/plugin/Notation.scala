@@ -6,6 +6,7 @@ import breeze.linalg.DenseVector
 import breeze.storage.Zero
 import neuroflow.core.{CanProduce, Network}
 
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 /**

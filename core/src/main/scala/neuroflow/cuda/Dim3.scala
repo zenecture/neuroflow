@@ -1,5 +1,7 @@
 package neuroflow.cuda
 
+import scala.language.implicitConversions
+
 /**
   * @author dlwh
   **/
