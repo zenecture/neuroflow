@@ -81,9 +81,9 @@ trait Constructor[V, +T <: Network[_, _, _]] {
   */
 case class Settings[V]
                    (verbose           :  Boolean                      =  true,
-                    lossFunction      :  Loss[V]                      =  SquaredMeanError[V],
+                    lossFunction      :  Loss[V]                      =  SquaredMeanError[V](),
                     learningRate      :  Learning                     =  { case (_, _) => 1E-4 },
-                    updateRule        :  Update[V]                    =  Vanilla[V],
+                    updateRule        :  Update[V]                    =  Vanilla[V](),
                     precision         :  Double                       =  1E-5,
                     iterations        :  Int                          =  100,
                     prettyPrint       :  Boolean                      =  true,
