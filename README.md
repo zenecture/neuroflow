@@ -82,7 +82,7 @@ how many samples are presented per weight update. The `learningRate` is a partia
 satisfies `precision`. 
 
 Another important aspect is the numerical type of the net, which is set by explicitly annotating `Double` on the settings instance.  For instance, on the GPU, you might want to work 
-with `Float` instead of `Double`. Have a look at the `Settings` class for the complete list of options.
+with `Float` instead. Have a look at the `Settings` class for the complete list of options.
 
 Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
 If a network doesn't follow this rule, it won't compile.
@@ -154,8 +154,9 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 # Using GPU
 
-If your graphics card supports nVidia's <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, which is recommended for large nets with millions of weights.
-On the contrary, smaller nets are faster to train on CPU, because while NeuroFlow is busy copying batches between host and GPU, CPU is already done. 
+If your graphics card supports nVidia's <a href="https://developer.nvidia.com/cuda-gpus">CUDA</a> (Compute Capability >= 3.0), you can train nets on the GPU, 
+which is recommended for large nets with millions of weights and samples. On the contrary, smaller nets are faster to train on CPU, because while NeuroFlow 
+is busy copying batches between host and GPU, CPU is already done. 
 
 To enable the GPU for NeuroFlow, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
 
