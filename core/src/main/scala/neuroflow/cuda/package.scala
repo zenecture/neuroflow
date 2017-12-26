@@ -8,6 +8,7 @@ import jcuda.runtime.{JCuda, cudaStream_t}
 import neuroflow.common.Logs
 import org.bridj.{Pointer, PointerIO}
 
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 /**
