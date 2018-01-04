@@ -28,9 +28,9 @@ object AgeEarnings {
 
   def apply = {
 
-    val src = scala.io.Source.fromFile(getResourceFile("file/income.txt")).getLines.map(_.split(",")).flatMap(k => {
+    val src = scala.io.Source.fromFile(getResourceFile("file/income.txt")).getLines.map(_.split(",")).flatMap { k =>
       (if (k.length > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
-    }).toArray
+    }.toArray
 
     val train = src.take(2000)
     //val test = src.drop(1000)
