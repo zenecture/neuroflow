@@ -51,7 +51,7 @@ object DigitRecognition {
         learningRate = { case (_, _) => 1E-5 },
         updateRule = Momentum(0.8f),
         lossFunction = Softmax(),
-        precision = 1E-4,
+        precision = 1E-3,
         iterations = 15000,
         regularization = Some(KeepBest))
 
