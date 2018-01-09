@@ -24,7 +24,7 @@ If you are new to Neural Nets, you can read about the core principles here:
   - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
   
 Seeing code examples is also a good way to get started. You may have a look at the playground for some basic inspiration.
-If you want to use neural nets in your project, you can expect a journey full of fun and experiments. 
+If you want to use Neural Nets in your project, you can expect a journey full of fun and experiments. 
 
 # Construction of a Net  
 
@@ -240,7 +240,7 @@ object Executor extends App {
 
 The `Executor`, a single node, loads the local data source, boots the networking subsystem and listens for incoming jobs.
 
-# Saving, Loading a Model
+# Load and Save a Model
 
 With `neuroflow.application.plugin.IO`, we can save and load the weights of a network represented as a JSON string. Look at this:
 
