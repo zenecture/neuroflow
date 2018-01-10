@@ -117,7 +117,7 @@ but here we treat the XOR-adder as a regression challenge.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
 
-<small><em>Example: Derivative for w<sub>8</sub></small>
+<small><em>Example: Derivative for w<sub>8</sub></em></small>
 
 The training progress will appear on console so we can track it. 
 If you want to visualize the loss function, you can pipe the values to a `file` like this:
