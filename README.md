@@ -112,10 +112,12 @@ And then we can `train` our `net`. The `SquaredMeanError` loss function is defin
     L(W) = Σ1/2(t - net(x))²
 
 Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
-the square `²` gives a convex functional form. For 1-of-K classification, there is also the `Softmax` loss function, 
+the square `²` gives a convex functional form. For 1-of-K classification, there is also the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`Softmax`</a> loss function, 
 but here we treat the XOR-adder as a regression challenge.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
+
+<small><em>Example: Derivative for w<sub>8</sub></small>
 
 The training progress will appear on console so we can track it. 
 If you want to visualize the loss function, you can pipe the values to a `file` like this:
