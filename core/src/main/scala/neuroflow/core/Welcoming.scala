@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.3.5
+      |            Version : 1.3.6
       |
       |            Network : $identifier
       |               Loss : ${self.settings.lossFunction.getClass.getCanonicalName}
