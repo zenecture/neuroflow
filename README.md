@@ -246,12 +246,12 @@ The `Executor`, a single node, loads the local data source, boots the networking
 
 # Load and Save a Model
 
-With `neuroflow.application.plugin.IO`, we can save and load the weights of a network represented as a JSON string. Look at this:
+With `neuroflow.application.plugin.IO`, you can save and load the weights of a network using JSON format.
 
 ```scala
 val file = "/path/to/net.nf"
 implicit val weightProvider = IO.File.readDouble(file)
-val net = Network(layers)
+val net = Network(layers, settings)
 // training ...
 IO.File.write(net.weights, file)
 ```
