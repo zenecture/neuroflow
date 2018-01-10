@@ -50,9 +50,9 @@ object Trending {
     val realWorld = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i + (Math.sin(100 * i) / 3) * Random.nextDouble)) // Real world data
     val random = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, Random.nextDouble)) // Random
 
-    val fn = Sigmoid
+    val f = Sigmoid
     val settings = Settings[Double](learningRate = { case (_, _) => 0.5 }, precision = 1E-4, iterations = 10000)
-    val net = Network(Input(trend.size) :: Dense(25, fn) :: Output(1, fn) :: HNil, settings)
+    val net = Network(Input(trend.size) :: Dense(25, f) :: Output(1, f) :: HNil, settings)
 
     import Notation.Implicits.seqToVector
 
