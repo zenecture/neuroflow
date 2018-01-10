@@ -115,6 +115,8 @@ Where `W` are the weights, `t` is the target and `net(x)` the prediction. The su
 the square `²` gives a convex functional form. For 1-of-K classification, there is also the `Softmax` loss function, 
 but here we treat the XOR-adder as a regression challenge.
 
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
+
 The training progress will appear on console so we can track it. 
 If you want to visualize the loss function, you can pipe the values to a `file` like this:
 
