@@ -95,7 +95,7 @@ There are many functions out there of this kind; here we use the XOR-Function. I
 so we can check whether our net can capture this non-linearity.
 
 In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
-Let us define training data with the built-in vector notation:
+Let's define the XOR training data using in-line vector notation:
 
 ```scala
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
@@ -108,7 +108,7 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 
 net.train(xs, ys)
 ```
-And then we can `train` our `net`. The `SquaredMeanError` loss function is defined as follows:
+And then we `train` our `net`. The `SquaredMeanError` loss function is defined as follows:
 
     L(W) = Σ1/2(t - net(x))²
 
