@@ -146,8 +146,8 @@ gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 To be more flexible, we can provide function `action` of type `Double => Unit` which gets executed in the background 
 after each training step, using the respective loss as input. One example is sending the loss to a real-time TV dashboard.
 
-It is a good idea to make use of a `Waypoint[V]` for long sessions, since they can be difficult, e. g. running on not always stable cloud instances, or to backup expensive iterations.
-Every `nth` steps, the specified function is executed, receiving as input the iteration count and a snapshot of the weights.
+It is a good idea to make use of a `Waypoint[V]` for long running sessions, as difficulties can arise, e. g. running on not always stable cloud instances, 
+or just to backup expensive iterations. Every `nth` step, the waypoint function is executed, receiving as input the iteration count and a snapshot of the weights.
 
 # Evaluation
 
