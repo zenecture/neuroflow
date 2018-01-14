@@ -122,7 +122,9 @@ but here we treat the XOR-adder as a regression challenge.
 
 The training progress is printed on console so we can track it.
 
-Here is a `Settings` recommendation for running long sessions in a safe way.
+### Recommendation
+
+Here is a `Settings` recommendation for running long sessions in a convenient way.
 
 ```scala
   Settings(
