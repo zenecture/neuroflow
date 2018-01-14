@@ -94,8 +94,8 @@ We want to map from a two-dimensional vector `x` to a one-dimensional vector `y`
 There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
 so we can check whether our net can capture this non-linearity.
 
-In NeuroFlow, you work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`. 
-To define the training data we use the built-in vector notation:
+In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
+Let us define training data with the built-in vector notation:
 
 ```scala
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
@@ -167,7 +167,7 @@ If your graphics card supports nVidia's <a href="https://developer.nvidia.com/cu
 which is recommended for large nets with millions of weights and samples. On the contrary, smaller nets are faster to train on CPU, because while NeuroFlow 
 is busy copying batches between host and GPU, CPU is already done. 
 
-To enable the GPU for NeuroFlow, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
+To enable the GPU, you have to install the CUDA driver and toolkit (0.8.x). Example for Linux (Ubuntu 16.04):
 
 ```bash
 curl -O http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
