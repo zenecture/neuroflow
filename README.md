@@ -25,7 +25,7 @@ If you are new to Neural Nets, you can read about the core principles here:
   
 Seeing code examples is also a good way to get started. You may have a look at the playground for some basic inspiration.
 
-Neural Nets bring a lot of joy in your project, a journey full of fun and experiments. 
+Neural Nets bring a lot of joy into your project, a journey full of fun and experiments. 
 
 # Construction of a Net  
 
