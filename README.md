@@ -120,20 +120,27 @@ but here we treat the XOR-adder as a regression challenge.
 
 <small><em>Example: Derivative for w<sub>8</sub></em></small>
 
+# Monitoring
+
 The training progress is printed on console so we can track it.
 
-### Recommendation
-
-Here is a `Settings` recommendation for running long sessions in a convenient way.
-
-```scala
-  Settings(
-    lossFuncOutput = Some(LossFuncOutput(file = Some("~/NF/lossFunc.txt"), action = Some(loss => sendToDashboard(loss)))),
-    waypoint       = Some(Waypoint(nth = 3, (iter, weights) => IO.File.write(weights, s"weights-iter-$iter.nf")))
-  )
+```bash
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:188] Training with 4 samples, batch size = 4, batches = 1 ...
+Jan 14, 2018 10:26:56 PM com.github.fommil.jni.JniLoader liberalLoad
+INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader2454297714774289518netlib-native_system-osx-x86_64.jnilib
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:351] Iteration 1 - Loss 0,125310 - Loss Vector 0.12531045271250746  
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:387] Iteration 2 - Loss 0,125220 - Loss Vector 0.1252200280272876  
+...
 ```
 
-To visualize the loss function, we can append the loss of a training step to `file` with `LossFuncOutput`.
+To visualize the loss function, we can append the total loss per iteration to `file` with `LossFuncOutput`.
+
+```scala
+Settings(
+  lossFuncOutput = Some(LossFuncOutput(file = Some("~/NF/lossFunc.txt"), action = Some(loss => sendToDashboard(loss))))
+)
+```
+
 Now we can use beloved gnuplot:
 
 ```bash
@@ -143,11 +150,17 @@ gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph3.png" width=448 height=321 />
 
-To be more flexible, we can provide function `action` of type `Double => Unit` which gets executed in the background 
-after each training step, using the respective loss as input. One example is sending the loss to a real-time TV dashboard.
 
-It is a good idea to make use of a `Waypoint[V]` for long running sessions, as difficulties can arise, e. g. running on not always stable cloud instances, 
-or just to backup expensive iterations. Every `nth` step, the waypoint function is executed, receiving as input the iteration count and a snapshot of the weights.
+To be more flexible, we can provide function `action` of type `Double => Unit` which gets executed in the background 
+after each iteration, using the respective loss as input. One example is sending the loss to a real-time TV dashboard.
+
+### JVM args
+
+````bash
+-Dorg.slf4j.simpleLogger.defaultLogLevel=info # or: debug
+-J-XX:+UseG1GC # recommended for CUDA 
+-J-Xmx24G # example to increase heap size
+````
 
 # Evaluation
 
@@ -206,3 +219,14 @@ IO.File.write(net.weights, file)
 The implicit `WeightProvider[Double]` to construct `net` comes from `IO.File.readDouble`.
 To save the weights back to `file`, we use `IO.File.write`. To write into a database instead, 
 we can use `IO.Json.write` to retrieve a raw JSON string and fire a SQL query with it.
+
+### Waypoints
+
+```scala
+Settings(
+  waypoint = Some(Waypoint(nth = 3, (iter, weights) => IO.File.write(weights, s"weights-iter-$iter.nf")))
+)
+```
+
+It is a good idea to make use of a `Waypoint[V]` for long running sessions. For instance, when the cloud instance got killed for mysterious reasons, it is wise to have a backup of the weights.
+Using a waypoint, we can define important milestones and execute logic when reached. Every `nth` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights.
