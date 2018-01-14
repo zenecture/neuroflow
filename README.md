@@ -128,8 +128,8 @@ The training progress is printed on console so we can track it.
 [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:188] Training with 4 samples, batch size = 4, batches = 1 ...
 Jan 14, 2018 10:26:56 PM com.github.fommil.jni.JniLoader liberalLoad
 INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader2454297714774289518netlib-native_system-osx-x86_64.jnilib
-[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:351] Iteration 1 - Loss 0,125310 - Loss Vector 0.12531045271250746  
-[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:387] Iteration 2 - Loss 0,125220 - Loss Vector 0.1252200280272876  
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:351] Iteration 1 - Loss 0,525310 - Loss Vector 0.52531045271250746  
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:387] Iteration 2 - Loss 0,525220 - Loss Vector 0.5252200280272876  
 ...
 ```
 
@@ -154,7 +154,7 @@ gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 To be more flexible, we can provide function `action` of type `Double => Unit` which gets executed in the background 
 after each iteration, using the respective loss as input. One example is sending the loss to a real-time TV dashboard.
 
-### JVM args
+### Useful JVM args
 
 ````bash
 -Dorg.slf4j.simpleLogger.defaultLogLevel=info # or: debug
