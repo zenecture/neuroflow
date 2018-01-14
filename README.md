@@ -24,7 +24,8 @@ If you are new to Neural Nets, you can read about the core principles here:
   - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
   
 Seeing code examples is also a good way to get started. You may have a look at the playground for some basic inspiration.
-If you want to use Neural Nets in your project, you can expect a journey full of fun and experiments. 
+
+Neural Nets bring a lot of joy in your project, a journey full of fun and experiments. 
 
 # Construction of a Net  
 
@@ -119,21 +120,19 @@ but here we treat the XOR-adder as a regression challenge.
 
 <small><em>Example: Derivative for w<sub>8</sub></em></small>
 
-The training progress will appear on console so we can track it. 
-If you want to visualize the loss function, you can pipe the values to a `file` like this:
+The training progress is printed on console so we can track it.
+
+Here is a `Settings` recommendation for running long sessions in a safe way.
 
 ```scala
   Settings(
-    lossFuncOutput = Some(
-      LossFuncOutput(
-        file = Some("~/NF/lossFunc.txt"), 
-        action = Some(loss => sendToDashboard(loss))
-      )
-    )
+    lossFuncOutput = Some(LossFuncOutput(file = Some("~/NF/lossFunc.txt"), action = Some(loss => sendToDashboard(loss)))),
+    waypoint       = Some(Waypoint(nth = 3, (iter, weights) => IO.File.write(weights, s"weights-iter-$iter.nf")))
   )
 ```
 
-This way we can use beloved gnuplot to plot the loss during training:
+To visualize the loss function, we can append the loss of a training step to `file` with `LossFuncOutput`.
+Now we can use beloved gnuplot:
 
 ```bash
 gnuplot> set style line 1 lc rgb '#0060ad' lt 1 lw 1 pt 7 ps 0.5 
@@ -142,11 +141,15 @@ gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph3.png" width=448 height=321 />
 
-If you want to be more flexible, e.g. piping the loss over the wire to a real-time dashboard, you can provide function `action` of 
-type `Double => Unit` which gets executed in the background after each training epoch, using the respective loss as input. Melting loss 
-curves drawn on huge monitors are beautiful. 
+To be more flexible, we can provide function `action` of type `Double => Unit` which gets executed in the background 
+after each training step, using the respective loss as input. One example is sending the loss to a real-time TV dashboard.
 
-After work is done, the trained net can be evaluated like a regular function:
+It is a good idea to make use of a `Waypoint[V]` for long sessions, since they can be difficult, e. g. running on not always stable cloud instances, or to backup expensive iterations.
+Every `nth` steps, the specified function is executed, receiving as input the iteration count and a snapshot of the weights.
+
+# Evaluation
+
+When training is done, the net can be evaluated like a regular function:
 
 ```scala
 val x = ->(0.0, 1.0)
@@ -186,67 +189,9 @@ Then, you can import a GPU implementation for your model:
 import neuroflow.nets.gpu.DenseNetwork._
 ```
 
-# Distributed Training
+# Persistence
 
-Let's consider this fully connected FFN:
-
-    Layout: [1200 In, 210 Dense (R), 210 Dense (R), 210 Dense (R), 1200 Out (R)]
-    Number of Weights: 592.200 (≈ 4,51813 MB)
-
-On the JVM, a `Double` takes 8 bytes, meaning the derivative of this network requires roughly 4,5 MB per sample. Training with,
-let's say, 1 million samples would require ≈ 4,5 TB of RAM for vanilla gradient descent. Luckily, the loss function `Σ1/2(t - net(x))²` 
-is parallelizable with respect to the sum operator. So, if a single machine offering this amount of memory is not available, 
-we can spread the load across several machines instead of batching it.  
-
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/distributedtraining.png" width=800 height=555 />
-
-Distributed gradient descent broadcasts the respective weight updates between the training epochs to all nodes. 
-In our example, the overhead is 2*4,5=9 MB network traffic per node and iteration, while gaining computational parallelism
-
-<em>However, note that on-line or mini-batch training can have much faster convergence (depending on the level of redundancy within the data) 
-than a full distributed batch, even when using several machines.</em>
-
-```scala
-import neuroflow.nets.distributed.DenseNetwork._
-
-object Coordinator extends App {
-
-  val nodes = Set(Node("localhost", 2553) /* ... */)
-
-  def coordinator = {
-    val f = ReLU
-    val net =
-      Network(
-        Input (1200) :: Dense(210, f) :: Dense(210, f) :: Dense(210, f) :: Output(1200, f) :: HNil,
-        Settings[Double](
-          coordinator  = Node("localhost", 2552),
-          transport    = Transport(messageGroupSize = 100000, frameSize = "128 MiB")
-        )
-      )
-    net.train(nodes)
-  }
-
-}
-```
-
-The network is defined in the `Coordinator`. The `train` method will trigger training for all `nodes`. 
-
-```scala
-import neuroflow.nets.distributed.DenseExecutor
-
-object Executor extends App {
-
-  val (xs, ys) =  (???, ???) // Local Training Data
-  DenseExecutor(Node("localhost", 2553), xs, ys)
-
-}
-```
-
-The `Executor`, a single node, loads the local data source, boots the networking subsystem and listens for incoming jobs.
-
-# Load and Save a Model
-
-With `neuroflow.application.plugin.IO`, you can save and load the weights of a network using JSON format.
+With `neuroflow.application.plugin.IO`, we can save and load the weights of a network. The weights are encoded in JSON format.
 
 ```scala
 val file = "/path/to/net.nf"
@@ -256,6 +201,6 @@ val net = Network(layers, settings)
 IO.File.write(net.weights, file)
 ```
 
-Here, `IO.File.read` yields an implicit `WeightProvider` from file to construct a net.
-After training is done, the weights can be saved back with `IO.File.write`. If the desired target is a database, 
-you could use `IO.Json.write` to retrieve a raw JSON string and then fire a SQL query with it.
+The implicit `WeightProvider[Double]` to construct `net` comes from `IO.File.readDouble`.
+To save the weights back to `file`, we use `IO.File.write`. To write into a database instead, 
+we can use `IO.Json.write` to retrieve a raw JSON string and fire a SQL query with it.
