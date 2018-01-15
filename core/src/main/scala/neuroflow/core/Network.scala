@@ -163,7 +163,7 @@ trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
 }
 
 
-trait CNN[V] extends Network[V, Matrices[V], Vector[V]] {
+trait CNN[V] extends Network[V, Matrix[V], Vector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -173,7 +173,7 @@ trait CNN[V] extends Network[V, Matrices[V], Vector[V]] {
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Seq[Matrices[V]], ys: Vectors[V]): Unit
+  def train(xs: Matrices[V], ys: Vectors[V]): Unit
 
 }
 
@@ -210,7 +210,7 @@ trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraini
 }
 
 
-trait DistCNN[V] extends Network[V, Matrices[V], Vector[V]] with DistributedTraining {
+trait DistCNN[V] extends Network[V, Matrix[V], Vector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
