@@ -13,7 +13,7 @@ import scala.util.Random
   * @author bogdanski
   * @since 03.01.16
   */
-object Trending {
+object TrendDetection {
 
   /*
 
@@ -33,8 +33,8 @@ object Trending {
     def noise = if (Random.nextDouble > 0.5) 0.0625 else -0.0625
 
     // Training
-    val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i)).toVector
-    val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.3)).toVector
+    val trend = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, i))
+    val flat = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, 0.3))
 
     // Testing
     val trendTest = Range.Double(0.0, 1.0, 0.01).flatMap(i => Seq(i, (1 + Random.nextDouble) * i)) // Linear trend with noise on slope
@@ -56,7 +56,7 @@ object Trending {
 
     import Notation.Implicits.seqToVector
 
-    net.train(Seq(trend.dv, flat.dv), Seq(->(1.0), ->(0.0)))
+    net.train(Seq(trend, flat), Seq(->(1.0), ->(0.0)))
 
     println(s"Weights: ${net.weights.map(_.size).sum}")
 
