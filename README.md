@@ -47,7 +47,7 @@ val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
 ```
 
 This gives a fully connected `DenseNetwork`, which is initialized with random weights in range (-1, 1) by `WeightProvider`.
-Further, we have pre-defined activators, so we can place a `Sigmoid` on the layers.
+Further, we have pre-defined activators, so we can place a softly firing `Sigmoid` on the cells.
 
 In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
 They give type-safety and a humble ability to compose groups of layers. For instance, a little deeper net, with some 
