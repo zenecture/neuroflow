@@ -80,12 +80,12 @@ class ConvNetworkNumTest  extends Specification {
     val netA = Network(layout, settings.copy(updateRule = debuggableA))
     val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
-    val m = DenseMatrix.rand[Double](dim._2, dim._1)
+    val m = DenseMatrix.rand[Double](dim._3, dim._2 * dim._1)
     val n = DenseVector.zeros[Double](out)
     n.update(0, 1.0)
 
-    val xs = Seq((1 to dim._3).map(_ => m))
-    val ys = Seq(n)
+    val xs = Seq(m, m)
+    val ys = Seq(n, n)
 
     netA.train(xs, ys)
     netB.train(xs, ys)

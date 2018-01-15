@@ -11,7 +11,6 @@ import neuroflow.common.Logs
 import neuroflow.core.Network
 
 import scala.io.Source
-import scala.util.Try
 
 /**
   * @author bogdanski
@@ -19,6 +18,7 @@ import scala.util.Try
   */
 object Image extends Logs {
 
+  type Matrix   = Network.Matrix[Double]
   type Matrices = Network.Matrices[Double]
   type Vector   = Network.Vector[Double]
 
@@ -44,47 +44,32 @@ object Image extends Logs {
 
 
   /**
-    * Loads image from `url`, `path` or `file` and returns a 3d rgb-volume,
-    * where color channel values are normalized to be <= 1.0.
-    * Optionally, a `dimension` can be enforced through zero-padding and cut-off.
+    * Loads image from `url`, `path` or `file` and returns a matrix,
+    * where image is linearized using column major into a full row per color channel.
+    * rgb values are scaled from [0, 255] to [0.0, 1.0].
     */
 
-  def extractRgb3d(url: URL, dimension: Option[(Int, Int)]): Matrices =
-    extractRgb3d(ImageIO.read(url), dimension)
+  def extractRgb3d(url: URL): Matrix = extractRgb3d(ImageIO.read(url))
 
-  def extractRgb3d(path: String, dimension: Option[(Int, Int)]): Matrices =
-    extractRgb3d(new File(path), dimension)
+  def extractRgb3d(path: String): Matrix = extractRgb3d(new File(path))
 
-  def extractRgb3d(file: File, dimension: Option[(Int, Int)]): Matrices =
-    extractRgb3d(ImageIO.read(file), dimension)
+  def extractRgb3d(file: File): Matrix = extractRgb3d(ImageIO.read(file))
 
-  def extractRgb3d(img: BufferedImage, dimension: Option[(Int, Int)]): Matrices = {
+  def extractRgb3d(img: BufferedImage): Matrix = {
     val (w, h) = (img.getWidth, img.getHeight)
-    val out = Array.fill(3)(DenseMatrix.zeros[Double](h, w))
+    val out = DenseMatrix.zeros[Double](3, w * h)
     (0 until h).foreach { _h =>
       (0 until w).foreach { _w =>
         val c = new Color(img.getRGB(_w, _h))
         val r = c.getRed   / 255.0
         val g = c.getGreen / 255.0
         val b = c.getBlue  / 255.0
-        out(0).update(_h, _w, r)
-        out(1).update(_h, _w, g)
-        out(2).update(_h, _w, b)
+        out.update(0, _w * h + _h, r)
+        out.update(1, _w * h + _h, g)
+        out.update(2, _w * h + _h, b)
       }
     }
-    dimension match {
-      case Some((x, y))
-        if x == w && y == h => out
-      case None             => out
-      case Some((x, y))     =>
-        out.map { m =>
-          val t = DenseMatrix.zeros[Double](y, x)
-          t.foreachPair {
-            case ((r, c), _) => Try { t.update(r, c, m(r, c)) }
-          }
-          t
-        }
-    }
+    out
   }
 
 
