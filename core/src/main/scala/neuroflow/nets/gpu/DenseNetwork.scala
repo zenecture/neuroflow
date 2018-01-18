@@ -102,21 +102,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   }
 
   /**
-    * Trains this net with input `xs` against output `ys`.
-    */
-  def train(xs: Vectors, ys: Vectors): Unit = {
-    require(xs.size == ys.size, "Mismatch between sample sizes!")
-    import settings._
-    val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
-    val xsysBatched = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
-      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
-    }
-    GcThreshold.set(this, batchSize * 2)
-    run(xsysBatched, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
-  }
-
-  /**
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
@@ -136,31 +121,37 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   }
 
   /**
+    * Trains this net with input `xs` against output `ys`.
+    */
+  def train(xs: Vectors, ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
+    import settings._
+    val batchSize = settings.batchSize.getOrElse(xs.size)
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
+    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
+      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
+    }
+    GcThreshold.set(this, batchSize * 2)
+    run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+  }
+
+  /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, sampleSize: Double, precision: Double,
-                           iteration: Int, maxIterations: Int): Unit = {
-    val _em = xsys.map { batch =>
-      val (x, y) = (batch._1, batch._2)
-      val error =
-        if (settings.approximation.isDefined)
-          adaptWeightsApprox(x, y, stepSize)
-        else adaptWeights(x, y, stepSize)
-        debug(s"Batch Error: $error")
-      error
-    }.reduce(_ + _)
-    val errorPerS = _em / sampleSize
-    val errorMean = mean(errorPerS)
-    if (settings.verbose) info(f"Iteration $iteration - Loss $errorMean%.6g - Loss Vector $errorPerS")
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, precision: Double, batch: Int,
+                           batches: Int, iteration: Int, maxIterations: Int): Unit = {
+    val (x, y) = (xsys(batch)._1, xsys(batch)._2)
+    val error = if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
+                else adaptWeights(x, y, stepSize)
+    val errorMean = mean(error)
+    if (settings.verbose) info(f"Iteration $iteration - Batch Loss $errorMean%.6g - Loss Vector $error")
     syncWeights()
     maybeGraph(errorMean)
-    keepBest(errorMean)
     waypoint(iteration)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, precision, iteration + 1, maxIterations)
+    if (errorMean > precision && iteration < maxIterations) {
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
-      takeBest()
     }
   }
 
@@ -412,21 +403,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   }
 
   /**
-    * Trains this net with input `xs` against output `ys`.
-    */
-  def train(xs: Vectors, ys: Vectors): Unit = {
-    require(xs.size == ys.size, "Mismatch between sample sizes!")
-    import settings._
-    val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toFloat / batchSize.toFloat).toInt} ...")
-    val xsysBatched = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
-      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
-    }
-    GcThreshold.set(this, batchSize * 2)
-    run(xsysBatched, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
-  }
-
-  /**
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
@@ -446,31 +422,37 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   }
 
   /**
+    * Trains this net with input `xs` against output `ys`.
+    */
+  def train(xs: Vectors, ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
+    import settings._
+    val batchSize = settings.batchSize.getOrElse(xs.size)
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
+    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
+      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
+    }
+    GcThreshold.set(this, batchSize * 2)
+    run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+  }
+
+  /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, sampleSize: Float, precision: Double,
-                           iteration: Int, maxIterations: Int): Unit = {
-    val _em = xsys.map { batch =>
-      val (x, y) = (batch._1, batch._2)
-      val error =
-        if (settings.approximation.isDefined)
-          adaptWeightsApprox(x, y, stepSize)
-        else adaptWeights(x, y, stepSize)
-      debug(s"Batch Error: $error")
-      error
-    }.reduce(_ + _)
-    val errorPerS = _em / sampleSize
-    val errorMean = mean(errorPerS)
-    if (settings.verbose) info(f"Iteration $iteration - Loss $errorMean%.6g - Loss Vector $errorPerS")
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, precision: Double, batch: Int,
+                           batches: Int, iteration: Int, maxIterations: Int): Unit = {
+    val (x, y) = (xsys(batch)._1, xsys(batch)._2)
+    val error = if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
+                else adaptWeights(x, y, stepSize)
+    val errorMean = mean(error)
+    if (settings.verbose) info(f"Iteration $iteration - Batch Loss $errorMean%.6g - Loss Vector $error")
     syncWeights()
     maybeGraph(errorMean)
-    keepBest(errorMean)
     waypoint(iteration)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, precision, iteration + 1, maxIterations)
+    if (errorMean > precision && iteration < maxIterations) {
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
-      takeBest()
     }
   }
 
