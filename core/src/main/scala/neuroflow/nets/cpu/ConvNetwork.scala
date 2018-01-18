@@ -16,8 +16,8 @@ import scala.util.Try
 
 /**
   *
-  * This is a convolutional feed-forward neural network.
-  * It uses gradient descent to optimize the specified loss function.
+  * Convolutional Neural Network,
+  * gradient descent to optimize the loss function.
   *
   * @author bogdanski
   * @since 31.08.17
@@ -104,17 +104,18 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, sampleSize: Double, batchSize: Int,
                            precision: Double, batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
-    val error = if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
-                else adaptWeights(x, y, stepSize, batchSize)
-    val errorMean = mean(error)
-    if (settings.verbose) info(f"Iteration $iteration - Batch Loss $errorMean%.6g - Loss Vector $error")
-    maybeGraph(errorMean)
+    val loss =
+      if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
+      else adaptWeights(x, y, stepSize, batchSize)
+    val lossMean = mean(loss)
+    if (settings.verbose) info(f"Iteration $iteration - Avg. Batch Loss $lossMean%.6g - Loss Vector $loss")
+    maybeGraph(lossMean)
     waypoint(iteration)
-    if (errorMean > precision && iteration < maxIterations) {
+    if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize),
         sampleSize, batchSize, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
+      info(f"Took $iteration iterations of $maxIterations with Loss = $lossMean%.6g")
     }
   }
 
@@ -201,6 +202,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     }
 
     out
+
+  }
+
+  private def convolute_bp(m: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
+
+    ???
 
   }
 
@@ -400,10 +407,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       } else {
 //        val dc = im2col_backprop(ds(i + 1), _convLayers(i + 1), _indices(i + 1))
 //        val d = _ww(i) * dc *:* fb(i)
-//        val dw = d * fc(i).t
-//        dws += i -> dw
-//        ds += i -> d
-//        if (i > 0) derive(i - 1)
+        val d: Matrix = ???
+        val dw = d * fc(i).t
+        dws += i -> dw
+        ds += i -> d
+        if (i > 0) derive(i - 1)
       }
     }
 
