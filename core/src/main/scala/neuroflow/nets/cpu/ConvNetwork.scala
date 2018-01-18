@@ -108,14 +108,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
       else adaptWeights(x, y, stepSize, batchSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Ø Batch Loss: $lossMean%.6g. Loss Vector: $loss")
+    if (settings.verbose) info(f"Iteration $iteration. Ø Loss = $lossMean%.6g. Loss Vector: $loss")
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize),
         sampleSize, batchSize, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Loss = $lossMean%.6g")
+      info(f"Took $iteration of $maxIterations iterations.")
     }
   }
 
