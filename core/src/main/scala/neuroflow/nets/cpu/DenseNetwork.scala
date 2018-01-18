@@ -127,13 +127,13 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
       else adaptWeights(x, y, stepSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Ø Batch Loss: $lossMean%.6g. Loss Vector: $loss")
+    if (settings.verbose) info(f"Iteration $iteration. Ø Loss = $lossMean%.6g. Loss Vector: $loss")
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Loss = $lossMean%.6g")
+      info(f"Took $iteration of $maxIterations iterations.")
     }
   }
 
@@ -365,13 +365,13 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
       else adaptWeights(x, y, stepSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Ø Batch Loss: $lossMean%.6g. Loss Vector: $loss")
+    if (settings.verbose) info(f"Iteration $iteration. Ø Loss = $lossMean%.6g. Loss Vector: $loss")
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Loss = $lossMean%.6g")
+      info(f"Took $iteration of $maxIterations iterations.")
     }
   }
 
