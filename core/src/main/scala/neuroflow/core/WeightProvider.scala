@@ -46,7 +46,7 @@ trait BaseOps[V] {
   }
 
   /**
-    * Convolutional layers produce im2col-ready weight matrices.
+    * Produces weights for convolution operator.
     */
   def convoluted(layers: Seq[Layer], seed: Map[Int, () => V])(implicit ct: ClassTag[V], z: Zero[V]): Weights =
     layers.zipWithIndex.toArray.map {

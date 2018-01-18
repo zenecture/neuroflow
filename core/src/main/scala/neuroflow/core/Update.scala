@@ -152,7 +152,7 @@ case class Debuggable[V]() extends Update[V] {
             neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
             subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
             addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): Unit = {
-    lastGradients += position -> dws
+    lastGradients += position -> dws.copy
     ws -= (dws *= learningRate)
   }
 
