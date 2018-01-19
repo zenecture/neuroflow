@@ -87,7 +87,6 @@ class ConvNetworkNumTest  extends Specification {
     val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
     val m1 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/deleteme1.jpg"))
-//    val m1 = DenseMatrix.create[Double](1, 4, Array(0.1, 0.2, 0.3, 0.4))
     val m2 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/deleteme2.jpg"))
 
     val n1 = DenseVector(Array(1.0, 0.0))

@@ -121,15 +121,15 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     * The training loop.
     */
   @tailrec private def run(xs: Seq[ActorSelection], stepSize: Double, precision: Double, iteration: Int, maxIterations: Int): Unit = {
-    val error = adaptWeights(xs, stepSize)
-    val errorMean = mean(error)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
-    maybeGraph(errorMean)
-    keepBest(errorMean)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
+    val loss = adaptWeights(xs, stepSize)
+    val lossMean = mean(loss)
+    if (settings.verbose) info(f"Iteration $iteration. Loss Ø: $lossMean%.6g Σ: $loss")
+    maybeGraph(lossMean)
+    keepBest(lossMean)
+    if (lossMean > precision && iteration < maxIterations && !shouldStopEarly) {
       run(xs, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
+      if (settings.verbose) info(f"Took $iteration of $maxIterations iterations.")
       takeBest()
     }
   }
