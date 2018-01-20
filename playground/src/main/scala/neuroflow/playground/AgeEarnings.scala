@@ -26,12 +26,16 @@ object AgeEarnings {
 
   def apply = {
 
-    val src = scala.io.Source.fromFile(getResourceFile("file/income.txt")).getLines.map(_.split(",")).flatMap { k =>
+    val train = scala.io.Source.fromFile(getResourceFile("file/income.txt")).getLines.map(_.split(",")).flatMap { k =>
       (if (k.length > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
     }.toArray
 
-    val train = src
-    val sets = Settings[Double](learningRate = { case (_, _) => 1E-3 }, batchSize = Some(2000), precision = 1E-3, iterations = 200000)
+    val sets = Settings[Double](
+      learningRate = { case (_, _) => 1E-3 },
+      lossFunction = SquaredMeanError(),
+      batchSize = Some(2000),
+      precision = 1E-3,
+      iterations = 200000)
 
     import neuroflow.nets.gpu.DenseNetwork._
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
@@ -43,8 +47,8 @@ object AgeEarnings {
     val ys = train.map(a => ->(a._2))
     network.train(xs, ys)
 
-    val allOver = src.filter(_._2 == 1.0)
-    val ratio = allOver.length / src.length
+    val allOver = train.filter(_._2 == 1.0)
+    val ratio = allOver.length / train.length
     val mean = allOver.map(_._1).sum / allOver.length
 
     println(s"Mean of all $mean")
@@ -101,35 +105,34 @@ object AgeEarnings {
 
 
 
-      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:580] Loading module: matrix_kernels_float.ptx
-      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:654] Loading module: matrix_kernels_double.ptx
-      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:661] Loading module: matrix_convops_float.ptx
-      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:664] Loading module: matrix_convops_double.ptx
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:06:153] Training with 32561 samples, batch size = 32561, batches = 1 ...
-      [run-main-0] DEBUG neuroflow.cuda.GcThreshold$ - [20.01.2018 11:02:08:235] GcThreshold = 11462432 Bytes (≈ 10,9314 MB)
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:459] Iteration 1. Loss Ø: 3111,91 Σ: 3111.90871853784
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:611] Iteration 2. Loss Ø: 3801,08 Σ: 3801.0765619411727
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:737] Iteration 3. Loss Ø: 3709,15 Σ: 3709.1531637151556
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:852] Iteration 4. Loss Ø: 3416,37 Σ: 3416.368354038494
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 15:23:11:289] Loading module: matrix_kernels_float.ptx
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 15:23:11:393] Loading module: matrix_kernels_double.ptx
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 15:23:11:408] Loading module: matrix_convops_float.ptx
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 15:23:11:413] Loading module: matrix_convops_double.ptx
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 15:23:12:096] Training with 32561 samples, batch size = 2000, batches = 17 ...
+      [run-main-0] DEBUG neuroflow.cuda.GcThreshold$ - [20.01.2018 15:23:12:207] GcThreshold = 704960 Bytes (≈ 0,672302 MB)
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 15:23:12:483] Iteration 1.1, Avg. Loss = 444,220, Vector: 444.2197471042573
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 15:23:12:507] Iteration 2.2, Avg. Loss = 265,925, Vector: 265.92520111270863
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 15:23:12:527] Iteration 3.3, Avg. Loss = 189,556, Vector: 189.5559280688758
       ...
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 13:37:09:568] Iteration 99999. Loss Ø: 2664,91 Σ: 2664.9144190131383
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 13:37:09:656] Iteration 100000. Loss Ø: 2664,91 Σ: 2664.914417503272
-      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 13:37:09:656] Took 100000 of 100000 iterations.
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 16:06:02:207] Iteration 199999.11, Avg. Loss = 162,881, Vector: 162.8806747880057
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 16:06:02:218] Iteration 200000.12, Avg. Loss = 167,398, Vector: 167.39834480268837
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 16:06:02:222] Took 200000 of 200000 iterations.
       Mean of all 44.24984058155847
       Ratio 0
       Age, earning >50K
-      0.0, 5.248582246681653E-7
-      9.0, 8.556673875045431E-5
-      18.0, 0.004777585359808839
-      27.0, 0.05584745691881924
-      36.0, 0.15894439896795678
-      45.0, 0.209808291589738
-      54.0, 0.19865528233360355
-      63.0, 0.15589031630756764
-      72.0, 0.10726154035035684
-      81.0, 0.06774443527175603
-      90.0, 0.04098460130341816
-      [success] Total time: 9249 s, completed 20.01.2018 13:37:10
+      0.0, 3.843528892275602E-7
+      9.0, 7.318520013036975E-5
+      18.0, 0.004528900299998429
+      27.0, 0.055430214357576356
+      36.0, 0.15949873792409597
+      45.0, 0.21053139597387885
+      54.0, 0.19897587126743807
+      63.0, 0.15578791522395138
+      72.0, 0.10695089167732393
+      81.0, 0.06743998317560304
+      90.0, 0.040782520547114336
+      [success] Total time: 2588 s, completed 20.01.2018 16:06:04
 
    */
 }
