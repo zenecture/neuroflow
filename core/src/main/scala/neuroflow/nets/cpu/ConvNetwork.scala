@@ -16,7 +16,7 @@ import scala.util.Try
 
 /**
   *
-  * Convolutional Neural Network,
+  * Convolutional Neural Network, using
   * gradient descent to optimize the loss function.
   *
   * @author bogdanski
@@ -65,9 +65,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   private val _lastC     = _convLayers.maxBy(_._1)._1
   private val _lastL     = _allLayers.indices.last
 
-  private type Indices   = Map[(Int, Int), DenseMatrix[Int]]
-  private val _indices   = collection.mutable.Map.empty[Int, Indices]
-
   /**
     * Computes output for `x`.
     */
@@ -108,12 +105,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
       else adaptWeights(x, y, stepSize, batchSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Loss Ø: $lossMean%.6g Σ: $loss")
+    if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize),
-        sampleSize, batchSize, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize,
+        precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
     }
@@ -348,7 +345,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Double, batchSize: Int): Matrix = {
 
-    import settings.lossFunction
+    import settings.{lossFunction, updateRule}
 
     val errSum = DenseMatrix.zeros[Double](batchSize, _outputDim)
 
@@ -419,11 +416,13 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     fully(fa(_lastC), _lastC + 1)
     derive(_lastWlayerIdx)
 
-    var i = 0
-    while (i <= _lastWlayerIdx) {
-      Try(settings.updateRule(weights(i), dws(i), stepSize, i)) // Untry.
-      i += 1
-    }
+//    var i = 0
+//    while (i <= _lastWlayerIdx) {
+//      Try(settings.updateRule(weights(i), dws(i), stepSize, i)) // Untry.
+//      i += 1
+//    }
+
+    (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
     val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
     errSumReduced

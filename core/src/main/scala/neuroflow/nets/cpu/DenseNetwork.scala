@@ -55,7 +55,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     case layer: Layer => layer
   }.toArray
 
-  private val _focusLayer     = layers.collect { case c: Focus[_] => c }.headOption
+  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
 
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
   private val _outputDim      = _layers.last.neurons
@@ -158,7 +158,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Double): Matrix = {
 
-    import settings.lossFunction
+    import settings.{lossFunction, updateRule}
 
     val errSum = DenseMatrix.zeros[Double](x.rows, _outputDim)
 
@@ -207,11 +207,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     forward(x, 0)
     derive(_lastWlayerIdx)
 
-    var i = 0
-    while (i <= _lastWlayerIdx) {
-      settings.updateRule(weights(i), dws(i), stepSize, i)
-      i += 1
-    }
+    (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
     val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
     errSumReduced
@@ -293,7 +289,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     case layer: Layer => layer
   }.toArray
 
-  private val _focusLayer     = layers.collect { case c: Focus[_] => c }.headOption
+  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
 
   private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat) }
   private val _outputDim      = _layers.last.neurons
@@ -396,7 +392,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Float): Matrix = {
 
-    import settings.lossFunction
+    import settings.{lossFunction, updateRule}
 
     val errSum = DenseMatrix.zeros[Float](x.rows, _outputDim)
 
@@ -445,11 +441,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     forward(x, 0)
     derive(_lastWlayerIdx)
 
-    var i = 0
-    while (i <= _lastWlayerIdx) {
-      settings.updateRule(weights(i), dws(i), stepSize, i)
-      i += 1
-    }
+    (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
     val errSumReduced = (errSum.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
     errSumReduced
