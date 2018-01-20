@@ -102,14 +102,14 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
     val error = errorFunc(xs, ys)
     val errorMean = mean(error)
     if (errorMean > precision && iteration < maxIterations) {
-      if (settings.verbose) info(f"Taking step $iteration - Mean Error $errorMean%.6g - Error Vector $error")
+      if (settings.verbose) info(f"Iteration $iteration, Avg. Loss = $errorMean%.6g, Vector: $error")
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       keepBest(errorMean)
       waypoint(iteration)
       run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.3g")
+      info(f"Took $iteration of $maxIterations iterations.")
       takeBest()
       reset() // finally reset one more time
     }
