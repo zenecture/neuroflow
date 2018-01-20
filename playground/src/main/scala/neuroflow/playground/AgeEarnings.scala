@@ -1,11 +1,9 @@
 package neuroflow.playground
 
-
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
-import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.gpu.DenseNetwork._
 import shapeless._
 
 
@@ -35,6 +33,7 @@ object AgeEarnings {
     val train = src
     val sets = Settings[Double](learningRate = { case (_, _) => 1E-4 }, precision = 1E-3, iterations = 100000)
 
+    import neuroflow.nets.gpu.DenseNetwork._
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val network = Network(Input(1) :: Dense(20, Sigmoid) :: Output(1, Sigmoid) :: HNil, sets)
@@ -54,7 +53,7 @@ object AgeEarnings {
     val result = Range.Double(0.0, 1.1, 0.1).map(k => (k * maxAge, network(->(k))))
     val sum = result.map(_._2.apply(0)).sum
     println("Age, earning >50K")
-    result.foreach { r => println(s"${r._1}, ${r._2(0) * (1 / sum)}")}
+    result.foreach { r => println(s"${r._1}, ${r._2(0) * (1 / sum)}")} // normalized probabilities p such that Σp = 1.0
 
   }
 
