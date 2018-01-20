@@ -31,7 +31,7 @@ object AgeEarnings {
     }.toArray
 
     val train = src
-    val sets = Settings[Double](learningRate = { case (_, _) => 1E-4 }, precision = 1E-3, iterations = 100000)
+    val sets = Settings[Double](learningRate = { case (_, _) => 1E-3 }, batchSize = Some(2000), precision = 1E-3, iterations = 200000)
 
     import neuroflow.nets.gpu.DenseNetwork._
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)

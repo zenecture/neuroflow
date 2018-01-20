@@ -127,7 +127,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
       else adaptWeights(x, y, stepSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Loss Ø: $lossMean%.6g Σ: $loss")
+    if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
@@ -365,7 +365,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
       else adaptWeights(x, y, stepSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Loss Ø: $lossMean%.6g Σ: $loss")
+    if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {

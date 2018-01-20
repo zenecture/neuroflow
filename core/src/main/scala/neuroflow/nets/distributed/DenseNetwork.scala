@@ -123,7 +123,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
   @tailrec private def run(xs: Seq[ActorSelection], stepSize: Double, precision: Double, iteration: Int, maxIterations: Int): Unit = {
     val loss = adaptWeights(xs, stepSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Loss Ø: $lossMean%.6g Σ: $loss")
+    if (settings.verbose) info(f"Iteration $iteration, Avg. Loss = $lossMean%.6g, Vector: $loss")
     maybeGraph(lossMean)
     keepBest(lossMean)
     if (lossMean > precision && iteration < maxIterations && !shouldStopEarly) {
