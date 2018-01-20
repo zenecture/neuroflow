@@ -127,7 +127,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       val l = _convLayers(i)
       val p = weights(i) * convolute(_in, l, batchSize)
       val a = p.map(l.activator)
-      _fa += { if (i == _lastC) reshape_batch(a, l, batchSize) else a }
+      _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
       if (i < _lastC) conv(a, i + 1)
     }
 
@@ -211,11 +211,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def reshape_batch(m: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
+  private def reshape_batch(m: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
 
-    val X = l.dimOut._1
-    val Y = l.dimOut._2
-    val Z = l.dimOut._3
+    val X = dim._1
+    val Y = dim._2
+    val Z = dim._3
 
     val out = DenseMatrix.zeros[Double](batchSize, X * Y * Z)
 
@@ -238,11 +238,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def reshape_batch_bp(m: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
+  private def reshape_batch_bp(m: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
 
-    val X = l.dimOut._1
-    val Y = l.dimOut._2
-    val Z = l.dimOut._3
+    val X = dim._1
+    val Y = dim._2
+    val Z = dim._3
 
     val out = DenseMatrix.zeros[Double](Z, X * Y * batchSize)
 
@@ -364,7 +364,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       val p = weights(i) * c
       val a = p.map(l.activator)
       val b = p.map(l.activator.derivative)
-      fa += i -> { if (i == _lastC) reshape_batch(a, l, batchSize) else a }
+      fa += i -> { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
       fb += i -> b
       fc += i -> c
       if (i < _lastC) conv(a, i + 1)
@@ -398,7 +398,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       } else if (i == _lastC) {
         val l = _convLayers(i)
         val d1 = ds(i + 1) * weights(i + 1).t
-        val d2 = reshape_batch_bp(d1, l, batchSize)
+        val d2 = reshape_batch_bp(d1, l.dimOut, batchSize)
         val d = d2 *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw

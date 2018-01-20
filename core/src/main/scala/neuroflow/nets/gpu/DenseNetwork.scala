@@ -259,10 +259,15 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     dws.values.foreach(_.release())
 
-    val errSumReduced = (errSum.toDense.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-    errSum.release()
+    val reducer = CuMatrix.ones[Double](errSum.rows, 1)
+    val errSumReduced = (errSum.t * reducer).t
+    val err = errSumReduced.toDense
 
-    errSumReduced
+    errSum.release()
+    reducer.release()
+    errSumReduced.release()
+
+    err
 
   }
 
@@ -447,7 +452,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
       else adaptWeights(x, y, stepSize)
     val lossMean = mean(loss)
-    if (settings.verbose) info(f"Iteration $iteration. Loss Ø: $lossMean%.6g Σ: $loss")
+    if (settings.verbose) info(f"Iteration $iteration. Batch Loss Avg. = $lossMean%.6g Vector: $loss")
     syncWeights()
     maybeGraph(lossMean)
     waypoint(iteration)
@@ -561,10 +566,15 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     dws.values.foreach(_.release())
 
-    val errSumReduced = (errSum.toDense.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
-    errSum.release()
+    val reducer = CuMatrix.ones[Float](errSum.rows, 1)
+    val errSumReduced = (errSum.t * reducer).t
+    val err = errSumReduced.toDense
 
-    errSumReduced
+    errSum.release()
+    reducer.release()
+    errSumReduced.release()
+
+    err
 
   }
 

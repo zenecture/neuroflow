@@ -5,7 +5,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
-import neuroflow.nets.cpu.DenseNetwork._
+import neuroflow.nets.gpu.DenseNetwork._
 import shapeless._
 
 
@@ -32,9 +32,8 @@ object AgeEarnings {
       (if (k.length > 14) Some(k(14)) else None).map { over50k => (k(0).toDouble, if (over50k.equals(" >50K")) 1.0 else 0.0) }
     }.toArray
 
-    val train = src.take(2000)
-    //val test = src.drop(1000)
-    val sets = Settings[Double](learningRate = { case (_, _) => 1E-2 }, precision = 1E-3, iterations = 10000)
+    val train = src
+    val sets = Settings[Double](learningRate = { case (_, _) => 1E-4 }, precision = 1E-3, iterations = 100000)
 
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
@@ -61,23 +60,77 @@ object AgeEarnings {
 
 
   /*
-      After 5000 iterations the model predicted:
 
-      Normalized to p(xi) * a, a = 1 / Σp(xi),
-      such that Σp(xi) = 1:
 
-      Age   P(Earning >50K)
-      0.0,  0.000000287649
-      9.0,  0.000071773252
-      18.0, 0.005094161262
-      27.0, 0.062065357723
-      36.0, 0.168908028113
-      45.0, 0.214381977708
-      54.0, 0.197007855447
-      63.0, 0.150627985683
-      72.0, 0.101421685961
-      81.0, 0.062946651639
-      90.0, 0.037474235486
+
+
+
+
+                   _   __                      ________
+                  / | / /__  __  ___________  / ____/ /___ _      __
+                 /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+                / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+               /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+
+
+                  Version : 1.4.0
+
+                  Network : neuroflow.nets.gpu.DenseNetwork
+                     Loss : neuroflow.core.SquaredMeanError
+                   Update : neuroflow.core.Vanilla
+
+                   Layout : 1 In
+                            20 Dense (σ)
+                            1 Out (σ)
+
+                  Weights : 40 (≈ 0,000305176 MB)
+                Precision : Double
+
+
+
+
+                     O
+                     O
+                     O
+                     O
+                     O
+               O     O     O
+                     O
+                     O
+                     O
+                     O
+
+
+
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:580] Loading module: matrix_kernels_float.ptx
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:654] Loading module: matrix_kernels_double.ptx
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:661] Loading module: matrix_convops_float.ptx
+      [run-main-0] DEBUG neuroflow.cuda.CuMatrix$ - [20.01.2018 11:02:05:664] Loading module: matrix_convops_double.ptx
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:06:153] Training with 32561 samples, batch size = 32561, batches = 1 ...
+      [run-main-0] DEBUG neuroflow.cuda.GcThreshold$ - [20.01.2018 11:02:08:235] GcThreshold = 11462432 Bytes (≈ 10,9314 MB)
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:459] Iteration 1. Loss Ø: 3111,91 Σ: 3111.90871853784
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:611] Iteration 2. Loss Ø: 3801,08 Σ: 3801.0765619411727
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:737] Iteration 3. Loss Ø: 3709,15 Σ: 3709.1531637151556
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 11:02:08:852] Iteration 4. Loss Ø: 3416,37 Σ: 3416.368354038494
+      ...
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 13:37:09:568] Iteration 99999. Loss Ø: 2664,91 Σ: 2664.9144190131383
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 13:37:09:656] Iteration 100000. Loss Ø: 2664,91 Σ: 2664.914417503272
+      [run-main-0] INFO neuroflow.nets.gpu.DenseNetworkDouble - [20.01.2018 13:37:09:656] Took 100000 of 100000 iterations.
+      Mean of all 44.24984058155847
+      Ratio 0
+      Age, earning >50K
+      0.0, 5.248582246681653E-7
+      9.0, 8.556673875045431E-5
+      18.0, 0.004777585359808839
+      27.0, 0.05584745691881924
+      36.0, 0.15894439896795678
+      45.0, 0.209808291589738
+      54.0, 0.19865528233360355
+      63.0, 0.15589031630756764
+      72.0, 0.10726154035035684
+      81.0, 0.06774443527175603
+      90.0, 0.04098460130341816
+      [success] Total time: 9249 s, completed 20.01.2018 13:37:10
 
    */
 }
