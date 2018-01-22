@@ -1,11 +1,9 @@
 package neuroflow.nets.gpu
 
 import breeze.linalg._
-import breeze.numerics._
 import breeze.stats._
 import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.Activator._
-import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
@@ -47,7 +45,7 @@ object DenseNetwork {
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                             identifier: String = "neuroflow.nets.gpu.DenseNetwork", numericPrecision: String = "Double")
-  extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
+  extends FFN[Double] with WaypointLogic[Double] {
 
   implicit val handle = new cublasHandle
   JCublas2.cublasCreate(handle)
@@ -77,15 +75,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
-  
-  private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -95,9 +84,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     super.checkSettings()
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
   }
 
@@ -350,7 +338,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
                                             identifier: String = "neuroflow.nets.gpu.DenseNetwork", numericPrecision: String = "Single")
-  extends FFN[Float] with EarlyStoppingLogic[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
+  extends FFN[Float] with WaypointLogic[Float] {
 
   implicit val handle = new cublasHandle
   JCublas2.cublasCreate(handle)
@@ -381,15 +369,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
-  private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
-
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -398,9 +377,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     super.checkSettings()
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
   }
 

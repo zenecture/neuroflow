@@ -64,16 +64,16 @@ trait Constructor[V, +T <: Network[_, _, _]] {
   *   `lossFunction`        The loss function used during training.
   *   `learningRate`        A function from current iteration and learning rate, producing a new learning rate.
   *   `updateRule`          Defines the relationship between gradient, weights and learning rate during training.
-  *   `precision`           The training will stop if precision is high enough
+  *   `precision`           The training will stop if precision is high enough.
   *   `iterations`          The training will stop if maximum iterations is reached.
-  *   `prettyPrint`         If true, the layout will be rendered graphically on console.
+  *   `prettyPrint`         If true, the layout is rendered graphically on console.
   *   `coordinator`         The coordinator host needs to be set for distributed training.
   *   `transport`           Transport details need to be set for distributed training.
-  *   `parallelism`         Controls how many threads will be used for CPU training.
+  *   `parallelism`         Controls how many threads are used for distributed training.
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
-  *   `regularization`      The respective regulator will try to avoid over-fitting.
-  *   `waypoint`            A waypoint action can be specified, e.g. saving the weights along the way.
+  *   `regularization`      The respective regulator tries to avoid over-fitting.
+  *   `waypoint`            Waypoint actions can be specified, e.g. saving the weights every n steps.
   *   `approximation`       If true, the gradients will be approximated numerically.
   *   `partitions`          A sequential training sequence can be partitioned for RNNs. (0 index-based)
   *   `specifics`           Some nets use specific parameters set in the `specifics` map.

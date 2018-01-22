@@ -1,9 +1,7 @@
 package neuroflow.nets.cpu
 
 import breeze.linalg._
-import breeze.numerics._
 import breeze.stats._
-import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
@@ -61,15 +59,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 
-  private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
-
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -78,9 +67,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     super.checkSettings()
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
   }
 
@@ -295,15 +283,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 
-  private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
-
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -312,9 +291,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     super.checkSettings()
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
   }
 

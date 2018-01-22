@@ -262,83 +262,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-//  private def im2col(ms: Matrices, l: Convolution[_], withIndices: Boolean = false): (Matrix, Indices) = {
-//    val out = DenseMatrix.zeros[Double](l.field._1 * l.field._2 * l.dimIn._3, l.dimOut._1 * l.dimOut._2)
-//    val idc = if (withIndices) {
-//      ms.head.keysIterator.map { k =>
-//        k -> DenseMatrix.zeros[Int](l.field._1, l.field._2)
-//      }.toMap
-//    } else null
-//    var (x, y, i) = (0, 0, 0)
-//    while (x < l.dimOut._1) {
-//      while (y < l.dimOut._2) {
-//        var (fX, fY) = (0, 0)
-//        while (fX < l.field._1) {
-//          while (fY < l.field._2) {
-//            var z = 0
-//            val (a, b) = (fY + (y * l.stride._2), fX + (x * l.stride._1))
-//            if (a >= l.padding._2 && a < (l.dimIn._2 + l.padding._2) && b >= l.padding._1 && b < (l.dimIn._1 + l.padding._1)) {
-//              while (z < l.dimIn._3) {
-//                val c = z * l.field._1 * l.field._2
-//                val (_a, _b) = (a - l.padding._2, b - l.padding._1)
-//                val value = ms(z)(_a, _b)
-//                val k = fX * l.field._2 + fY
-//                out.update(c + k, x * l.dimOut._2 + y, value)
-//                if (withIndices) idc(_a, _b).update(fX, fY, i + 1)
-//                z += 1
-//              }
-//            }
-//            fY += 1
-//          }
-//          fY  = 0
-//          fX += 1
-//        }
-//        i += 1
-//        y += 1
-//      }
-//      y  = 0
-//      x += 1
-//    }
-//    (out, idc)
-//  }
-//
-//  private def im2col_backprop(d: Matrix, c: Convolution[_], idx: Indices): Matrix = {
-//    val dp = padLeft(d, Dimensions2(d.rows, d.cols + 1), Zero)
-//    val dc = DenseMatrix.zeros[Double](c.field._1 * c.field._2 * c.filters, c.dimIn._1 * c.dimIn._2)
-//    var z  = 0
-//    while (z < c.filters) {
-//      val _de = dp(z, ::)
-//      var (x, y, q) = (0, 0, 0)
-//      while (x < c.dimIn._1) {
-//        while (y < c.dimIn._2) {
-//          var p = 0
-//          idx(y, x).foreachPair { (pp, v) =>
-//            val t = (z * c.field._1 * c.field._2 + p, q)
-//            dc.update(t, _de(v))
-//            p += 1
-//          }
-//          y += 1
-//          q += 1
-//        }
-//        y = 0
-//        x += 1
-//      }
-//      z += 1
-//    }
-//    dc
-//  }
-//
-//  private def col2im(matrix: Matrix, dim: (Int, Int, Int)): Matrices = {
-//    var i = 0
-//    val out = new Array[Matrix](dim._3)
-//    while (i < dim._3) {
-//      val v = matrix.t(::, i).asDenseMatrix.reshape(dim._2, dim._1)
-//      out(i) = v
-//      i += 1
-//    }
-//    out
-//  }
-
   /**
     * Computes gradient for weights with respect to given batch,
     * adapts their value using gradient descent and returns the error matrix.
@@ -402,9 +325,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         ds += i -> d
         if (i > 0) derive(i - 1)
       } else {
-//        val dc = im2col_backprop(ds(i + 1), _convLayers(i + 1), _indices(i + 1))
-//        val d = _ww(i) * dc *:* fb(i)
-        val d: Matrix = ???
+        val l = _convLayers(i + 1)
+        val ww = reshape_batch(weights(i + 1), (l.field._1, l.field._2, l.filters), l.dimIn._3)
+        val dc = convolute_bp(ds(i + 1), l, batchSize)
+        val d = ww * dc *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
         ds += i -> d
