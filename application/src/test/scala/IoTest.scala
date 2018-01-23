@@ -1,4 +1,4 @@
-import neuroflow.application.plugin.IO.Json
+import neuroflow.application.plugin.IO._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
@@ -19,26 +19,22 @@ class IoTest extends Specification {
     This spec will test IO related functionality.
 
     It should:
-      - Serialize a net                       $serialize
-      - Deserialize a net                     $deserialize
+      - Read and write weights                $io
 
   """
 
   val layers = Input(2) :: Dense(3, Sigmoid) :: Output(2, Sigmoid) :: HNil
+
   val measure: FFN[Double] = {
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].static(0.0)
     Network(layers)
   }
-  val asJson = "[{\"rows\":2,\"cols\":3,\"precision\":\"double\",\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]},{\"rows\":3,\"cols\":2,\"precision\":\"double\",\"data\":[0.0,0.0,0.0,0.0,0.0,0.0]}]"
 
-  def serialize = {
+  def io = {
     val serialized = Json.write(measure.weights)
-    serialized === asJson
-  }
-
-  def deserialize = {
-    implicit val wp = Json.readDouble(asJson)
+    implicit val wp = Json.read[Double](serialized)
     val deserialized = Network(layers)
+
     deserialized.weights.toArray.map(_.toArray) === measure.weights.toArray.map(_.toArray)
   }
 
