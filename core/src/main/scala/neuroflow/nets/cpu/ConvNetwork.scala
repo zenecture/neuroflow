@@ -1,8 +1,6 @@
 package neuroflow.nets.cpu
 
-import breeze.linalg.Options.{Dimensions2, Zero}
 import breeze.linalg._
-import breeze.numerics._
 import breeze.stats._
 import neuroflow.core.Network._
 import neuroflow.core._
@@ -10,9 +8,6 @@ import neuroflow.core._
 import scala.annotation.tailrec
 import scala.collection.Seq
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.concurrent.forkjoin.ForkJoinPool
-import scala.util.Try
 
 /**
   *
@@ -143,7 +138,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def convolute(m: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
+  private def convolute(in: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
 
     val IX = l.dimIn._1
     val IY = l.dimIn._2
@@ -173,16 +168,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
             while (fY < FY) {
               val xs = x % X
               val xb = x / X
-              val a = fX + (xs * SX)
-              val b = fY + (y * SY)
+              val a = (xs * SX) + fX
+              val b = (y * SY) + fY
               if (a >= PX && a < (IX + PX) &&
                   b >= PY && b < (IY + PY)) {
-                val c = z * FX * FY
                 val aNp = a - PX
                 val bNp = b - PY
-                val p = m(z, (xb * IX * IY) + aNp * IY + bNp)
-                val k = fX * FY + fY
-                out.update(c + k, (xb * X * Y) + xs * Y + y, p)
+                val p = in(z, (xb * IX * IY) + aNp * IY + bNp)
+                out.update((z * FX * FY) + fX * FY + fY, (xb * X * Y) + xs * Y + y, p)
               }
               fY += 1
             }
@@ -202,13 +195,64 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def convolute_bp(m: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
+  private def convolute_bp(in: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
 
-    ???
+    val IX = l.dimIn._1
+    val IY = l.dimIn._2
+
+    val X = l.dimOut._1
+    val Y = l.dimOut._2
+    val Z = l.dimOut._3
+
+    val XB = X * batchSize
+
+    val FX = l.field._1
+    val FY = l.field._2
+    val SX = l.stride._1
+    val SY = l.stride._2
+    val PX = l.padding._1
+    val PY = l.padding._2
+
+    val out = DenseMatrix.zeros[Double](FX * FY * Z, IX * IY * batchSize)
+
+    var (x, y, z) = (0, 0, 0)
+
+    while (x < XB) {
+      while (y < Y) {
+        while (z < Z) {
+          var (fX, fY) = (0, 0)
+          while (fX < FX) {
+            while (fY < FY) {
+              val xs = x % X
+              val xb = x / X
+              val a = (xs * SX) + fX
+              val b = (y * SY) + fY
+              if (a >= PX && a < (IX + PX) &&
+                  b >= PY && b < (IY + PY)) {
+                val aNp = a - PX
+                val bNp = b - PY
+                val d = in(z, (xb * X * Y) + xs * Y + y)
+                out.update((z * FX * FY) + fX * FY + fY, (xb * IX * IY) + aNp * IY + bNp, d)
+              }
+              fY += 1
+            }
+            fY = 0
+            fX += 1
+          }
+          z += 1
+        }
+        z = 0
+        y += 1
+      }
+      y = 0
+      x += 1
+    }
+
+    out
 
   }
 
-  private def reshape_batch(m: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
+  private def reshape_batch(in: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
 
     val X = dim._1
     val Y = dim._2
@@ -223,7 +267,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         val a = x % (X * Y)
         val b = x / (X * Y)
         val c = y * (X * Y)
-        val p = m(b, c + a)
+        val p = in(b, c + a)
         out.update(y, x, p)
         y += 1
       }
@@ -235,7 +279,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  private def reshape_batch_bp(m: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
+  private def reshape_batch_bp(in: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
 
     val X = dim._1
     val Y = dim._2
@@ -250,7 +294,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         val a = x % (X * Y)
         val b = x / (X * Y)
         val c = y * (X * Y)
-        val p = m(y, x)
+        val p = in(y, x)
         out.update(b, c + a, p)
         y += 1
       }
@@ -339,12 +383,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     conv(x, 0)
     fully(fa(_lastC), _lastC + 1)
     derive(_lastWlayerIdx)
-
-//    var i = 0
-//    while (i <= _lastWlayerIdx) {
-//      Try(settings.updateRule(weights(i), dws(i), stepSize, i)) // Untry.
-//      i += 1
-//    }
 
     (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 

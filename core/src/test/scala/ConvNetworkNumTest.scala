@@ -53,7 +53,7 @@ class ConvNetworkNumTest  extends Specification {
     import neuroflow.core.WeightProvider.cnn_double.convoluted
     import neuroflow.core.WeightProvider.normalSeed
 
-    val dim = (3, 3, 3)
+    val dim = (20, 20, 3)
     val out = 2
 
     val f = ReLU
@@ -61,15 +61,16 @@ class ConvNetworkNumTest  extends Specification {
     val debuggableA = Debuggable[Double]()
     val debuggableB = Debuggable[Double]()
 
-    val a = Convolution(dimIn = dim,      padding = (0, 0), field = (2, 2), stride = (1, 1), filters = 2, activator = f)
-    val b = Convolution(dimIn = a.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 2, activator = f)
+    val a = Convolution(dimIn = dim,      padding = (2, 2), field = (3, 3), stride = (1, 1), filters = 4, activator = f)
+    val b = Convolution(dimIn = a.dimOut, padding = (1, 1), field = (3, 3), stride = (1, 1), filters = 4, activator = f)
+    val c = Convolution(dimIn = b.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 2, activator = f)
 
-    val convs = a :: b :: HNil
+    val convs = a :: b :: c :: HNil
     val fullies = Output(out, f) :: HNil
 
     val layout = convs ::: fullies
 
-    val rand = convoluted(layout.toList, normalSeed[Double](0.1, 0.01))
+    val rand = convoluted(layout.toList, normalSeed[Double](0.01, 0.01))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -77,17 +78,16 @@ class ConvNetworkNumTest  extends Specification {
 
     val settings = Settings[Double](
       prettyPrint = true,
-      approximation = None,
       lossFunction = SquaredMeanError(),
-      learningRate = { case (_, _) => 1.0 },
+      learningRate = { case (_, _) => 0.01 },
       iterations = 1
     )
 
     val netA = Network(layout, settings.copy(updateRule = debuggableA))
     val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
 
-    val m1 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/deleteme1.jpg"))
-    val m2 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/deleteme2.jpg"))
+    val m1 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/grad1_scaled.jpg"))
+    val m2 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/grad2_scaled.jpg"))
 
     val n1 = DenseVector(Array(1.0, 0.0))
     val n2 = DenseVector(Array(0.0, 1.0))
@@ -113,12 +113,11 @@ class ConvNetworkNumTest  extends Specification {
               println(s"i = $i")
               println(s"e = $e")
               println(s"$r >= $tolerance")
-              // false
-              true
+              false
             } else {
-              println(s"i = $i")
-              println(s"e = $e")
-              println(s"$r < $tolerance")
+//              println(s"i = $i")
+//              println(s"e = $e")
+//              println(s"$r < $tolerance")
               true
             }
           }
