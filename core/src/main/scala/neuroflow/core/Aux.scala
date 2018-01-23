@@ -12,7 +12,7 @@ trait CanProduce[A, B] {
   def apply(a: A): B
 }
 
-object CanProduceBasicImplicits {
+object CanProduce {
 
   implicit object DoubleCanProduceDouble extends (Double CanProduce Double) {
     def apply(double: Double) = double
