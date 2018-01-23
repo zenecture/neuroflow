@@ -18,8 +18,8 @@ trait Regularization extends Serializable
 
 
 /**
-  * The KeepBest regularization strategy takes weights, which led to the least error during training.
-  * In particular, this is useful for nets whose gradients oscillate heavily during training.
+  * Keep weights, which had the smallest loss during training.
+  * In particular, this is useful for RNNs, as they can oscillate during training.
   */
 case object KeepBest extends Regularization
 
