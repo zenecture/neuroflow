@@ -209,29 +209,30 @@ import neuroflow.nets.gpu.DenseNetwork._
 
 # Persistence
 
-With `neuroflow.application.plugin.IO`, we can save and load the weights of a network. The weights are encoded in JSON format.
+We can save and load nets with `neuroflow.application.plugin.IO`. The weight matrices are encoded in JSON format.
 
 ```scala
 import neuroflow.application.plugin.IO._
 
 val file = "/path/to/net.nf"
-implicit val weightProvider = IO.File.read[Double](file)
+implicit val weightProvider = File.read[Double](file)
 val net = Network(layers, settings)
 File.write(net.weights, file)
 val json = Json.write(net.weights)
 ```
 
-The implicit `WeightProvider[Double]` to construct `net` comes from `IO.File.read`.
-To save the weights back to `file`, we use `IO.File.write`. To write into a database instead, 
-we can use `IO.Json.write` to retrieve a raw JSON string and fire a SQL query with it.
+The implicit `WeightProvider[Double]` to construct `net` comes from `File.read`.
+To save the weights back to `file`, we use `File.write`. To write into a database, 
+we can use `Json.write` to retrieve a raw JSON string and fire a SQL query with it.
 
 ### Waypoints
 
 ```scala
 Settings(
-  waypoint = Some(Waypoint(nth = 3, (iter, weights) => IO.File.write(weights, s"weights-iter-$iter.nf")))
+  waypoint = Some(Waypoint(nth = 3, (iter, weights) => File.write(weights, s"weights-iter-$iter.nf")))
 )
 ```
 
-It is a good idea to make use of a `Waypoint[V]` for long running sessions. For instance, when the cloud instance got killed for mysterious reasons, it is wise to have a backup of the weights.
-Using a waypoint, we can define important milestones and execute logic when reached. Every `nth` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights.
+It is a good idea to make use of a `Waypoint[V]` for long running sessions. For instance, when the cloud instance got killed for mysterious reasons, 
+periodically saved weights allow us to continue training from a recent point. Every `nth` step, the waypoint function is executed, receiving as input 
+iteration count and a snapshot of the weights.

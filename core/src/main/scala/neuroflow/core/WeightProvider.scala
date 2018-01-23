@@ -101,17 +101,6 @@ object WeightProvider {
   trait FFN[V] extends BaseOps[V] {
 
     /**
-      * Gives a weight provider with random weights in range `r`.
-      */
-    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
-      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, randomSeed(r))
-    }
-
-    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
-      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
-    }
-
-    /**
       * Gives a weight provider with weights drawn from normal distribution.
       */
     def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
@@ -126,20 +115,28 @@ object WeightProvider {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, config.mapValues { case (μ, σ) => normalSeed(μ, σ) } )
     }
 
-  }
-
-  trait CNN[V] extends BaseOps[V] {
-
     /**
       * Gives a weight provider with random weights in range `r`.
       */
     def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
-      def apply(layers: Seq[Layer]): Weights = convoluted(layers, randomSeed(r))
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, randomSeed(r))
+    }
+
+    /**
+      * Gives a weight provider with random weights.
+      * The ranges are specified individually for each layer in `config` (0-index based).
+      */
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, config.mapValues { r => randomSeed(r) } )
     }
 
     def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
-      def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
+      def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
     }
+
+  }
+
+  trait CNN[V] extends BaseOps[V] {
 
     /**
       * Gives a weight provider with weights drawn from normal distribution.
@@ -154,6 +151,25 @@ object WeightProvider {
       */
     def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, config.mapValues { case (μ, σ) => normalSeed(μ, σ) } )
+    }
+
+    /**
+      * Gives a weight provider with random weights in range `r`.
+      */
+    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, randomSeed(r))
+    }
+
+    /**
+      * Gives a weight provider with random weights.
+      * The ranges are specified individually for each layer in `config` (0-index based).
+      */
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, config.mapValues { r => randomSeed(r) } )
+    }
+
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = new WeightProvider[V] {
+      def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
     }
 
   }
