@@ -212,14 +212,16 @@ import neuroflow.nets.gpu.DenseNetwork._
 With `neuroflow.application.plugin.IO`, we can save and load the weights of a network. The weights are encoded in JSON format.
 
 ```scala
+import neuroflow.application.plugin.IO._
+
 val file = "/path/to/net.nf"
-implicit val weightProvider = IO.File.readDouble(file)
+implicit val weightProvider = IO.File.read[Double](file)
 val net = Network(layers, settings)
-// training ...
-IO.File.write(net.weights, file)
+File.write(net.weights, file)
+val json = Json.write(net.weights)
 ```
 
-The implicit `WeightProvider[Double]` to construct `net` comes from `IO.File.readDouble`.
+The implicit `WeightProvider[Double]` to construct `net` comes from `IO.File.read`.
 To save the weights back to `file`, we use `IO.File.write`. To write into a database instead, 
 we can use `IO.Json.write` to retrieve a raw JSON string and fire a SQL query with it.
 
