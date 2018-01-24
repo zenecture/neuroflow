@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies (Scala Version 2.12.x, oss.sonatype.org
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.3.6",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.3.6"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.0",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.0"
 )
 ```
 
@@ -126,12 +126,14 @@ The training progress is printed on console so we can track it.
 
 ```bash
 [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:188] Training with 4 samples, batch size = 4, batches = 1 ...
-Jan 14, 2018 10:26:56 PM com.github.fommil.jni.JniLoader liberalLoad
-INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader2454297714774289518netlib-native_system-osx-x86_64.jnilib
-[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:351] Iteration 1 - Loss 0,525310 - Loss Vector 0.52531045271250746  
-[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:387] Iteration 2 - Loss 0,525220 - Loss Vector 0.5252200280272876  
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:351] Iteration 1.1, Avg. Loss = 0,525310, Vector: 0.5253104527125074  
+[run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [14.01.2018 22:26:56:387] Iteration 2.1, Avg. Loss = 0,525220, Vector: 0.5252200280272876  
 ...
 ```
+
+One line is printed per iteration, `Iteration a.b` where `a` is the iteration count and `b` is the batch and `Avg. Loss` is the mean of the summed batch loss `Vector`.
+The batch count `b` loops, depending on the batch size, whereas the iteration count `a` progresses linearly until training is finished. 
+
 
 To visualize the loss function, we can append the total loss per iteration to `file` with `LossFuncOutput`.
 
@@ -206,27 +208,30 @@ import neuroflow.nets.gpu.DenseNetwork._
 
 # Persistence
 
-With `neuroflow.application.plugin.IO`, we can save and load the weights of a network. The weights are encoded in JSON format.
+We can save and load nets with `neuroflow.application.plugin.IO`. The weight matrices are encoded in JSON format.
 
 ```scala
+import neuroflow.application.plugin.IO._
+
 val file = "/path/to/net.nf"
-implicit val weightProvider = IO.File.readDouble(file)
+implicit val weightProvider = File.read[Double](file)
 val net = Network(layers, settings)
-// training ...
-IO.File.write(net.weights, file)
+File.write(net.weights, file)
+val json = Json.write(net.weights)
 ```
 
-The implicit `WeightProvider[Double]` to construct `net` comes from `IO.File.readDouble`.
-To save the weights back to `file`, we use `IO.File.write`. To write into a database instead, 
-we can use `IO.Json.write` to retrieve a raw JSON string and fire a SQL query with it.
+The implicit `WeightProvider[Double]` to construct `net` comes from `File.read`.
+To save the weights back to `file`, we use `File.write`. To write into a database, 
+we can use `Json.write` to retrieve a raw JSON string and fire a SQL query with it.
 
 ### Waypoints
 
 ```scala
 Settings(
-  waypoint = Some(Waypoint(nth = 3, (iter, weights) => IO.File.write(weights, s"weights-iter-$iter.nf")))
+  waypoint = Some(Waypoint(nth = 3, (iter, weights) => File.write(weights, s"weights-iter-$iter.nf")))
 )
 ```
 
-It is a good idea to make use of a `Waypoint[V]` for long running sessions. For instance, when the cloud instance got killed for mysterious reasons, it is wise to have a backup of the weights.
-Using a waypoint, we can define important milestones and execute logic when reached. Every `nth` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights.
+It is a good idea to make use of a `Waypoint[V]` for long running sessions. For instance, when the cloud instance got killed for mysterious reasons, 
+periodically saved weights allow us to continue training from a recent point. Every `nth` step, the waypoint function is executed, receiving as input 
+iteration count and a snapshot of the weights.

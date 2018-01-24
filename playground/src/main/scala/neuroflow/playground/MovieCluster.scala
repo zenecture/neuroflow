@@ -3,6 +3,7 @@ package neuroflow.playground
 import java.io.{File, FileOutputStream, PrintWriter}
 
 import neuroflow.application.plugin.IO
+import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.application.processor.{Extensions, Normalizer, Util}
@@ -70,7 +71,7 @@ object MovieCluster {
   def find = {
 
     val net = {
-      implicit val wp = IO.File.readDouble(netFile)
+      implicit val wp = IO.File.read[Double](netFile)
       Network(layout, Settings[Double]())
     }
 

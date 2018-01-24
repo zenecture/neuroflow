@@ -7,7 +7,7 @@ import scala.annotation.implicitNotFound
   * @since 14.10.17
   */
 
-@implicitNotFound("No `CanProduce` in scope. Just import neuroflow.core._ to have it.")
+@implicitNotFound("No `${A} CanProduce ${B}` in scope.")
 trait CanProduce[A, B] {
   def apply(a: A): B
 }
@@ -24,7 +24,7 @@ object CanProduce {
 
 }
 
-@implicitNotFound("No `TypeSize` in scope. Just import neuroflow.core._ to have it.")
+@implicitNotFound("No `TypeSize[${V}]` in scope.")
 trait TypeSize[V] {
   def apply(): Int
 }

@@ -1,11 +1,9 @@
 package neuroflow.nets.gpu
 
 import breeze.linalg._
-import breeze.numerics._
 import breeze.stats._
 import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.Activator._
-import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
@@ -47,7 +45,7 @@ object DenseNetwork {
 
 private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                             identifier: String = "neuroflow.nets.gpu.DenseNetwork", numericPrecision: String = "Double")
-  extends FFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
+  extends FFN[Double] with WaypointLogic[Double] {
 
   implicit val handle = new cublasHandle
   JCublas2.cublasCreate(handle)
@@ -62,7 +60,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     case layer: Layer => layer
   }.toArray
 
-  private val _focusLayer     = layers.collect { case c: Focus[_] => c }.headOption
+  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
 
   private val _activators     = _layers.tail.map {
     case h: HasActivator[_] => h.activator match {
@@ -77,15 +75,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
-  
-  private implicit object Average extends CanAverage[Double, DenseNetworkDouble, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -95,25 +84,9 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     super.checkSettings()
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
-  }
-
-  /**
-    * Trains this net with input `xs` against output `ys`.
-    */
-  def train(xs: Vectors, ys: Vectors): Unit = {
-    require(xs.size == ys.size, "Mismatch between sample sizes!")
-    import settings._
-    val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
-    val xsysBatched = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
-      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
-    }
-    GcThreshold.set(this, batchSize * 2)
-    run(xsysBatched, learningRate(1 -> 1.0), xs.size, precision, 1, iterations)
   }
 
   /**
@@ -136,31 +109,38 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
   }
 
   /**
+    * Trains this net with input `xs` against output `ys`.
+    */
+  def train(xs: Vectors, ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
+    import settings._
+    val batchSize = settings.batchSize.getOrElse(xs.size)
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
+    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
+      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
+    }
+    GcThreshold.set(this, batchSize * 2)
+    run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+  }
+
+  /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, sampleSize: Double, precision: Double,
-                           iteration: Int, maxIterations: Int): Unit = {
-    val _em = xsys.map { batch =>
-      val (x, y) = (batch._1, batch._2)
-      val error =
-        if (settings.approximation.isDefined)
-          adaptWeightsApprox(x, y, stepSize)
-        else adaptWeights(x, y, stepSize)
-        debug(s"Batch Error: $error")
-      error
-    }.reduce(_ + _)
-    val errorPerS = _em / sampleSize
-    val errorMean = mean(errorPerS)
-    if (settings.verbose) info(f"Iteration $iteration - Loss $errorMean%.6g - Loss Vector $errorPerS")
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, precision: Double, batch: Int,
+                           batches: Int, iteration: Int, maxIterations: Int): Unit = {
+    val (x, y) = (xsys(batch)._1, xsys(batch)._2)
+    val loss =
+      if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
+      else adaptWeights(x, y, stepSize)
+    val lossMean = mean(loss)
+    if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
     syncWeights()
-    maybeGraph(errorMean)
-    keepBest(errorMean)
+    maybeGraph(lossMean)
     waypoint(iteration)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, precision, iteration + 1, maxIterations)
+    if (lossMean > precision && iteration < maxIterations) {
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
-      takeBest()
+      info(f"Took $iteration of $maxIterations iterations.")
     }
   }
 
@@ -190,7 +170,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     */
   private def adaptWeights(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
 
-    import settings.lossFunction
+    import settings.{lossFunction, updateRule}
 
     val x = CuMatrix.fromDense(xs)
     val y = CuMatrix.fromDense(ys)
@@ -256,21 +236,22 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     fa.values.foreach(_.release())
     fb.values.foreach(_.release())
 
-    var i = 0
-    while (i <= _lastWlayerIdx) {
-      settings.updateRule(_cuWeights(i), dws(i), stepSize, i)
-      i += 1
-    }
+    (0 to _lastWlayerIdx).foreach(i => updateRule(_cuWeights(i), dws(i), stepSize, i))
 
     x.release()
     y.release()
 
     dws.values.foreach(_.release())
 
-    val errSumReduced = (errSum.toDense.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-    errSum.release()
+    val reducer = CuMatrix.ones[Double](errSum.rows, 1)
+    val errSumReduced = (errSum.t * reducer).t
+    val err = errSumReduced.toDense
 
-    errSumReduced
+    errSum.release()
+    reducer.release()
+    errSumReduced.release()
+
+    err
 
   }
 
@@ -357,7 +338,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
 private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
                                             identifier: String = "neuroflow.nets.gpu.DenseNetwork", numericPrecision: String = "Single")
-  extends FFN[Float] with EarlyStoppingLogic[Float] with KeepBestLogic[Float] with WaypointLogic[Float] {
+  extends FFN[Float] with WaypointLogic[Float] {
 
   implicit val handle = new cublasHandle
   JCublas2.cublasCreate(handle)
@@ -372,7 +353,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     case layer: Layer => layer
   }.toArray
 
-  private val _focusLayer     = layers.collect { case c: Focus[_] => c }.headOption
+  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
 
   private val _activators     = _layers.tail.map {
     case h: HasActivator[_] => h.activator match {
@@ -388,15 +369,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   private val _lastWlayerIdx  = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
 
-  private implicit object Average extends CanAverage[Float, DenseNetworkSingle, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
-
   /**
     * Checks if the [[Settings]] are properly defined.
     * Might throw a [[SettingsNotSupportedException]].
@@ -405,25 +377,9 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     super.checkSettings()
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
-  }
-
-  /**
-    * Trains this net with input `xs` against output `ys`.
-    */
-  def train(xs: Vectors, ys: Vectors): Unit = {
-    require(xs.size == ys.size, "Mismatch between sample sizes!")
-    import settings._
-    val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toFloat / batchSize.toFloat).toInt} ...")
-    val xsysBatched = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
-      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
-    }
-    GcThreshold.set(this, batchSize * 2)
-    run(xsysBatched, learningRate(1 -> 1.0).toFloat, xs.size, precision, 1, iterations)
   }
 
   /**
@@ -446,31 +402,38 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
   }
 
   /**
+    * Trains this net with input `xs` against output `ys`.
+    */
+  def train(xs: Vectors, ys: Vectors): Unit = {
+    require(xs.size == ys.size, "Mismatch between sample sizes!")
+    import settings._
+    val batchSize = settings.batchSize.getOrElse(xs.size)
+    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
+    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
+      xy.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.map(_._2).reduce(DenseMatrix.vertcat(_, _))
+    }
+    GcThreshold.set(this, batchSize * 2)
+    run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+  }
+
+  /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, sampleSize: Float, precision: Double,
-                           iteration: Int, maxIterations: Int): Unit = {
-    val _em = xsys.map { batch =>
-      val (x, y) = (batch._1, batch._2)
-      val error =
-        if (settings.approximation.isDefined)
-          adaptWeightsApprox(x, y, stepSize)
-        else adaptWeights(x, y, stepSize)
-      debug(s"Batch Error: $error")
-      error
-    }.reduce(_ + _)
-    val errorPerS = _em / sampleSize
-    val errorMean = mean(errorPerS)
-    if (settings.verbose) info(f"Iteration $iteration - Loss $errorMean%.6g - Loss Vector $errorPerS")
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, precision: Double, batch: Int,
+                           batches: Int, iteration: Int, maxIterations: Int): Unit = {
+    val (x, y) = (xsys(batch)._1, xsys(batch)._2)
+    val loss =
+      if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
+      else adaptWeights(x, y, stepSize)
+    val lossMean = mean(loss)
+    if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
     syncWeights()
-    maybeGraph(errorMean)
-    keepBest(errorMean)
+    maybeGraph(lossMean)
     waypoint(iteration)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, precision, iteration + 1, maxIterations)
+    if (lossMean > precision && iteration < maxIterations) {
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
-      info(f"Took $iteration iterations of $maxIterations with Loss = $errorMean%.6g")
-      takeBest()
+      info(f"Took $iteration of $maxIterations iterations.")
     }
   }
 
@@ -500,7 +463,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     */
   private def adaptWeights(xs: Matrix, ys: Matrix, stepSize: Float): Matrix = {
 
-    import settings.lossFunction
+    import settings.{lossFunction, updateRule}
 
     val x = CuMatrix.fromDense(xs)
     val y = CuMatrix.fromDense(ys)
@@ -566,21 +529,22 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     fa.values.foreach(_.release())
     fb.values.foreach(_.release())
 
-    var i = 0
-    while (i <= _lastWlayerIdx) {
-      settings.updateRule(_cuWeights(i), dws(i), stepSize, i)
-      i += 1
-    }
+    (0 to _lastWlayerIdx).foreach(i => updateRule(_cuWeights(i), dws(i), stepSize, i))
 
     x.release()
     y.release()
 
     dws.values.foreach(_.release())
 
-    val errSumReduced = (errSum.toDense.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
-    errSum.release()
+    val reducer = CuMatrix.ones[Float](errSum.rows, 1)
+    val errSumReduced = (errSum.t * reducer).t
+    val err = errSumReduced.toDense
 
-    errSumReduced
+    errSum.release()
+    reducer.release()
+    errSumReduced.release()
+
+    err
 
   }
 

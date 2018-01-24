@@ -3,6 +3,7 @@ package neuroflow.playground
 import java.io.{File, FileOutputStream, PrintWriter}
 
 import neuroflow.application.plugin.IO
+import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Extensions.Breeze.cosineSimilarity
 import neuroflow.application.processor.Normalizer.ScaledVectorSpace

@@ -4,9 +4,7 @@ import akka.actor.{ActorSelection, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import breeze.linalg._
-import breeze.numerics._
 import breeze.stats._
-import neuroflow.core.EarlyStoppingLogic.CanAverage
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
@@ -41,7 +39,7 @@ object DenseNetwork {
 
 private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = "neuroflow.nets.distributed.DenseNetwork", numericPrecision: String = "Double")
-  extends DistFFN[Double] with EarlyStoppingLogic[Double] with KeepBestLogic[Double] {
+  extends DistFFN[Double] with WaypointLogic[Double] {
 
   type Vector   = Network.Vector[Double]
   type Vectors  = Network.Vectors[Double]
@@ -53,7 +51,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     case layer: Layer => layer
   }.toArray
 
-  private val _clusterLayer   = layers.collect { case c: Focus[_] => c }.headOption
+  private val _clusterLayer   = layers.collectFirst { case c: Focus[_] => c }
 
   private val _lastWlayerIdx  = weights.size - 1
   private def _weightsWi      = weights.map(_.data.zipWithIndex.grouped(settings.transport.messageGroupSize)).zipWithIndex
@@ -62,15 +60,6 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
   private val _outputDim      = _layers.last.neurons
 
   private val _akka = ActorSystem("NeuroFlow", Configuration(settings.coordinator, settings))
-
-  private implicit object Average extends CanAverage[Double, DenseNetwork, Vector, Vector] {
-    def averagedError(xs: Vectors, ys: Vectors): Double = {
-      val errors = xs.map(evaluate).zip(ys).map {
-        case (a, b) => mean(abs(a - b))
-      }
-      mean(errors)
-    }
-  }
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -84,9 +73,8 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
       warn("No specific settings supported. This has no effect.")
     if (settings.approximation.isDefined)
       throw new SettingsNotSupportedException("Doesn't work in distributed mode.")
-    settings.regularization.foreach {
-      case _: EarlyStopping[_, _] | KeepBest =>
-      case _ => throw new SettingsNotSupportedException("This regularization is not supported.")
+    if (settings.regularization.isDefined) {
+      throw new SettingsNotSupportedException("Regularization is not supported.")
     }
   }
 
@@ -121,16 +109,15 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     * The training loop.
     */
   @tailrec private def run(xs: Seq[ActorSelection], stepSize: Double, precision: Double, iteration: Int, maxIterations: Int): Unit = {
-    val error = adaptWeights(xs, stepSize)
-    val errorMean = mean(error)
-    if (settings.verbose) info(f"Iteration $iteration - Mean Error $errorMean%.6g - Error Vector $error")
-    maybeGraph(errorMean)
-    keepBest(errorMean)
-    if (errorMean > precision && iteration < maxIterations && !shouldStopEarly) {
+    val loss = adaptWeights(xs, stepSize)
+    val lossMean = mean(loss)
+    if (settings.verbose) info(f"Iteration $iteration, Avg. Loss = $lossMean%.6g, Vector: $loss")
+    maybeGraph(lossMean)
+    waypoint(iteration)
+    if (lossMean > precision && iteration < maxIterations) {
       run(xs, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
-      if (settings.verbose) info(f"Took $iteration iterations of $maxIterations with Mean Error = $errorMean%.6g")
-      takeBest()
+      if (settings.verbose) info(f"Took $iteration of $maxIterations iterations.")
     }
   }
 

@@ -1,8 +1,6 @@
 package neuroflow.playground
 
-import java.io.File
-
-import neuroflow.application.plugin.IO
+import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.common.VectorTranslation._
@@ -55,7 +53,7 @@ object LanguageProcessing {
     * Fore more information about word2vec: https://code.google.com/archive/p/word2vec/
     * Use `dimension` to enforce that all vectors have the same dimension.
     */
-  def word2vec(file: File, dimension: Option[Int] = None): Map[String, scala.Vector[Double]] =
+  def word2vec(file: java.io.File, dimension: Option[Int] = None): Map[String, scala.Vector[Double]] =
     scala.io.Source.fromFile(file).getLines.map { l =>
       val raw = l.split(" ")
       (raw.head, raw.tail.map(_.toDouble).toVector)
@@ -80,14 +78,16 @@ object LanguageProcessing {
 
     net.train(allTrain.map(_._1.dv), allTrain.map(_._2))
 
-    IO.File.write(net.weights, netFile)
+    File.write(net.weights, netFile)
+
+    neuroflow.application.plugin.IO.File.write(net.weights, netFile)
 
   }
 
   def test = {
 
     val net = {
-      implicit val wp = IO.File.readDouble(netFile)
+      implicit val wp = File.read[Double](netFile)
       Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil, Settings[Double]())
     }
 
