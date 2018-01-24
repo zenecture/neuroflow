@@ -94,10 +94,10 @@ case class SquaredMeanError[V]() extends Loss[V] {
 
     val `2`   = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
-    val exp   = DenseMatrix.zeros[V](y.rows, y.cols)
-    exp := `2`
+    val pow   = DenseMatrix.zeros[V](y.rows, y.cols)
+    pow := `2`
     val r1 = y - x
-    val r2 = r1 ^:^ exp
+    val r2 = r1 ^:^ pow
     r2 *= `0.5`
 
     (r2, -r1)
@@ -129,14 +129,14 @@ case class SquaredMeanError[V]() extends Loss[V] {
 
     val `2`   = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
-    val exp   = CuMatrix.zeros[V](y.rows, y.cols)
-    exp := `2`
+    val pow   = CuMatrix.zeros[V](y.rows, y.cols)
+    pow := `2`
     val r1 = y - x
-    val r2 = r1 ^:^ exp
+    val r2 = r1 ^:^ pow
     r2 *= `0.5`
     val r3 = -r1
 
-    exp.release()
+    pow.release()
     r1.release()
 
     (r2, r3)
