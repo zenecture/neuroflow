@@ -15,8 +15,8 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
   *
-  * This is a convolutional feed-forward neural network running on CPU and CUDA.
-  * It uses gradient descent to optimize the specified loss function.
+  * Convolutional Neural Network running on CUDA, using
+  * gradient descent to optimize the loss function.
   *
   * @author bogdanski
   * @since 31.08.17
@@ -416,10 +416,5 @@ object ConvNetwork {
 //  }
 //
 //}
-
-// </editor-fold>
-
-// <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
-
 
 // </editor-fold>
