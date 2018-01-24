@@ -23,43 +23,46 @@ trait Loss[V] {
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[DenseMatrix[V], V], _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
-            _sum: sum.Impl[DenseMatrix[V], V], _log: log.Impl[V, V],
-            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
-            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
-            pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
-            setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
-            powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
-            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V])
+            _max: max.Impl[DenseMatrix[V], V],
+            _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _sum: sum.Impl[DenseMatrix[V], V],
+            _log: log.Impl[V, V],
+            _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V])
 
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
-            handle: cublasHandle,
-            field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[CuMatrix[V], V], _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
-            _sum: sum.Impl[CuMatrix[V], V], _log: log.Impl[V, V],
-            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
-            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
-            pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
-            setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
-            powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V])
+            handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
+            _max: max.Impl[CuMatrix[V], V],
+            _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
+            _sum: sum.Impl[CuMatrix[V], V],
+            _log: log.Impl[V, V],
+            _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V])
 
 }
 
@@ -77,20 +80,22 @@ case class SquaredMeanError[V]() extends Loss[V] {
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[DenseMatrix[V], V], _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
-            _sum: sum.Impl[DenseMatrix[V], V], _log: log.Impl[V, V],
-            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
-            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
-            pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
-            setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
-            powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
-            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
+            _max: max.Impl[DenseMatrix[V], V],
+            _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _sum: sum.Impl[DenseMatrix[V], V],
+            _log: log.Impl[V, V],
+            _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
 
     val `2`   = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
@@ -106,26 +111,27 @@ case class SquaredMeanError[V]() extends Loss[V] {
 
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
-            handle: cublasHandle,
-            field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[CuMatrix[V], V], _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
-            _sum: sum.Impl[CuMatrix[V], V], _log: log.Impl[V, V],
-            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
-            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
-            pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
-            setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
-            powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
+            handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
+            _max: max.Impl[CuMatrix[V], V],
+            _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
+            _sum: sum.Impl[CuMatrix[V], V],
+            _log: log.Impl[V, V],
+            _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
 
     val `2`   = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
@@ -162,20 +168,22 @@ case class Softmax[V]() extends Loss[V] {
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[DenseMatrix[V], V], _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
-            _sum: sum.Impl[DenseMatrix[V], V], _log: log.Impl[V, V],
-            mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-            mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
-            mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
-            pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
-            mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
-            setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
-            powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
-            subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
+            _max: max.Impl[DenseMatrix[V], V],
+            _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _sum: sum.Impl[DenseMatrix[V], V],
+            _log: log.Impl[V, V],
+            _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
 
     val batchSize = y.rows
 
@@ -194,26 +202,27 @@ case class Softmax[V]() extends Loss[V] {
 
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
-            handle: cublasHandle,
-            field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[CuMatrix[V], V], _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
-            _sum: sum.Impl[CuMatrix[V], V], _log: log.Impl[V, V],
-            mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
-            mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
-            pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
-            mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
-            setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
-            powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
-            addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
+            handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
+            _max: max.Impl[CuMatrix[V], V],
+            _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
+            _sum: sum.Impl[CuMatrix[V], V],
+            _log: log.Impl[V, V],
+            _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
 
     val batchSize = y.rows
 
@@ -244,8 +253,8 @@ object SoftmaxImpl {
                _max: max.Impl[DenseMatrix[V], V],
                _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
                _sum: sum.Impl[DenseMatrix[V], V],
-               sub: OpSub.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-               div: OpDiv.Impl2[DenseMatrix[V], V, DenseMatrix[V]]): DenseMatrix[V] = {
+               _sub: OpSub.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+               _div: OpDiv.Impl2[DenseMatrix[V], V, DenseMatrix[V]]): DenseMatrix[V] = {
     val r1 = x - _max(x)
     val r2 = _exp(r1)
     val probs = r2 / _sum(r2)
@@ -257,8 +266,8 @@ object SoftmaxImpl {
                _max: max.Impl[CuMatrix[V], V],
                _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
                _sum: sum.Impl[CuMatrix[V], V],
-               sub: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
-               div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]]): CuMatrix[V] = {
+               _sub: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
+               _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]]): CuMatrix[V] = {
     val r1 = x - _max(x)
     val r2 = _exp(r1)
     val r3 = _sum(r2)
