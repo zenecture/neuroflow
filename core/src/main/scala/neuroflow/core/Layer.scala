@@ -95,8 +95,8 @@ case class Convolution[V](dimIn      :  (Int, Int, Int),
   assert(dimIn._1 > 0 && dimIn._2 > 0 && dimIn._3 > 0, "Input dimension must be positive!")
   assert(_d1 >= 0, s"Field $field is too big for input width ${dimIn._1}!")
   assert(_d2 >= 0, s"Field $field is too big for input height ${dimIn._2}!")
-  assert(_d1 % stride._1 == 0, s"W + 2P - F % S != 0: Width W = ${dimInPadded._1} doesn't work with stride S = ${stride._1}, field F = ${field._1}, padding P = ${padding._1}!")
-  assert(_d2 % stride._2 == 0, s"H + 2P - F % S != 0: Height H = ${dimInPadded._2} doesn't work with stride S = ${stride._2}, field F = ${field._2}, padding P = ${padding._2}!")
+  assert(_d1 % stride._1 == 0, s"W + 2P - F % S != 0: Width W = ${dimIn._1} doesn't work with stride S = ${stride._1}, field F = ${field._1}, padding P = ${padding._1}!")
+  assert(_d2 % stride._2 == 0, s"H + 2P - F % S != 0: Height H = ${dimIn._2} doesn't work with stride S = ${stride._2}, field F = ${field._2}, padding P = ${padding._2}!")
 
 }
 
