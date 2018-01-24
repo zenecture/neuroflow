@@ -134,7 +134,9 @@ INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/
 ...
 ```
 
-One step per line, `Iteration a.b` where `a` is step and `b` is batch, `Avg. Loss` is mean of the summed batch loss `Vector`.
+One line is printed per iteration, `Iteration a.b` where `a` is the iteration count and `b` is the batch and `Avg. Loss` is the mean of the summed batch loss `Vector`.
+The batch count `b` loops, depending on the batch size, whereas the iteration count `a` progresses linearly until training is finished. 
+
 
 To visualize the loss function, we can append the total loss per iteration to `file` with `LossFuncOutput`.
 
