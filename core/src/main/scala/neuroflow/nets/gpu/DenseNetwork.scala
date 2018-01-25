@@ -166,7 +166,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
   /**
     * Copies batch to GPU, then computes gradient for all weights,
-    * adapts their value using gradient descent and returns the error matrix.
+    * adapts their value using gradient descent and returns the loss matrix.
     */
   private def adaptWeights(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
 
@@ -261,7 +261,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     }
   }
 
-  /** Approximates the gradient based on finite central differences. (For debugging) */
+  /** For debugging, approximates the gradients using `settings.approximation`. */
   private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
 
     require(settings.updateRule.isInstanceOf[Debuggable[Double]])
@@ -448,7 +448,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
   /**
     * Copies batch to GPU, then computes gradient for all weights,
-    * adapts their value using gradient descent and returns the error matrix.
+    * adapts their value using gradient descent and returns the loss matrix.
     */
   private def adaptWeights(xs: Matrix, ys: Matrix, stepSize: Float): Matrix = {
 
@@ -543,7 +543,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     }
   }
 
-  /** Approximates the gradient based on finite central differences. (For debugging) */
+  /** For debugging, approximates the gradients using `settings.approximation`. */
   private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Float): Matrix = {
 
     require(settings.updateRule.isInstanceOf[Debuggable[Float]])

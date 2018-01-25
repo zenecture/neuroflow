@@ -308,7 +308,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   /**
     * Computes gradient for weights with respect to given batch,
-    * adapts their value using gradient descent and returns the error matrix.
+    * adapts their value using gradient descent and returns the loss matrix.
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Double, batchSize: Int): Matrix = {
 
@@ -391,7 +391,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
   }
 
-  /** Approximates the gradient based on finite central differences. (For debugging) */
+  /** For debugging, approximates the gradients using `settings.approximation`. */
   private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Double, batchSize: Int): Matrix = {
 
     require(settings.updateRule.isInstanceOf[Debuggable[Double]])
