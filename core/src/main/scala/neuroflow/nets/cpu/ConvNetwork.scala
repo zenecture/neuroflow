@@ -314,7 +314,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     import settings.{lossFunction, updateRule}
 
-    val errSum = DenseMatrix.zeros[Double](batchSize, _outputDim)
+    val loss = DenseMatrix.zeros[Double](batchSize, _outputDim)
 
     val fa  = collection.mutable.Map.empty[Int, Matrix]
     val fb  = collection.mutable.Map.empty[Int, Matrix]
@@ -351,7 +351,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
         val dw = fa(i - 1).t * d
         dws += i -> dw
         ds += i -> d
-        errSum += err
+        loss += err
         derive(i - 1)
       } else if (i < _lastWlayerIdx && i > _lastC) {
         val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
@@ -386,8 +386,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
 
     (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
-    val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-    errSumReduced
+    val lossReduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
+    lossReduced
 
   }
 
