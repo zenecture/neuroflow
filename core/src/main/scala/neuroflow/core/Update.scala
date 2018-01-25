@@ -89,7 +89,6 @@ case class Vanilla[V]() extends Update[V] {
 case class Momentum[V](μ: V) extends Update[V] {
 
   private val vsd = collection.mutable.HashMap.empty[Int, DenseMatrix[V]]
-  private val vsc = collection.mutable.HashMap.empty[Int, CuMatrix[V]]
 
   def apply(ws: DenseMatrix[V], dws: DenseMatrix[V], learningRate: V, position: Int)
            (implicit
@@ -106,6 +105,8 @@ case class Momentum[V](μ: V) extends Update[V] {
     else vsd += position -> -(dws * learningRate)
     ws += vsd(position)
   }
+
+  private val vsc = collection.mutable.HashMap.empty[Int, CuMatrix[V]]
 
   def apply(ws: CuMatrix[V], dws: CuMatrix[V], learningRate: V, position: Int)
            (implicit
