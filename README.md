@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies (Scala Version 2.12.x, oss.sonatype.org
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.0",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.0"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.1",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.1"
 )
 ```
 
@@ -43,10 +43,13 @@ import shapeless._
 implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
 val (g, h) = (Sigmoid, Sigmoid)
-val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil)
+
+val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil, 
+  Settings[Double](lossFunction = SquaredMeanError())
+)
 ```
 
-This gives a fully connected `DenseNetwork`, which is initialized with random weights in range (-1, 1) by `WeightProvider`.
+This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. The weights are initialized randomly in range (-1, 1) by `WeightProvider`.
 Further, we have pre-defined activators, so we can place a softly firing `Sigmoid` on the cells.
 
 In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
@@ -54,7 +57,7 @@ They give type-safety and a humble ability to compose groups of layers. For inst
 rates and rules defined through a `Settings` instance, could look like this:
 
 ```scala
-val (e, f) = (Linear, Sigmoid)
+val (e, f) = (Linear, ReLU)
 
 val bottleNeck =
   Input  (50)               ::
@@ -72,7 +75,7 @@ val fullies    =
 val deeperNet = Network(
   bottleNeck ::: fullies, 
   Settings[Double](
-    lossFunction = SquaredMeanError(), updateRule = Vanilla(), batchSize = Some(8), iterations = 250,
+    lossFunction = Softmax(), updateRule = Vanilla(), batchSize = Some(8), iterations = 250,
     learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 }, precision = 1E-5
   )
 )
