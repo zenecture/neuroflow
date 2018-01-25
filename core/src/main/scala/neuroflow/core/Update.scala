@@ -44,7 +44,10 @@ trait Update[V] {
 }
 
 
-
+/**
+  * Gingerly stepping vanilla.
+  *   Weights_{n} = Weights_{n-1} - (Grads_{n-1} * learningRate)
+  */
 case class Vanilla[V]() extends Update[V] {
 
   def apply(ws: DenseMatrix[V], dws: DenseMatrix[V], learningRate: V, position: Int)
@@ -79,7 +82,10 @@ case class Vanilla[V]() extends Update[V] {
 }
 
 
-
+/**
+  * Momentum update is jumping downhill into the loss' minimum, iteratively re-gaining
+  * momentum into all directions by varying gradients, which is decelerated by factor `μ`.
+  */
 case class Momentum[V](μ: V) extends Update[V] {
 
   private val vsd = collection.mutable.HashMap.empty[Int, DenseMatrix[V]]
@@ -136,7 +142,9 @@ case class Momentum[V](μ: V) extends Update[V] {
 }
 
 
-
+/**
+  * Exposes the `lastGradients` for debugging.
+  */
 case class Debuggable[V]() extends Update[V] {
 
   var lastGradients = collection.mutable.Map.empty[Int, DenseMatrix[V]]
