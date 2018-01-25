@@ -12,7 +12,7 @@ import neuroflow.core.Network._
 
 /**
   * Approximates `weight` residing in respective `layer` in `weights` using `lossFunction`.
-  * If syncing with GPU is desired, call `sync`.
+  * For GPU implementations calling `sync` between updates is necessary.
   */
 trait Approximation[V] extends Serializable {
   def apply(weights: Weights[V], lossFunction: () => Matrix[V], sync: () => Unit, layer: Int, weight: (Int, Int))
