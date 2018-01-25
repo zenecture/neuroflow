@@ -392,28 +392,21 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
   }
 
   /** Approximates the gradient based on finite central differences. (For debugging) */
-  private def adaptWeightsApprox(x: Matrix, y: Matrix, stepSize: Double, batchSize: Int): Matrix = {
+  private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Double, batchSize: Int): Matrix = {
 
     require(settings.updateRule.isInstanceOf[Debuggable[Double]])
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
-    def errorFunc(): Matrix = {
-      val errSum = settings.lossFunction(y, flow(x, _lastWlayerIdx, batchSize))._1
-      val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-      errSumReduced
+    def lossFunc(): Matrix = {
+      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx, batchSize))._1
+      val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
+      reduced
     }
 
-    val out = errorFunc()
+    val out = lossFunc()
 
-    def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
-      val Δ = settings.approximation.get.Δ
-      val v = weights(weightLayer)(weight)
-      weights(weightLayer).update(weight, v - Δ)
-      val a = errorFunc()
-      weights(weightLayer).update(weight, v + Δ)
-      val b = errorFunc()
-      weights(weightLayer).update(weight, v)
-      (b - a) / (2 * Δ)
+    def approximateGradient(weightLayer: Int, weight: (Int, Int)): Double = {
+      sum(settings.approximation.get.apply(weights, lossFunc, () => (), weightLayer, weight))
     }
 
     val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
@@ -424,7 +417,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val grad = sum(approximateErrorFuncDerivative(idx, k))
+          val grad = approximateGradient(idx, k)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }

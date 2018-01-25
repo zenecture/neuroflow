@@ -32,15 +32,15 @@ import scala.collection._
 
 
 object LSTMNetwork {
-  implicit val double: Constructor[Double, LSTMNetwork] = new Constructor[Double, LSTMNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LSTMNetwork = {
-      LSTMNetwork(ls, settings, weightProvider(ls))
+  implicit val double: Constructor[Double, LSTMNetworkDouble] = new Constructor[Double, LSTMNetworkDouble] {
+    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LSTMNetworkDouble = {
+      LSTMNetworkDouble(ls, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
                                      identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
@@ -99,7 +99,7 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
                            iteration: Int, maxIterations: Int): Unit = {
-    val error = errorFunc(xs, ys)
+    val error = lossFunction(xs, ys)
     val errorMean = mean(error)
     if (errorMean > precision && iteration < maxIterations) {
       if (settings.verbose) info(f"Iteration $iteration, Avg. Loss = $errorMean%.6g, Vector: $error")
@@ -116,9 +116,9 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
   }
 
   /**
-    * Evaluates the error function Σ1/2(out(x) - target)² over time.
+    * Evaluates the loss function Σ1/2(out(x) - target)² over time.
     */
-  private def errorFunc(xs: Matrices, ys: Matrices): Matrix = {
+  private def lossFunction(xs: Matrices, ys: Matrices): Matrix = {
     reset()
     val errs = unfoldingFlow(xs, initialOut, Array.empty[Matrix], Array.empty[Matrix], 0)
     errs.zip(ys).map {
@@ -135,9 +135,9 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
       l.foreachPair { (k, v) =>
         val layer = weights.indexOf(l)
         val grad =
-          if (settings.approximation.isDefined) approximateErrorFuncDerivative(xs, ys, layer, k)
+          if (settings.approximation.isDefined) approximateGradient(xs, ys, layer, k)
           else ??? // this is TODO
-        l.update(k, v - stepSize * mean(grad))
+        l.update(k, v - stepSize * grad)
       }
     }
   }
@@ -145,14 +145,8 @@ private[nets] case class LSTMNetwork(layers: Seq[Layer], settings: Settings[Doub
   /**
     * Approximates the gradient based on finite central differences.
     */
-  private def approximateErrorFuncDerivative(xs: Matrices, ys: Matrices, layer: Int, weight: (Int, Int)): Matrix = {
-    val Δ = settings.approximation.getOrElse(Approximation(1E-5)).Δ
-    val v = weights(layer)(weight)
-    weights(layer).update(weight, v - Δ)
-    val a = errorFunc(xs, ys)
-    weights(layer).update(weight, v + Δ)
-    val b = errorFunc(xs, ys)
-    (b - a) / (2 * Δ)
+  private def approximateGradient(xs: Matrices, ys: Matrices, layer: Int, weight: (Int, Int)): Double = {
+    sum(settings.approximation.get.apply(weights, () => lossFunction(xs, ys), () => (), layer, weight))
   }
 
   /**

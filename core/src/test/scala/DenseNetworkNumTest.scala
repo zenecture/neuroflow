@@ -72,7 +72,7 @@ class DenseNetworkNumTest extends Specification {
     )
 
     val netA = Network(layout, settings.copy(updateRule = debuggableA))
-    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(Approximation(1E-5))))
+    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(FiniteDifferences(1E-5))))
 
     val xs = Seq(DenseVector(0.5, 0.5), DenseVector(0.7, 0.7))
     val ys = Seq(DenseVector(1.0, 0.0), DenseVector(0.0, 1.0))

@@ -44,7 +44,7 @@ object Sequences {
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
     val f = Tanh
     val net = Network(Input(1) :: Dense(5, f) :: Output(1, f) :: HNil,
-      Settings[Double](iterations = 5000, learningRate = { case (_, _) => 0.2 }, approximation = Some(Approximation(1E-9))))
+      Settings[Double](iterations = 5000, learningRate = { case (_, _) => 0.2 }, approximation = Some(FiniteDifferences(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
@@ -73,7 +73,7 @@ object Sequences {
     val f = Sigmoid
     val net = Network(Input(1) :: Dense(3, f) :: Dense(3, f) :: Output(1, f) :: HNil,
       Settings[Double](iterations = 5000, learningRate = { case _ => 0.2 },
-        approximation = Some(Approximation(1E-12)),
+        approximation = Some(FiniteDifferences(1E-12)),
         lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
@@ -100,7 +100,7 @@ object Sequences {
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x), ->(sin(10 * x), cos(10 * x))))
     val f = Tanh
     val net = Network(Input(1) :: Dense(7, f) :: Dense(7, f) :: Output(2, f) :: HNil,
-      Settings[Double](iterations = 5000, learningRate = { case _ => 0.5 }, approximation = Some(Approximation(1E-9))))
+      Settings[Double](iterations = 5000, learningRate = { case _ => 0.5 }, approximation = Some(FiniteDifferences(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
 
@@ -135,7 +135,7 @@ object Sequences {
       Settings[Double](iterations = 500 ,
         learningRate = { case _ => 0.2 },
         partitions = Some(Set(a.indices.last)),
-        approximation = Some(Approximation(1E-9))))
+        approximation = Some(FiniteDifferences(1E-9))))
 
     net.train(all.map(_._1), all.map(_._2))
 
@@ -176,7 +176,7 @@ object Sequences {
     val net = Network(Input(3) :: Dense(6, Tanh) :: Output(3, Tanh) :: HNil,
       Settings[Double](iterations = 2000,
         learningRate = { case _ => 0.5 },
-        approximation = Some(Approximation(1E-9)),
+        approximation = Some(FiniteDifferences(1E-9)),
         lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/lstm.txt"))),
         partitions = Some(Π(3, 3))))
 
@@ -215,7 +215,7 @@ object Sequences {
         partitions = Some(Π(c, n)),
         lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/pointClass.txt"))),
         regularization = Some(KeepBest),
-        approximation = Some(Approximation(1E-9))))
+        approximation = Some(FiniteDifferences(1E-9))))
 
     net.train(all.map(_._1), all.map(_._2.dv))
 

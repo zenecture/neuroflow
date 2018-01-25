@@ -116,7 +116,11 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Dou
     val mem = settings.specifics.flatMap(_.get("m").map(_.toInt)).getOrElse(3)
     val mzi = settings.specifics.flatMap(_.get("maxZoomIterations").map(_.toInt)).getOrElse(10)
     val mlsi = settings.specifics.flatMap(_.get("maxLineSearchIterations").map(_.toInt)).getOrElse(10)
-    val approx = approximation.getOrElse(Approximation(1E-5)).Δ
+
+    val approx = approximation match {
+      case Some(FiniteDifferences(delta)) => delta
+      case _                              => 1E-5
+    }
 
     val gradientFunction = new ApproximateGradientFunction[Int, Vector](errorFunc, approx)
     val lbfgs = new NFLBFGS(verbose = settings.verbose, maxIter = iterations, m = mem, maxZoomIter = mzi,
@@ -132,9 +136,9 @@ private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Dou
     */
   def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    layers.collect {
+    layers.collectFirst {
       case c: Focus[Double] => c
-    }.headOption.map { cl =>
+    }.map { cl =>
       flow(weights, input, 0, layers.indexOf(cl) - 1).map(cl.inner.activator).toDenseVector
     }.getOrElse {
       flow(weights, input, 0, layers.size - 1).toDenseVector

@@ -148,7 +148,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     import settings.{lossFunction, updateRule}
 
-    val errSum = DenseMatrix.zeros[Double](x.rows, _outputDim)
+    val loss = DenseMatrix.zeros[Double](x.rows, _outputDim)
 
     val fa  = collection.mutable.Map.empty[Int, Matrix]
     val fb  = collection.mutable.Map.empty[Int, Matrix]
@@ -170,14 +170,14 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
         val d = grad *:* fb(0)
         val dw = x.t * d
         dws += 0 -> dw
-        errSum += err
+        loss += err
       } else if (i == _lastWlayerIdx) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = fa(i - 1).t * d
         dws += i -> dw
         ds += i -> d
-        errSum += err
+        loss += err
         derive(i - 1)
       } else if (i < _lastWlayerIdx && i > 0) {
         val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
@@ -197,8 +197,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
-    val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-    errSumReduced
+    val lossReduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
+    lossReduced
 
   }
 
@@ -208,23 +208,16 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     require(settings.updateRule.isInstanceOf[Debuggable[Double]])
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
-    def errorFunc(): Matrix = {
-      val errSum = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
-      val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-      errSumReduced
+    def lossFunc(): Matrix = {
+      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
+      reduced
     }
 
-    val out = errorFunc()
+    val out = lossFunc()
 
-    def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
-      val Δ = settings.approximation.get.Δ
-      val v = weights(weightLayer)(weight)
-      weights(weightLayer).update(weight, v - Δ)
-      val a = errorFunc()
-      weights(weightLayer).update(weight, v + Δ)
-      val b = errorFunc()
-      weights(weightLayer).update(weight, v)
-      (b - a) / (2 * Δ)
+    def approximateGradients(weightLayer: Int, weight: (Int, Int)): Double = {
+      sum(settings.approximation.get.apply(weights, lossFunc, () => (), weightLayer, weight))
     }
 
     val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Double]
@@ -235,7 +228,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val grad = sum(approximateErrorFuncDerivative(idx, k))
+          val grad = approximateGradients(idx, k)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }
@@ -366,13 +359,13 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
   /**
     * Computes gradient for weights with respect to given batch,
-    * adapts their value using gradient descent and returns the error matrix.
+    * adapts their value using gradient descent and returns the loss.
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Float): Matrix = {
 
     import settings.{lossFunction, updateRule}
 
-    val errSum = DenseMatrix.zeros[Float](x.rows, _outputDim)
+    val loss = DenseMatrix.zeros[Float](x.rows, _outputDim)
 
     val fa  = collection.mutable.Map.empty[Int, Matrix]
     val fb  = collection.mutable.Map.empty[Int, Matrix]
@@ -394,14 +387,14 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
         val d = grad *:* fb(0)
         val dw = x.t * d
         dws += 0 -> dw
-        errSum += err
+        loss += err
       } else if (i == _lastWlayerIdx) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = fa(i - 1).t * d
         dws += i -> dw
         ds += i -> d
-        errSum += err
+        loss += err
         derive(i - 1)
       } else if (i < _lastWlayerIdx && i > 0) {
         val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
@@ -421,8 +414,8 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
-    val errSumReduced = (errSum.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
-    errSumReduced
+    val lossReduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
+    lossReduced
 
   }
 
@@ -432,23 +425,16 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     require(settings.updateRule.isInstanceOf[Debuggable[Float]])
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
-    def errorFunc(): Matrix = {
-      val errSum = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
-      val errSumReduced = (errSum.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
-      errSumReduced
+    def lossFunc(): Matrix = {
+      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val reduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
+      reduced
     }
 
-    val out = errorFunc()
+    val out = lossFunc()
 
-    def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
-      val Δ = settings.approximation.get.Δ.toFloat
-      val v = weights(weightLayer)(weight)
-      weights(weightLayer).update(weight, v - Δ)
-      val a = errorFunc()
-      weights(weightLayer).update(weight, v + Δ)
-      val b = errorFunc()
-      weights(weightLayer).update(weight, v)
-      (b - a) / (2 * Δ)
+    def approximateGradient(weightLayer: Int, weight: (Int, Int)): Float = {
+      sum(settings.approximation.get.apply(weights, lossFunc, () => (), weightLayer, weight))
     }
 
     val updates = collection.mutable.HashMap.empty[(Int, (Int, Int)), Float]
@@ -459,7 +445,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val grad = sum(approximateErrorFuncDerivative(idx, k))
+          val grad = approximateGradient(idx, k)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }

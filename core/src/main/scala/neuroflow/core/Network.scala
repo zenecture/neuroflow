@@ -94,7 +94,7 @@ case class Settings[V]
                     lossFuncOutput    :  Option[LossFuncOutput]       =  None,
                     regularization    :  Option[Regularization]       =  None,
                     waypoint          :  Option[Waypoint[V]]          =  None,
-                    approximation     :  Option[Approximation]        =  None,
+                    approximation     :  Option[Approximation[V]]     =  None,
                     partitions        :  Option[Set[Int]]             =  None,
                     specifics         :  Option[Map[String, Double]]  =  None) extends Serializable
 

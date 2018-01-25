@@ -267,29 +267,19 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     require(settings.updateRule.isInstanceOf[Debuggable[Double]])
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
-    def errorFunc(): Matrix = {
-      val errSum = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
-      val errSumReduced = (errSum.t * DenseMatrix.ones[Double](errSum.rows, 1)).t
-      errSumReduced
+    def lossFunc(): Matrix = {
+      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
+      reduced
     }
 
-    val out = errorFunc()
+    val out = lossFunc()
 
-    def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
-      val Δ = settings.approximation.get.Δ
-      val v = weights(weightLayer)(weight)
-      weights(weightLayer).update(weight, v - Δ)
-      syncWeightsBack()
-      val a = errorFunc()
-      weights(weightLayer).update(weight, v + Δ)
-      syncWeightsBack()
-      val b = errorFunc()
-      weights(weightLayer).update(weight, v)
-      syncWeightsBack()
-      (b - a) / (2 * Δ)
+    def approximateGradient(weightLayer: Int, weight: (Int, Int)): Double = {
+      sum(settings.approximation.get.apply(weights, lossFunc, syncWithGPU, weightLayer, weight))
     }
 
-    def syncWeightsBack(): Unit = {
+    def syncWithGPU(): Unit = {
       weights.zip(_cuWeights).foreach {
         case (w, cw) => cw := w
       }
@@ -303,8 +293,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val efd  = approximateErrorFuncDerivative(idx, k)
-          val grad = sum(efd)
+          val grad  = approximateGradient(idx, k)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }
@@ -322,7 +311,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     _rule.lastGradients = debug
 
-    syncWeightsBack()
+    syncWithGPU()
 
     out
 
@@ -560,29 +549,19 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     require(settings.updateRule.isInstanceOf[Debuggable[Float]])
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
-    def errorFunc(): Matrix = {
-      val errSum = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
-      val errSumReduced = (errSum.t * DenseMatrix.ones[Float](errSum.rows, 1)).t
-      errSumReduced
+    def lossFunc(): Matrix = {
+      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val reduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
+      reduced
     }
 
-    val out = errorFunc()
+    val out = lossFunc()
 
-    def approximateErrorFuncDerivative(weightLayer: Int, weight: (Int, Int)): Matrix = {
-      val Δ = settings.approximation.get.Δ.toFloat
-      val v = weights(weightLayer)(weight)
-      weights(weightLayer).update(weight, v - Δ)
-      syncWeightsBack()
-      val a = errorFunc()
-      weights(weightLayer).update(weight, v + Δ)
-      syncWeightsBack()
-      val b = errorFunc()
-      weights(weightLayer).update(weight, v)
-      syncWeightsBack()
-      (b - a) / (2 * Δ)
+    def approximateGradient(weightLayer: Int, weight: (Int, Int)): Float = {
+      sum(settings.approximation.get.apply(weights, lossFunc, syncWithGPU, weightLayer, weight))
     }
 
-    def syncWeightsBack(): Unit = {
+    def syncWithGPU(): Unit = {
       weights.zip(_cuWeights).foreach {
         case (w, cw) => cw := w
       }
@@ -596,8 +575,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       case (l, idx) =>
         debug += idx -> l.copy
         l.foreachPair { (k, v) =>
-          val efd  = approximateErrorFuncDerivative(idx, k)
-          val grad = sum(efd)
+          val grad  = approximateGradient(idx, k)
           updates += (idx, k) -> (v - (stepSize * grad))
           grads += (idx, k) -> grad
         }
@@ -615,7 +593,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     _rule.lastGradients = debug
 
-    syncWeightsBack()
+    syncWithGPU()
 
     out
 
