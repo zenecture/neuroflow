@@ -175,7 +175,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val x = CuMatrix.fromDense(xs)
     val y = CuMatrix.fromDense(ys)
 
-    val errSum = CuMatrix.zeros[Double](xs.rows, _outputDim)
+    val loss = CuMatrix.zeros[Double](xs.rows, _outputDim)
 
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
     val fb  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
@@ -198,7 +198,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
         val d = grad *:* fb(i)
         val dw = x.t * d
         dws += i -> dw
-        errSum += err
+        loss += err
         d.release()
         err.release()
         grad.release()
@@ -208,7 +208,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
         val dw = fa(i - 1).t * d
         dws += i -> dw
         ds += i -> d
-        errSum += err
+        loss += err
         err.release()
         grad.release()
         derive(i - 1)
@@ -243,15 +243,15 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
     dws.values.foreach(_.release())
 
-    val reducer = CuMatrix.ones[Double](errSum.rows, 1)
-    val errSumReduced = (errSum.t * reducer).t
-    val err = errSumReduced.toDense
+    val reducer = CuMatrix.ones[Double](loss.rows, 1)
+    val lossReduced = (loss.t * reducer).t
+    val lossDm = lossReduced.toDense
 
-    errSum.release()
+    loss.release()
     reducer.release()
-    errSumReduced.release()
+    lossReduced.release()
 
-    err
+    lossDm
 
   }
 
@@ -457,7 +457,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val x = CuMatrix.fromDense(xs)
     val y = CuMatrix.fromDense(ys)
 
-    val errSum = CuMatrix.zeros[Float](xs.rows, _outputDim)
+    val loss = CuMatrix.zeros[Float](xs.rows, _outputDim)
 
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
     val fb  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
@@ -480,7 +480,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
         val d = grad *:* fb(i)
         val dw = x.t * d
         dws += i -> dw
-        errSum += err
+        loss += err
         d.release()
         err.release()
         grad.release()
@@ -490,7 +490,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
         val dw = fa(i - 1).t * d
         dws += i -> dw
         ds += i -> d
-        errSum += err
+        loss += err
         err.release()
         grad.release()
         derive(i - 1)
@@ -525,15 +525,15 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
 
     dws.values.foreach(_.release())
 
-    val reducer = CuMatrix.ones[Float](errSum.rows, 1)
-    val errSumReduced = (errSum.t * reducer).t
-    val err = errSumReduced.toDense
+    val reducer = CuMatrix.ones[Float](loss.rows, 1)
+    val lossReduced = (loss.t * reducer).t
+    val lossDm = lossReduced.toDense
 
-    errSum.release()
+    loss.release()
     reducer.release()
-    errSumReduced.release()
+    lossReduced.release()
 
-    err
+    lossDm
 
   }
 
