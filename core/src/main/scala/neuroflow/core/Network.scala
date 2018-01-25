@@ -73,8 +73,8 @@ trait Constructor[V, +T <: Network[_, _, _]] {
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
   *   `regularization`      The respective regulator tries to avoid over-fitting.
-  *   `waypoint`            Waypoint actions can be specified, e.g. saving the weights every n steps.
-  *   `approximation`       If true, the gradients will be approximated numerically.
+  *   `waypoint`            Periodic actions can be executed, e.g. saving the weights every n steps.
+  *   `approximation`       If set, the gradients are approximated numerically.
   *   `partitions`          A sequential training sequence can be partitioned for RNNs. (0 index-based)
   *   `specifics`           Some nets use specific parameters set in the `specifics` map.
   *
