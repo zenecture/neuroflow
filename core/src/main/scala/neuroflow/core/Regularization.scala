@@ -27,19 +27,19 @@ trait KeepBestLogic[V] { self: Network[V, _, _] =>
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  private var bestErr = Double.PositiveInfinity
+  private var bestLoss = Double.PositiveInfinity
   private var bestWs: Weights[V] = self.weights
 
-  def keepBest(error: Double): Unit = {
-    if (error < bestErr) Future {
-      bestErr = error
+  def keepBest(loss: Double): Unit = {
+    if (loss < bestLoss) Future {
+      bestLoss = loss
       bestWs = self.weights.map(_.copy)
     }
   }
 
   def takeBest(): Unit = self.settings.regularization match {
     case Some(KeepBest) =>
-      info(f"Applying KeepBest strategy. Best test error so far: $bestErr%.6g.")
+      info(f"Applying KeepBest strategy. Best loss so far: $bestLoss%.6g.")
       weights.zip(bestWs).foreach {
         case (a, b) => a := b
       }
