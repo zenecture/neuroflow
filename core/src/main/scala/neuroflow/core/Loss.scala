@@ -68,7 +68,7 @@ trait Loss[V] {
 
 /**
   *
-  *   Σ1/2(y - x)²
+  *   L = Σ1/2(y - x)²
   *
   * Where `y` is the target and `x` the prediction.
   * The sum Σ is taken over the full batch and
@@ -153,14 +153,15 @@ case class SquaredMeanError[V]() extends Loss[V] {
 
 /**
   *
-  *   Σ(e^x / Σe^X)
+  *   L = -Σ(y * log(e^x / Σe^X))
   *
   * Works for 1-of-K classification, under a cross-entropy regime,
-  * using a hot-vector encoding, e. g. (0, 1, 0, 0) for target y.
+  * where `y` is the target and `x` the prediction. The target is expressed
+  * using hot-vector encoding, e. g. (0, 1, 0, 0) where 1 is the true class.
   * The first sum Σ is taken over the full batch and both exponentials
-  * give a convex functional form. The second sum Σ produces a score
-  * in range [0.0, 1.0], interpretable as percent, for each component
-  * of the output vector so it sums up to 1.
+  * give a convex functional form. The second sum Σ produces scores in
+  * range [0.0, 1.0] such that they sum up to 1 and are interpretable
+  * as percent.
   *
   */
 case class Softmax[V]() extends Loss[V] {
