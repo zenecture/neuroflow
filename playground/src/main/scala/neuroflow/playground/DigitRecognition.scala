@@ -47,13 +47,12 @@ object DigitRecognition {
 
       val fn = ReLU
 
-      val settings = Settings(
+      val settings = Settings[Float](
         learningRate = { case (_, _) => 1E-5 },
         updateRule = Momentum(0.8f),
         lossFunction = Softmax(),
         precision = 1E-3,
-        iterations = 15000,
-        regularization = Some(KeepBest))
+        iterations = 15000)
 
       val net = Network(
            Input(xs.head.length) ::
