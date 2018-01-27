@@ -44,12 +44,12 @@ object IO extends Logs {
   object File {
 
     /**
-      * Deserializes weights as json from `file` to construct a `WeightProvider`.
+      * Deserializes weights encoded as JSON from `file` to construct a `WeightProvider`.
       */
     def read[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = ~> (Source.fromFile(file).mkString) map Json.read[V]
 
     /**
-      * Serializes weights of `network` to `file` as json.
+      * Serializes `weights` of a network to `file` using JSON.
       */
     def write[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce String)): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
 
