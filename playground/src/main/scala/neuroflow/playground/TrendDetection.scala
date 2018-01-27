@@ -4,7 +4,6 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 import scala.util.Random
 
@@ -51,7 +50,7 @@ object TrendDetection {
 
     val f = Sigmoid
     val settings = Settings[Double](learningRate = { case (_, _) => 0.5 }, precision = 1E-4, iterations = 10000)
-    val net = Network(Input(trend.size) :: Dense(25, f) :: Output(1, f) :: HNil, settings)
+    val net = Network(Input(trend.size) :: Dense(25, f) :: Dense(1, f) :: Output, settings)
 
     import Notation.Implicits.seqToVector
 

@@ -8,7 +8,6 @@ import neuroflow.application.processor.Util._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.LBFGSNetwork._
-import shapeless._
 
 /**
   * @author bogdanski
@@ -74,7 +73,7 @@ object LanguageProcessing {
 
     println("No. of samples: " + allTrain.size)
 
-    val net = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
+    val net = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: Output,
       Settings[Double](iterations = 500, specifics = Some(Map("m" -> 7))))
 
     net.train(allTrain.map(_._1.denseVec), allTrain.map(_._2))
@@ -89,7 +88,7 @@ object LanguageProcessing {
 
     val net = {
       implicit val wp = File.read[Double](netFile)
-      Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil, Settings[Double]())
+      Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: Output, Settings[Double]())
     }
 
     val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))

@@ -3,7 +3,6 @@ package neuroflow.playground
 import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core._
-import shapeless._
 
 /**
   * @author bogdanski
@@ -45,7 +44,7 @@ object XOR {
       iterations = 100000,
       lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
 
-    val net = Network(Input(2) :: Dense(3, fn) :: Output(1, fn) :: HNil, settings)
+    val net = Network(Input(2) :: Dense(3, fn) :: Dense(1, fn) :: Output, settings)
     net.train(xs, ys)
 
     val a = net.evaluate(->(0.0, 0.0))

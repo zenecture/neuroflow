@@ -34,15 +34,6 @@ case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Ou
 }
 
 /**
-  * A dense output layer is the last fully connected, where:
-  *   `neurons`      Number of neurons in this layer
-  *   `activator`    The activator function gets applied on the output element-wise.
-  */
-case class Output[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
-  val symbol: String = "Out"
-}
-
-/**
   * A focus layer is used if the desired model output
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
   *   `inner`      The inner layer used as model output

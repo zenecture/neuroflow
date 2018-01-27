@@ -10,7 +10,6 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 import scala.io.Source
 
@@ -65,7 +64,7 @@ object PokeMonCluster {
         Input(dim)                  ::
         Focus(Dense(3, Linear))     ::
         Dense(dim / 2, ReLU)        ::
-        Output(dim, ReLU)           :: HNil,
+        Dense(dim, ReLU)            :: Output,
         Settings[Double](iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
       )
 

@@ -6,7 +6,6 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator.Tanh
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 /**
   * @author bogdanski
@@ -39,7 +38,7 @@ object AudioRecognition {
 
     val nets = ((a zip b) zip c).par.map {
       case ((x, y), z) =>
-        val net = Network(Input(x.size) :: Dense(20, fn) :: Output(2, fn) :: HNil, sets)
+        val net = Network(Input(x.size) :: Dense(20, fn) :: Dense(2, fn) :: Output, sets)
         net.train(Array(x.denseVec, y.denseVec, z.denseVec), Array(->(1.0, -1.0), ->(-1.0, 1.0), ->(1.0, -1.0)))
         (net, x, y, z)
     }

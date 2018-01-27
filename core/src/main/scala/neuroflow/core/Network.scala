@@ -3,8 +3,6 @@ package neuroflow.core
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common._
 import neuroflow.core.Network._
-import shapeless._
-import shapeless.ops.hlist._
 
 import scala.annotation.implicitNotFound
 import scala.collection._
@@ -20,8 +18,8 @@ object Network extends TypeAliases {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[V, T <: Network[_, _, _], L <: HList]
-                                     (layers: L,
+  def apply[V, L <: Layout, T <: Network[_, _, _]]
+                                     (layout: L,
                                       settings: Settings[V] = Settings[V]())
                                      (implicit
                                       startsWith: L StartsWith In,
@@ -29,7 +27,7 @@ object Network extends TypeAliases {
                                       weightProvider: WeightProvider[V],
                                       constructor: Constructor[V, T],
                                       toList: L ToList Layer): T = {
-    constructor(layers.toList, settings)
+    constructor(toList(layout), settings)
   }
 
 }

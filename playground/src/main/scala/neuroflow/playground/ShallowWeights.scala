@@ -4,7 +4,6 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 /**
   * @author bogdanski
@@ -36,7 +35,7 @@ object ShallowWeights {
       iterations = 100000
     )
 
-    val net = Network(Input(2) :: Output(1, Sigmoid) :: HNil, settings)
+    val net = Network(Input(2) :: Dense(1, Sigmoid) :: Output, settings)
 
     net.train(Seq(->(0.3, 0.3)), Seq(->(0.5)))
 

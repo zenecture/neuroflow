@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies (Scala Version 2.12.x, oss.sonatype.org
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.2",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.2"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.3",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.3"
 )
 ```
 
@@ -38,57 +38,65 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
-val net = Network(Input(2) :: Dense(3, g) :: Output(1, h) :: HNil, 
-  Settings[Double](lossFunction = SquaredMeanError())
+val net = Network(
+  layout = Input(2) :: Dense(3, g) :: Dense(1, h) :: Output, 
+  settings = Settings[Double](lossFunction = SquaredMeanError())
 )
 ```
 
-This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. The weights are initialized randomly in range (-1, 1) by `WeightProvider`.
-Further, we have pre-defined activators, so we can place a softly firing `Sigmoid` on the cells.
+This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
+The weights are initialized randomly in range (-1, 1) by `WeightProvider`. Further, 
+we have pre-defined activators, so we can place a softly firing `Sigmoid` on the cells.
 
-In NeuroFlow, network architectures are expressed as <a href="https://github.com/milessabin/shapeless">HLists</a>. 
-They give type-safety and a humble ability to compose groups of layers. For instance, a little deeper net, with some 
-rates and rules defined through a `Settings` instance, could look like this:
+In NeuroFlow, a full model is expressed as a `Layout` in combination with a `Settings` instance. 
+For instance, a little deeper net, with more rates and rules defined, could look like this:
 
 ```scala
 val (e, f) = (Linear, ReLU)
 
-val bottleNeck =
+val L =
   Input  (50)               ::
-  Focus  (Dense(10, e))     :: HNil
-
-val fullies    =
+  Focus  (Dense(10, e))     ::
   Dense  (20,  f)           ::
   Dense  (30,  f)           ::
   Dense  (40,  f)           ::
   Dense  (420, f)           ::
   Dense  (40,  f)           ::
   Dense  (30,  f)           :: 
-  Output (20,  f)           :: HNil
+  Dense  (20,  f)           ::   Output
 
 val deeperNet = Network(
-  bottleNeck ::: fullies, 
-  Settings[Double](
-    lossFunction = Softmax(), updateRule = Vanilla(), batchSize = Some(8), iterations = 250,
-    learningRate { case (iter, _) if iter < 100 => 1E-4 case (_, _) => 1E-5 }, precision = 1E-5
+  layout = L, 
+  settings = Settings[Double](
+    lossFunction = Softmax(), 
+    updateRule = Vanilla(), 
+    batchSize = Some(8), 
+    iterations = 250,
+    learningRate { 
+      case (iter, _) if iter < 100 => 1E-4 
+      case (_, _) => 1E-5 
+    }, 
+    precision = 1E-5
   )
 )
 ```
 
-The `lossFunction` computes loss and gradient, which is backpropped into the raw output layer of the net. The `updateRule` defines how weights are updated for gradient descent. The `batchSize` defines 
-how many samples are presented per weight update. The `learningRate` is a partial function from current iteration and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss 
+The `lossFunction` computes loss and gradient, which is backpropped into the raw output layer of the net. 
+The `updateRule` defines how weights are updated for gradient descent. The `batchSize` defines how many 
+samples are presented per weight update. The `learningRate` is a partial function from current iteration 
+and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss 
 satisfies `precision`. 
 
-Another important aspect is the numerical type of the net, which is set by explicitly annotating `Double` on the settings instance.  For instance, on the GPU, you might want to work 
-with `Float` instead. Have a look at the `Settings` class for the complete list of options.
+Another important aspect is the numerical type of the net, which is set by explicitly annotating `Double` on 
+the settings instance.  For instance, on the GPU, you might want to work with `Float` instead. 
+Have a look at the `Settings` class for the complete list of options.
 
-Be aware that a network must start with one `In`-typed layer and end with one `Out`-typed layer. 
+Be aware that a network must start with a layer typed `In` and end with a layer typed `Out`. 
 If a network doesn't follow this rule, it won't compile.
 
 # Training

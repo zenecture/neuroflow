@@ -9,7 +9,6 @@ import neuroflow.core.Activator.ReLU
 import neuroflow.core.Network.Vector
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 /**
   * @author bogdanski
@@ -57,7 +56,7 @@ object DigitRecognition {
          Dense(400, fn)        ::
          Dense(200, fn)        ::
          Dense(50, fn)         ::
-         Output(10, fn)        ::  HNil, settings)
+         Dense(10, fn)         :: Output, settings)
 
     net.train(xs, ys)
 

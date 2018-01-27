@@ -13,7 +13,6 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 import scala.io.{Source, StdIn}
 import scala.util.{Failure, Success, Try}
@@ -74,7 +73,7 @@ object Word2Vec {
       Network(
         Input(dim)                 ::
         Focus(Dense(20, Linear))   ::
-        Output(dim, Sigmoid)       :: HNil,
+        Dense(dim, Sigmoid)        :: Output,
         Settings[Double](
           lossFunction    = SquaredMeanError(),
           learningRate    = { case (_, _) => 1E-4 },

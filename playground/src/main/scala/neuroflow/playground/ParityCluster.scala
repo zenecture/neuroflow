@@ -10,7 +10,6 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
-import shapeless._
 
 import scala.util.Random
 
@@ -67,7 +66,7 @@ object ParityCluster {
     val net = Network(
         Input(dimension + 1)            ::
         Focus(Dense(3, Linear))         ::
-        Output(dimension + 1, Sigmoid)  :: HNil,
+        Dense(dimension + 1, Sigmoid)   :: Output,
         Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })
       )
 

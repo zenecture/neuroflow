@@ -44,7 +44,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     case f: Focus[Double]         => f.inner
     case d: Dense[Double]         => d
     case c: Convolution[Double]   => c
-    case o: Output[Double]        => o
   }.toArray
 
   private val _focusLayer         = layers.collectFirst { case c: Focus[_] => c }
