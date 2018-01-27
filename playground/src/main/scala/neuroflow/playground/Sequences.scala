@@ -217,7 +217,7 @@ object Sequences {
         regularization = Some(KeepBest),
         approximation = Some(FiniteDifferences(1E-9))))
 
-    net.train(all.map(_._1), all.map(_._2.dv))
+    net.train(all.map(_._1), all.map(_._2.denseVec))
 
     all.map(_._1).grouped(c).zipWithIndex.foreach {
       case (cc, i) =>

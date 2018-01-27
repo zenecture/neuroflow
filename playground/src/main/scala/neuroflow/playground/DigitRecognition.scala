@@ -40,7 +40,7 @@ object DigitRecognition {
 
     val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit).map(_.toFloat) } }
     val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit =>
-      ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0).dv.map(_.toFloat) }
+      ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0).denseVec.map(_.toFloat) }
     }
 
     val fn = ReLU

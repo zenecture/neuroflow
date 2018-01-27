@@ -55,7 +55,7 @@ object PokeMonCluster {
              ++ ζ(gens.size).updated(gen, 1.0) ++ ->(leg) */
     }
 
-    val  xs = pokemons.map(p => p -> toVector(p).dv)
+    val  xs = pokemons.map(p => p -> toVector(p).denseVec)
     val dim = xs.head._2.size
 
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)

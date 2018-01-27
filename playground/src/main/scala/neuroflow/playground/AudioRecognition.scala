@@ -40,11 +40,11 @@ object AudioRecognition {
     val nets = ((a zip b) zip c).par.map {
       case ((x, y), z) =>
         val net = Network(Input(x.size) :: Dense(20, fn) :: Output(2, fn) :: HNil, sets)
-        net.train(Array(x.dv, y.dv, z.dv), Array(->(1.0, -1.0), ->(-1.0, 1.0), ->(1.0, -1.0)))
+        net.train(Array(x.denseVec, y.denseVec, z.denseVec), Array(->(1.0, -1.0), ->(-1.0, 1.0), ->(1.0, -1.0)))
         (net, x, y, z)
     }
 
-    val (r1, r2, r3) = nets map { case (n, x, y, z) => (n.evaluate(x.dv), n.evaluate(y.dv), n.evaluate(z.dv)) } reduce { (l, r) =>
+    val (r1, r2, r3) = nets map { case (n, x, y, z) => (n.evaluate(x.denseVec), n.evaluate(y.denseVec), n.evaluate(z.denseVec)) } reduce { (l, r) =>
       val (a, b, c) = l
       val (u, v, w) = r
       (a + u, b + v, c + w)

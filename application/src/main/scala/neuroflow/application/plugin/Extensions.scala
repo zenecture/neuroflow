@@ -15,12 +15,12 @@ object Extensions {
 
   /* Enriched scala.Vector */
   implicit class VectorOps(l: scala.Vector[Double]) {
-    def +(r: scala.Vector[Double]): scala.Vector[Double]   = (l.dv  +  r.dv).vv
-    def -(r: scala.Vector[Double]): scala.Vector[Double]   = (l.dv  -  r.dv).vv
-    def dot(r: scala.Vector[Double]): Double               =  l.dv dot r.dv
-    def *(r: scala.Vector[Double]): scala.Vector[Double]   = (l.dv  *  r.dv).vv
-    def *:*(r: scala.Vector[Double]): scala.Vector[Double] = (l.dv *:* r.dv).vv
-    def /:/(r: scala.Vector[Double]): scala.Vector[Double] = (l.dv /:/ r.dv).vv
+    def +(r: scala.Vector[Double]): scala.Vector[Double]   = (l.denseVec  +  r.denseVec).scalaVec
+    def -(r: scala.Vector[Double]): scala.Vector[Double]   = (l.denseVec  -  r.denseVec).scalaVec
+    def dot(r: scala.Vector[Double]): Double               =  l.denseVec dot r.denseVec
+    def *(r: scala.Vector[Double]): scala.Vector[Double]   = (l.denseVec  *  r.denseVec).scalaVec
+    def *:*(r: scala.Vector[Double]): scala.Vector[Double] = (l.denseVec *:* r.denseVec).scalaVec
+    def /:/(r: scala.Vector[Double]): scala.Vector[Double] = (l.denseVec /:/ r.denseVec).scalaVec
   }
 
   object scalaVectorCosineSimilarity {
@@ -30,7 +30,7 @@ object Extensions {
 
   object scalaVectorEuclideanDistance {
     def apply(v1: scala.Vector[Double], v2: scala.Vector[Double]): Double =
-      breeze.linalg.functions.euclideanDistance(v1.dv, v2.dv)
+      breeze.linalg.functions.euclideanDistance(v1.denseVec, v2.denseVec)
   }
 
   object cosineSimilarity extends UFunc {
@@ -48,11 +48,11 @@ object Extensions {
   }
 
   implicit class AsDenseVector[V: ClassTag](v: scala.Vector[V]) {
-    def dv: DenseVector[V] = DenseVector(v.toArray)
+    def denseVec: DenseVector[V] = DenseVector(v.toArray)
   }
 
   implicit class AsVector[V: ClassTag](w: DenseVector[V]) {
-    def vv: scala.Vector[V] = w.toArray.toVector
+    def scalaVec: scala.Vector[V] = w.toArray.toVector
   }
 
   implicit class DenseVectorDoubleToFloat(v: DenseVector[Double]) {

@@ -71,9 +71,9 @@ object ParityCluster {
         Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })
       )
 
-    net.train(xsys.map(_._1.dv), xsys.map(_._2.dv))
+    net.train(xsys.map(_._1.denseVec), xsys.map(_._2.denseVec))
 
-    val res = classes.map(c => net(c._2.dv) -> c._1)
+    val res = classes.map(c => net(c._2.denseVec) -> c._1)
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>

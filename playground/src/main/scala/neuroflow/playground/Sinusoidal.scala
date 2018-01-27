@@ -36,11 +36,11 @@ object Sinusoidal {
     val net = Network(Input(3) :: Dense(5, fn) :: Dense(3, fn) :: Output(1, fn) :: HNil, sets)
     val sinusoidal = Range.Double(0.0, 0.8, 0.05).grouped(group).toVector.map(i => i.toVector.map(k => (k, Math.sin(10 * k))))
     val xsys = sinusoidal.map(s => (s.dropRight(1).map(_._2), s.takeRight(1).map(_._2)))
-    val xs = xsys.map(_._1.dv)
-    val ys = xsys.map(_._2.dv)
+    val xs = xsys.map(_._1.denseVec)
+    val ys = xsys.map(_._2.denseVec)
     net.train(xs, ys)
     val initial = Range.Double(0.0, 0.15, 0.05).zipWithIndex.map(p => (p._1, xs.head(p._2))).toVector
-    val result = predict(net, xs.head.vv, 0.15, initial)
+    val result = predict(net, xs.head.scalaVec, 0.15, initial)
     result.foreach(r => println(s"${r._1}, ${r._2}"))
 
   }
@@ -48,7 +48,7 @@ object Sinusoidal {
   @tailrec def predict[T <: FFN[Double]](net: T, last: Vector[Double], i: Double,
                                                 results: Vector[(Double, Double)]): Vector[(Double, Double)] = {
     if (i < 4.0) {
-      val score = net(last.dv)(0)
+      val score = net(last.denseVec)(0)
       predict(net, last.drop(1) :+ score, i + 0.05, results :+ (i, score))
     } else results
   }

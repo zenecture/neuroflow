@@ -77,7 +77,7 @@ object LanguageProcessing {
     val net = Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Output(2, Tanh) :: HNil,
       Settings[Double](iterations = 500, specifics = Some(Map("m" -> 7))))
 
-    net.train(allTrain.map(_._1.dv), allTrain.map(_._2))
+    net.train(allTrain.map(_._1.denseVec), allTrain.map(_._2))
 
     File.write(net.weights, netFile)
 
@@ -101,14 +101,14 @@ object LanguageProcessing {
     val testFree = vectorize(free)
 
     def eval(id: String, maxIndex: Int, xs: scala.Vector[scala.Vector[Double]]) = {
-      val (ok, fail) = xs.map(x => net(x.dv)).map(k => k.toScalaVector.indexOf(k.max) == maxIndex).partition(l => l)
+      val (ok, fail) = xs.map(x => net(x.denseVec)).map(k => k.toScalaVector.indexOf(k.max) == maxIndex).partition(l => l)
       println(s"Correctly classified $id: ${ok.size.toDouble / (ok.size.toDouble + fail.size.toDouble) * 100.0} % !")
     }
 
     eval("cars", 0, testCars)
     eval("med", 1, testMed)
 
-    testFree.map(x => net(x.dv)).foreach(k =>
+    testFree.map(x => net(x.denseVec)).foreach(k =>
       println(s"Free classified as: ${if (k.toScalaVector.indexOf(k.max) == 0) "cars" else "med"}")
     )
 

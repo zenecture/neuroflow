@@ -55,7 +55,7 @@ object MovieCluster {
       case (user, ratings) =>
         val vecs = ratings.flatMap(r => if (r.movieId <= dimensionLimit) Some(movies(r.movieId - 1).vec) else None)
         Util.shuffle(vecs).map {
-          case (k, v) => k.dv -> Normalizer.MaxUnit(v.reduce(_ + _).dv)
+          case (k, v) => k.denseVec -> Normalizer.MaxUnit(v.reduce(_ + _).denseVec)
         }
     }.toList.flatten
 
@@ -76,7 +76,7 @@ object MovieCluster {
       Network(layout, Settings[Double]())
     }
 
-    val res = movies.map(m => m.copy(vec = net(m.vec.dv).vv))
+    val res = movies.map(m => m.copy(vec = net(m.vec.denseVec).scalaVec))
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
@@ -88,7 +88,7 @@ object MovieCluster {
       val target = res(findId)
       val all = res.map {
         case Movie(_, title, vec) =>
-          (title, cosineSimilarity(target.vec.dv, vec.dv))
+          (title, cosineSimilarity(target.vec.denseVec, vec.denseVec))
       }.sortBy(_._2)
       val best = all.reverse.take(10)
       val worst = all.take(10)
