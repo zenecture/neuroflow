@@ -6,6 +6,7 @@ import breeze.math.Field
 import breeze.numerics._
 import jcuda.jcublas.cublasHandle
 import neuroflow.cuda._
+import scala.collection.immutable.{ :: => all }
 
 import scala.reflect.ClassTag
 
@@ -189,7 +190,7 @@ case class Softmax[V]() extends Loss[V] {
     val batchSize = y.rows
 
     (0 until batchSize).map { i =>
-      val (_x, _y) = (x.t(::, i).asDenseMatrix, y.t(::, i).asDenseMatrix)
+      val (_x, _y) = (x.t(all, i).asDenseMatrix, y.t(all, i).asDenseMatrix)
       val probs = SoftmaxImpl(_x)
       val mask = _sum(_y *:* probs)
       val err = _y *:* -_log(mask)
@@ -228,7 +229,7 @@ case class Softmax[V]() extends Loss[V] {
     val batchSize = y.rows
 
     val (err, grad) = (0 until batchSize).map { i =>
-      val (_x, _y) = (x.t(::, i).t, y.t(::, i).t)
+      val (_x, _y) = (x.t(all, i).t, y.t(all, i).t)
       val probs = SoftmaxImpl(_x)
       val r1 = _y *:* probs
       val mask = _sum(r1)
