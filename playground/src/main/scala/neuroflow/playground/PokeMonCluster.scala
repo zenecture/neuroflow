@@ -2,9 +2,10 @@ package neuroflow.playground
 
 import java.io.{File, FileOutputStream, PrintWriter}
 
+import neuroflow.application.plugin.Extensions._
+import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Util._
-import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._

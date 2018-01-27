@@ -14,7 +14,6 @@ sealed trait Layer extends Serializable {
 
 sealed trait In
 sealed trait Out
-sealed trait Hidden
 
 
 /**
@@ -26,21 +25,21 @@ case class Input(neurons: Int) extends Layer with In {
 }
 
 /**
-  * A dense output layer is the last fully connected, where:
-  *   `neurons`      Number of neurons in this layer
-  *   `activator`    The activator function gets applied on the output element-wise.
-  */
-case class Output[V](neurons: Int, activator: Activator[V]) extends Layer with HasActivator[V] with Out {
-  val symbol: String = "Out"
-}
-
-/**
   * A dense layer is fully connected, where:
   *   `neurons`      Number of neurons in this layer
   *   `activator`    The activator function gets applied on the output element-wise.
   */
-case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Hidden with HasActivator[V] {
+case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with HasActivator[V] {
   val symbol: String = "Dense"
+}
+
+/**
+  * A dense output layer is the last fully connected, where:
+  *   `neurons`      Number of neurons in this layer
+  *   `activator`    The activator function gets applied on the output element-wise.
+  */
+case class Output[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
+  val symbol: String = "Out"
 }
 
 /**
@@ -70,7 +69,7 @@ case class Convolution[V](dimIn      :  (Int, Int, Int),
                           field      :  (Int, Int),
                           stride     :  (Int, Int),
                           filters    :   Int,
-                          activator  :   Activator[V]) extends Layer with HasActivator[V] with Hidden with In {
+                          activator  :   Activator[V]) extends Layer with HasActivator[V] with In {
 
   val symbol: String = "Convolution"
 

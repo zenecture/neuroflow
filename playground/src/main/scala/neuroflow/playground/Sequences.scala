@@ -1,7 +1,7 @@
 package neuroflow.playground
 
 import neuroflow.application.plugin.Notation._
-import neuroflow.common.VectorTranslation._
+import neuroflow.application.plugin.Extensions._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import shapeless._

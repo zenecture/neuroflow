@@ -1,7 +1,6 @@
 package neuroflow.playground
 
 import neuroflow.application.plugin.Notation._
-import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._

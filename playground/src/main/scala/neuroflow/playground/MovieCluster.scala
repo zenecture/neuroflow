@@ -2,15 +2,16 @@ package neuroflow.playground
 
 import java.io.{File, FileOutputStream, PrintWriter}
 
+import neuroflow.application.plugin.Extensions._
 import neuroflow.application.plugin.IO
+import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
-import neuroflow.application.processor.{Extensions, Normalizer, Util}
-import neuroflow.common.VectorTranslation._
+import neuroflow.application.processor.{Normalizer, Util}
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core.{FFN, _}
+import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
 
@@ -47,7 +48,7 @@ object MovieCluster {
 
   def apply = {
 
-    import Extensions.VectorOps
+    import neuroflow.application.plugin.Extensions.VectorOps
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val topByUser = observations.take(observationLimit).filter(_.rating == 5).groupBy(_.user).map {
@@ -87,7 +88,7 @@ object MovieCluster {
       val target = res(findId)
       val all = res.map {
         case Movie(_, title, vec) =>
-          (title, Extensions.cosineSimilarity(target.vec, vec))
+          (title, cosineSimilarity(target.vec.dv, vec.dv))
       }.sortBy(_._2)
       val best = all.reverse.take(10)
       val worst = all.take(10)

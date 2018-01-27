@@ -1,17 +1,15 @@
 package neuroflow.playground
 
-import breeze.linalg.DenseVector
+import neuroflow.application.plugin.Extensions._
+import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
-import neuroflow.application.processor.Util._
-import neuroflow.common.VectorTranslation._
 import neuroflow.common.~>
 import neuroflow.core.Activator.ReLU
+import neuroflow.core.Network.Vector
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 import shapeless._
-
-import scala.collection.immutable
 
 /**
   * @author bogdanski
@@ -28,9 +26,9 @@ object DigitRecognition {
   */
 
 
-  def getDigitSet(path: String): immutable.IndexedSeq[scala.Vector[Array[Double]]] = {
+  def digitSet2Vec(path: String): Seq[Vector[Double]] = {
     val selector: Int => Boolean = _ < 255
-    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector).data.grouped(200).toVector)
+    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector))
   }
 
   def apply = {
@@ -38,45 +36,43 @@ object DigitRecognition {
     val config = (0 to 2).map(_ -> (0.01, 0.01)) :+ 3 -> (0.1, 0.1)
     implicit val wp = neuroflow.core.WeightProvider.FFN[Float].normal(config.toMap)
 
-    val sets = ('a' to 'h') map (c => getDigitSet(s"img/digits/$c/").toVector)
-    val nets = sets.head.head.indices.map { segment =>
+    val sets = ('a' to 'h') map (c => digitSet2Vec(s"img/digits/$c/"))
 
-      val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit)(segment) } }.toArray
-      val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit => ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0) } }.toArray
-
-
-      val fn = ReLU
-
-      val settings = Settings[Float](
-        learningRate = { case (_, _) => 1E-5 },
-        updateRule = Momentum(0.8f),
-        lossFunction = Softmax(),
-        precision = 1E-3,
-        iterations = 15000)
-
-      val net = Network(
-           Input(xs.head.length) ::
-           Dense(400, fn)        ::
-           Dense(200, fn)        ::
-           Dense(50, fn)         ::
-           Output(10, fn)        ::  HNil, settings)
-
-      net.train(xs.map(l => DenseVector(l.map(_.toFloat))), ys.map(_.map(_.toFloat).dv))
-
-      val posWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ > 0.0).size)
-      val negWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ < 0.0).size)
-
-      println(s"Pos: $posWeights, Neg: $negWeights")
-
-      net
-
+    val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit).map(_.toFloat) } }
+    val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit =>
+      ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0).dv.map(_.toFloat) }
     }
 
-    val setsResult = sets map { set => set map { d => d flatMap { xs => nets map { _.evaluate(DenseVector(xs.map(_.toFloat))) } } reduce(_ + _) map (end => end / nets.size) } }
+    val fn = ReLU
+
+    val settings = Settings[Float](
+      learningRate = { case (_, _) => 1E-5 },
+      updateRule = Momentum(0.8f),
+      lossFunction = Softmax(),
+      precision = 1E-3,
+      iterations = 15000)
+
+    val net = Network(
+         Input(xs.head.length) ::
+         Dense(400, fn)        ::
+         Dense(200, fn)        ::
+         Dense(50, fn)         ::
+         Output(10, fn)        ::  HNil, settings)
+
+    net.train(xs, ys)
+
+    val posWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ > 0.0).size)
+    val negWeights = net.weights.foldLeft(0)((count, m) => count + m.findAll(_ < 0.0).size)
+
+    println(s"Pos: $posWeights, Neg: $negWeights")
+
+    val setsResult = sets.map(s => s.map(v => net(v.float)))
 
     ('a' to 'h') zip setsResult foreach {
       case (char, res) =>
-        ~> (println(s"set $char:")) next (0 to 9) foreach { digit => println(s"$digit classified as " + res(digit).toScalaVector.indexOf(res(digit).max)) }
+        ~> (println(s"set $char:")) next (0 to 9) foreach { digit =>
+          println(s"$digit classified as " + res(digit).toScalaVector.indexOf(res(digit).max))
+        }
     }
 
   }

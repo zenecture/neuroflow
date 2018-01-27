@@ -1,8 +1,8 @@
 package neuroflow.playground
 
+import neuroflow.application.plugin.Extensions._
+import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation._
-import neuroflow.application.processor.Util._
-import neuroflow.common.VectorTranslation._
 import neuroflow.core.Activator.Tanh
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._

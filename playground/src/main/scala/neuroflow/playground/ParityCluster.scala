@@ -2,10 +2,10 @@ package neuroflow.playground
 
 import java.io.{File, FileOutputStream, PrintWriter}
 
+import neuroflow.application.plugin.Extensions._
 import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Util._
-import neuroflow.application.processor.{Extensions, Util}
-import neuroflow.common.VectorTranslation._
+import neuroflow.application.processor.Util
 import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core._
@@ -30,7 +30,6 @@ object ParityCluster {
 
   def apply = {
 
-    import Extensions.VectorOps
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val classes = (0 until dimension) map (i => (i, Random.nextInt(2))) map {

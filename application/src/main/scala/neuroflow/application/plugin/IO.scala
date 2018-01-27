@@ -1,6 +1,6 @@
 package neuroflow.application.plugin
 
-import java.io.{File, PrintWriter}
+import java.io.{BufferedInputStream, File, FileInputStream, PrintWriter}
 
 import breeze.linalg.DenseMatrix
 import breeze.storage.Zero
@@ -11,6 +11,7 @@ import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
 import neuroflow.core.{CanProduce, Layer, Network, WeightProvider}
 
+import scala.collection.immutable.Stream
 import scala.io.Source
 
 /**
@@ -51,6 +52,26 @@ object IO extends Logs {
       * Serializes weights of `network` to `file` as json.
       */
     def write[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce String)): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
+
+  }
+
+  object Jvm {
+
+    /**
+      * Gets the `File` residing at `path`.
+      */
+    def getResourceFile(path: String): File = new File(getClass.getClassLoader.getResource(path).toURI)
+
+    /**
+      * Gets all files within `path`.
+      */
+    def getResourceFiles(path: String): Seq[File] = new File(getClass.getClassLoader.getResource(path).toURI).listFiles.filter(_.isFile)
+
+    /**
+      * Gets the plain bytes from `file`.
+      */
+    def getBytes(file: File): Seq[Byte] = ~> (new BufferedInputStream(new FileInputStream(file))) map
+      (s => (s, Stream.continually(s.read).takeWhile(_ != -1).map(_.toByte).toList)) io (_._1.close) map(_._2)
 
   }
 
