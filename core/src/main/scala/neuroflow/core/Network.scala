@@ -18,15 +18,15 @@ object Network extends TypeAliases {
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
     * Additionally, it will prove that the architecture of the net is sound.
     */
-  def apply[V, L <: Layout, T <: Network[_, _, _]]
+  def apply[V, L <: Layout, N <: Network[_, _, _]]
                                      (layout: L,
                                       settings: Settings[V] = Settings[V]())
                                      (implicit
                                       startsWith: L StartsWith In,
                                       endsWith: L EndsWith Out,
                                       weightProvider: WeightProvider[V],
-                                      constructor: Constructor[V, T],
-                                      toList: L ToList Layer): T = {
+                                      constructor: Constructor[V, N],
+                                      toList: L ToList Layer): N = {
     constructor(toList(layout), settings)
   }
 
@@ -49,8 +49,8 @@ trait TypeAliases {
 
 /** A minimal constructor for a [[Network]]. */
 @implicitNotFound("No `Constructor` in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
-trait Constructor[V, +T <: Network[_, _, _]] {
-  def apply(ls: Seq[Layer], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): T
+trait Constructor[V, +N <: Network[_, _, _]] {
+  def apply(ls: Seq[Layer], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): N
 }
 
 
