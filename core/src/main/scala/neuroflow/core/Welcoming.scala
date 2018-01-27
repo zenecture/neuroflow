@@ -21,10 +21,10 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.4.3
+      |            Version : 1.4.4
       |
       |            Network : $identifier
-      |               Loss : ${self.settings.lossFunction.getClass.getCanonicalName}
+      |               Loss : ${self.lossFunction.getClass.getCanonicalName}
       |             Update : ${self.settings.updateRule.getClass.getCanonicalName}
       |
       |             Layout : ${layers.foldLeft("")((s, l) => s + buildString(l) + "\n                      ").dropRight(2)}

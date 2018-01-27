@@ -73,9 +73,8 @@ object Word2Vec {
       Network(
         Input(dim)                 ::
         Focus(Dense(20, Linear))   ::
-        Dense(dim, Sigmoid)        :: Output,
+        Dense(dim, Sigmoid)        :: SquaredMeanError(),
         Settings[Double](
-          lossFunction    = SquaredMeanError(),
           learningRate    = { case (_, _) => 1E-4 },
           updateRule      = Momentum(0.9),
           iterations      = 10000,

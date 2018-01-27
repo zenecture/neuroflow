@@ -47,7 +47,6 @@ object DigitRecognition {
     val settings = Settings[Float](
       learningRate = { case (_, _) => 1E-5 },
       updateRule = Momentum(0.8f),
-      lossFunction = Softmax(),
       precision = 1E-3,
       iterations = 15000)
 
@@ -56,7 +55,7 @@ object DigitRecognition {
          Dense(400, fn)        ::
          Dense(200, fn)        ::
          Dense(50, fn)         ::
-         Dense(10, fn)         :: Output, settings)
+         Dense(10, fn)         :: Softmax(), settings)
 
     net.train(xs, ys)
 

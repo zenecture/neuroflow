@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
   * A loss function gets target `y`, prediction `x`, computes loss and gradient,
   * which will be backpropped into the raw output layer of a net.
   */
-trait Loss[V] {
+trait LossFunction[V] extends Layout {
 
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
@@ -76,7 +76,7 @@ trait Loss[V] {
   * the square ² gives a convex functional form.
   *
   */
-case class SquaredMeanError[V]() extends Loss[V] {
+case class SquaredMeanError[V]() extends LossFunction[V] {
 
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
@@ -165,7 +165,7 @@ case class SquaredMeanError[V]() extends Loss[V] {
   * as percent.
   *
   */
-case class Softmax[V]() extends Loss[V] {
+case class Softmax[V]() extends LossFunction[V] {
 
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit

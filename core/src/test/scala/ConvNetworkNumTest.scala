@@ -65,7 +65,7 @@ class ConvNetworkNumTest  extends Specification {
     val b = Convolution(dimIn = a.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 1, activator = f)
 
     val convs = a :: b :: HNil
-    val fullies = Output(out, f) :: HNil
+    val fullies = Loss(out, f) :: HNil
 
     val layout = convs ::: fullies
 

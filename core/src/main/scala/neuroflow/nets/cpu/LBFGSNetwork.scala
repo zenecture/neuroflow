@@ -27,14 +27,14 @@ import scala.collection.Seq
 
 object LBFGSNetwork {
   implicit val double: Constructor[Double, LBFGSNetwork] = new Constructor[Double, LBFGSNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LBFGSNetwork = {
-      LBFGSNetwork(ls, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double],settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LBFGSNetwork = {
+      LBFGSNetwork(ls, SquaredMeanError(),settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class LBFGSNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class LBFGSNetwork(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = "neuroflow.nets.cpu.LBFGSNetwork", numericPrecision: String = "Double") extends FFN[Double] {
 
   type Vector   = Network.Vector[Double]

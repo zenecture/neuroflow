@@ -64,7 +64,7 @@ object PokeMonCluster {
         Input(dim)                  ::
         Focus(Dense(3, Linear))     ::
         Dense(dim / 2, ReLU)        ::
-        Dense(dim, ReLU)            :: Output,
+        Dense(dim, ReLU)            :: SquaredMeanError(),
         Settings[Double](iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
       )
 

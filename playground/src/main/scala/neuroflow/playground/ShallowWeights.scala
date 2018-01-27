@@ -29,13 +29,12 @@ object ShallowWeights {
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val settings = Settings[Double](
-      lossFunction = SquaredMeanError(),
       learningRate = { case (_, _) => 0.01 },
       precision = 1E-20,
       iterations = 100000
     )
 
-    val net = Network(Input(2) :: Dense(1, Sigmoid) :: Output, settings)
+    val net = Network(Input(1) :: Dense(1, Sigmoid) :: Input(3) :: SquaredMeanError(), settings)
 
     net.train(Seq(->(0.3, 0.3)), Seq(->(0.5)))
 

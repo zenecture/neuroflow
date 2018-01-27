@@ -56,7 +56,7 @@ object ImageRecognition {
     val c5 = Convolution(dimIn = c4.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 32, activator = f)
     val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 32, activator = f)
 
-    val L = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Dense(100, f) :: Output
+    val L = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Dense(100, f) :: Softmax()
 
     val config = (0 to 5).map(_ -> (0.01, 0.01)) :+ (6 -> (0.001, 0.001)) :+ (7 -> (0.01, 0.01))
     implicit val wp = neuroflow.core.WeightProvider.CNN[Double].normal(config.toMap)
@@ -67,7 +67,6 @@ object ImageRecognition {
       Settings[Double](
         prettyPrint     = true,
         learningRate    = { case (_, _) => 1E-5 },
-        lossFunction    = Softmax(),
         updateRule      = Momentum(μ = 0.8),
         iterations      = 20000,
         precision       = 1E-3,

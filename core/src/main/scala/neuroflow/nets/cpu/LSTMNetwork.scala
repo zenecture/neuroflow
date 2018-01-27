@@ -33,14 +33,14 @@ import scala.collection._
 
 object LSTMNetwork {
   implicit val double: Constructor[Double, LSTMNetworkDouble] = new Constructor[Double, LSTMNetworkDouble] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LSTMNetworkDouble = {
-      LSTMNetworkDouble(ls, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LSTMNetworkDouble = {
+      LSTMNetworkDouble(ls, SquaredMeanError(), settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                      identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 

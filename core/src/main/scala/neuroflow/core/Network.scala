@@ -26,23 +26,23 @@ object Network extends TypeAliases {
                                       endsWith: L EndsWith Out,
                                       weightProvider: WeightProvider[V],
                                       constructor: Constructor[V, N],
-                                      toList: L ToList Layer): N = {
-    constructor(toList(layout), settings)
+                                      extractor: Extractor[L, Layer, V]): N = {
+    val (layers, loss) = extractor(layout)
+    constructor(layers, loss, settings)
   }
 
 }
 
 
-/** For the sake of beauty. */
 trait TypeAliases {
 
-  type SVector[V]   =  scala.Vector[V]
-  type Vector[V]    =  DenseVector[V]
-  type Matrix[V]    =  DenseMatrix[V]
-  type Vectors[V]   =  Seq[Vector[V]]
-  type Matrices[V]  =  Seq[Matrix[V]]
-  type Weights[V]   =  IndexedSeq[Matrix[V]]
-  type Learning     =  PartialFunction[(Int, Double), Double]
+  type SVector[V]    =    scala.Vector[V]
+  type Vector[V]     =     DenseVector[V]
+  type Matrix[V]     =     DenseMatrix[V]
+  type Vectors[V]    =    Seq[Vector[V]]
+  type Matrices[V]   =   Seq[Matrix[V]]
+  type Weights[V]    =    IndexedSeq[Matrix[V]]
+  type LearningRate  =  PartialFunction[(Int, Double), Double]
 
 }
 
@@ -50,7 +50,7 @@ trait TypeAliases {
 /** A minimal constructor for a [[Network]]. */
 @implicitNotFound("No `Constructor` in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
 trait Constructor[V, +N <: Network[_, _, _]] {
-  def apply(ls: Seq[Layer], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): N
+  def apply(ls: Seq[Layer], loss: LossFunction[V], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): N
 }
 
 
@@ -59,7 +59,6 @@ trait Constructor[V, +N <: Network[_, _, _]] {
   * Settings of a neural network, where:
   *
   *   `verbose`             Indicates logging behavior on console.
-  *   `lossFunction`        The loss function used during training.
   *   `learningRate`        A function from current iteration and learning rate, producing a new learning rate.
   *   `updateRule`          Defines the relationship between gradient, weights and learning rate during training.
   *   `precision`           The training will stop if precision is high enough.
@@ -70,17 +69,16 @@ trait Constructor[V, +N <: Network[_, _, _]] {
   *   `parallelism`         Controls how many threads are used for distributed training.
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
-  *   `regularization`      The respective regulator tries to avoid over-fitting.
   *   `waypoint`            Periodic actions can be executed, e.g. saving the weights every n steps.
   *   `approximation`       If set, the gradients are approximated numerically.
+  *   `regularization`      The respective regulator tries to avoid over-fitting.
   *   `partitions`          A sequential training sequence can be partitioned for RNNs. (0 index-based)
   *   `specifics`           Some nets use specific parameters set in the `specifics` map.
   *
   */
 case class Settings[V]
                    (verbose           :  Boolean                      =  true,
-                    lossFunction      :  Loss[V]                      =  SquaredMeanError[V](),
-                    learningRate      :  Learning                     =  { case (_, _) => 1E-4 },
+                    learningRate      :  LearningRate                 =  { case (_, _) => 1E-4 },
                     updateRule        :  Update[V]                    =  Vanilla[V](),
                     precision         :  Double                       =  1E-5,
                     iterations        :  Int                          =  100,
@@ -90,9 +88,9 @@ case class Settings[V]
                     parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),
                     batchSize         :  Option[Int]                  =  None,
                     lossFuncOutput    :  Option[LossFuncOutput]       =  None,
-                    regularization    :  Option[Regularization]       =  None,
                     waypoint          :  Option[Waypoint[V]]          =  None,
                     approximation     :  Option[Approximation[V]]     =  None,
+                    regularization    :  Option[Regularization]       =  None,
                     partitions        :  Option[Set[Int]]             =  None,
                     specifics         :  Option[Map[String, Double]]  =  None) extends Serializable
 
@@ -131,6 +129,9 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 
   /** Layers of this neural network. */
   val layers: Seq[Layer]
+
+  /** The attached loss function. */
+  val lossFunction: LossFunction[V]
 
   /** The weights are a bunch of matrices. */
   val weights: Weights[V]

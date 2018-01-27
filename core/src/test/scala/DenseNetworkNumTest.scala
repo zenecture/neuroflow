@@ -52,7 +52,7 @@ class DenseNetworkNumTest extends Specification {
          Dense(7, f)   ::
          Dense(8, f)   ::
          Dense(7, f)   ::
-        Output(2, f)   ::  HNil
+        Loss(2, f)   ::  HNil
 
     val rand = fullyConnected(layout.toList, normalSeed[Double](0.1, 0.1))
 

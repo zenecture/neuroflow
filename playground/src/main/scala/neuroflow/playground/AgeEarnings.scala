@@ -30,7 +30,6 @@ object AgeEarnings {
 
     val sets = Settings[Double](
       learningRate = { case (_, _) => 1E-3 },
-      lossFunction = SquaredMeanError(),
       batchSize = Some(2000),
       precision = 1E-3,
       iterations = 200000)
@@ -38,7 +37,7 @@ object AgeEarnings {
     import neuroflow.nets.gpu.DenseNetwork._
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
-    val network = Network(Input(1) :: Dense(20, Sigmoid) :: Dense(1, Sigmoid) :: Output, sets)
+    val network = Network(Input(1) :: Dense(20, Sigmoid) :: Dense(1, Sigmoid) :: SquaredMeanError(), sets)
 
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => ->(a._1 / maxAge))

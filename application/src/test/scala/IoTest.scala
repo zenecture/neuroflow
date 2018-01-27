@@ -23,7 +23,7 @@ class IoTest extends Specification {
 
   """
 
-  val layers = Input(2) :: Dense(3, Sigmoid) :: Output(2, Sigmoid) :: HNil
+  val layers = Input(2) :: Dense(3, Sigmoid) :: Loss(2, Sigmoid) :: HNil
 
   val measure: FFN[Double] = {
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].static(0.0)

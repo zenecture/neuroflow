@@ -30,14 +30,14 @@ import scala.concurrent.{Await, Future}
 
 object DenseNetwork {
   implicit val double: Constructor[Double, DenseNetwork] = new Constructor[Double, DenseNetwork] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetwork = {
-      DenseNetwork(ls, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetwork = {
+      DenseNetwork(ls, loss, settings, weightProvider(ls))
     }
   }
 }
 
 
-private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = "neuroflow.nets.distributed.DenseNetwork", numericPrecision: String = "Double")
   extends DistFFN[Double] with WaypointLogic[Double] {
 
@@ -67,7 +67,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], settings: Settings[Dou
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (settings.lossFunction.isInstanceOf[Softmax[_]])
+    if (lossFunction.isInstanceOf[Softmax[_]])
       throw new SettingsNotSupportedException("Softmax: Not supported at the moment.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")

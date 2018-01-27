@@ -22,8 +22,8 @@ import scala.collection.mutable.ArrayBuffer
 object ConvNetwork {
 
   implicit val double: Constructor[Double, ConvNetworkDouble] = new Constructor[Double, ConvNetworkDouble] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): ConvNetworkDouble = {
-      ConvNetworkDouble(ls, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): ConvNetworkDouble = {
+      ConvNetworkDouble(ls, loss, settings, weightProvider(ls))
     }
   }
 
@@ -31,7 +31,7 @@ object ConvNetwork {
 
 //<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                            identifier: String = "neuroflow.nets.cpu.ConvNetwork", numericPrecision: String = "Double")
   extends CNN[Double] with WaypointLogic[Double] {
 
@@ -67,7 +67,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
       flow(x, layers.indexOf(cl), batchSize = 1)
     }.getOrElse {
       val r = flow(x, _lastWlayerIdx, batchSize = 1)
-      settings.lossFunction match {
+      lossFunction match {
         case _: SquaredMeanError[_] => r
         case _: Softmax[_]          => SoftmaxImpl(r)
         case _                      => r
@@ -311,7 +311,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Double, batchSize: Int): Matrix = {
 
-    import settings.{lossFunction, updateRule}
+    import settings.updateRule
 
     val loss = DenseMatrix.zeros[Double](batchSize, _outputDim)
 
@@ -397,7 +397,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], settings: Setting
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def lossFunc(): Matrix = {
-      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx, batchSize))._1
+      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx, batchSize))._1
       val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
       reduced
     }

@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies (Scala Version 2.12.x, oss.sonatype.org
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.3",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.3"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.4",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.4"
 )
 ```
 
@@ -44,8 +44,7 @@ implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 val (g, h) = (Sigmoid, Sigmoid)
 
 val net = Network(
-  layout = Input(2) :: Dense(3, g) :: Dense(1, h) :: Output, 
-  settings = Settings[Double](lossFunction = SquaredMeanError())
+  layout = Input(2) :: Dense(3, g) :: Dense(1, h) :: SquaredMeanError()
 )
 ```
 
@@ -68,25 +67,24 @@ val L =
   Dense  (420, f)           ::
   Dense  (40,  f)           ::
   Dense  (30,  f)           :: 
-  Dense  (20,  f)           ::   Output
+  Dense  (20,  f)           ::   Softmax()
 
 val deeperNet = Network(
   layout = L, 
   settings = Settings[Double](
-    lossFunction = Softmax(), 
     updateRule = Vanilla(), 
     batchSize = Some(8), 
-    iterations = 250,
+    iterations = 256,
     learningRate { 
-      case (iter, _) if iter < 100 => 1E-4 
-      case (_, _) => 1E-5 
+      case (iter, α) if iter < 128 => 1E-4 
+      case (_, _) => 1E-6
     }, 
-    precision = 1E-5
+    precision = 1E-8
   )
 )
 ```
 
-The `lossFunction` computes loss and gradient, which is backpropped into the raw output layer of the net. 
+Here, the `Softmax` layer computes loss and gradient, which is backpropped into the last `Dense` layer of the net. 
 The `updateRule` defines how weights are updated for gradient descent. The `batchSize` defines how many 
 samples are presented per weight update. The `learningRate` is a partial function from current iteration 
 and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss 

@@ -24,14 +24,14 @@ import scala.collection.Seq
 object DenseNetwork {
 
   implicit val double: Constructor[Double, DenseNetworkDouble] = new Constructor[Double, DenseNetworkDouble] {
-    def apply(ls: Seq[Layer], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetworkDouble = {
-      DenseNetworkDouble(ls, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetworkDouble = {
+      DenseNetworkDouble(ls, loss, settings, weightProvider(ls))
     }
   }
 
   implicit val single: Constructor[Float, DenseNetworkSingle] = new Constructor[Float, DenseNetworkSingle] {
-    def apply(ls: Seq[Layer], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): DenseNetworkSingle = {
-      DenseNetworkSingle(ls, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): DenseNetworkSingle = {
+      DenseNetworkSingle(ls, loss, settings, weightProvider(ls))
     }
   }
 
@@ -39,7 +39,7 @@ object DenseNetwork {
 
 //<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settings[Double], weights: Weights[Double],
+private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                             identifier: String = "neuroflow.nets.cpu.DenseNetwork", numericPrecision: String = "Double")
   extends FFN[Double] with WaypointLogic[Double] {
 
@@ -83,7 +83,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
       r
     }.getOrElse {
       val r = flow(input, _lastWlayerIdx)
-      settings.lossFunction match {
+      lossFunction match {
         case _: SquaredMeanError[_] => r
         case _: Softmax[_]          => SoftmaxImpl(r)
         case _                      => r
@@ -146,7 +146,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Double): Matrix = {
 
-    import settings.{lossFunction, updateRule}
+    import settings.updateRule
 
     val loss = DenseMatrix.zeros[Double](x.rows, _outputDim)
 
@@ -209,7 +209,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def lossFunc(): Matrix = {
-      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx))._1
       val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
       reduced
     }
@@ -256,7 +256,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], settings: Settin
 
 //<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
-private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settings[Float], weights: Weights[Float],
+private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
                                             identifier: String = "neuroflow.nets.cpu.DenseNetwork", numericPrecision: String = "Single")
   extends FFN[Float] with WaypointLogic[Float] {
 
@@ -300,7 +300,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
       r
     }.getOrElse {
       val r = flow(input, _lastWlayerIdx)
-      settings.lossFunction match {
+      lossFunction match {
         case _: SquaredMeanError[_] => r
         case _: Softmax[_]          => SoftmaxImpl(r)
         case _                      => r
@@ -363,7 +363,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Float): Matrix = {
 
-    import settings.{lossFunction, updateRule}
+    import settings.updateRule
 
     val loss = DenseMatrix.zeros[Float](x.rows, _outputDim)
 
@@ -426,7 +426,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], settings: Settin
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def lossFunc(): Matrix = {
-      val loss = settings.lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx))._1
       val reduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
       reduced
     }
