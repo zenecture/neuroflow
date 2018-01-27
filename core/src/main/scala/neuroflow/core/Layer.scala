@@ -29,7 +29,7 @@ case class Input(neurons: Int) extends Layer with In {
   *   `neurons`      Number of neurons in this layer
   *   `activator`    The activator function gets applied on the output element-wise.
   */
-case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with HasActivator[V] {
+case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
   val symbol: String = "Dense"
 }
 
