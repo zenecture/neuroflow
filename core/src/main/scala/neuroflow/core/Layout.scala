@@ -10,7 +10,7 @@ import scala.annotation.{implicitNotFound, tailrec}
 
 
 /**
-  * The layout describes the neural flow as a linear graph
+  * The layout describes the neural net as a linear graph
   * structure. It is implemented as a heterogenous list,
   * allowing compile-time checks for valid compositions.
   */
