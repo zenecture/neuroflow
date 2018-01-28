@@ -52,6 +52,7 @@ class ConvNetworkNumTest  extends Specification {
 
     import neuroflow.core.WeightProvider.cnn_double.convoluted
     import neuroflow.core.WeightProvider.normalSeed
+    import neuroflow.core.Extractor.extractor
 
     val dim = (4, 4, 3)
     val out = 2
@@ -64,12 +65,9 @@ class ConvNetworkNumTest  extends Specification {
     val a = Convolution(dimIn = dim,      padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 1, activator = f)
     val b = Convolution(dimIn = a.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 1, activator = f)
 
-    val convs = a :: b :: HNil
-    val fullies = Loss(out, f) :: HNil
+    val L = a :: b :: Dense(out, f) :: Softmax()
 
-    val layout = convs ::: fullies
-
-    val rand = convoluted(layout.toList, normalSeed[Double](1.0, 0.1))
+    val rand = convoluted(extractor(L)._1, normalSeed[Double](1.0, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -77,13 +75,12 @@ class ConvNetworkNumTest  extends Specification {
 
     val settings = Settings[Double](
       prettyPrint = true,
-      lossFunction = Softmax(),
       learningRate = { case (_, _) => 0.01 },
       iterations = 1
     )
 
-    val netA = Network(layout, settings.copy(updateRule = debuggableA))
-    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(FiniteDifferences(1E-5))))
+    val netA = Network(L, settings.copy(updateRule = debuggableA))
+    val netB = Network(L, settings.copy(updateRule = debuggableB, approximation = Some(FiniteDifferences(1E-5))))
 
     val m1 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/grad1.jpg"))
     val m2 = Helper.extractRgb3d(new File("/Users/felix/github/unversioned/grad2.jpg"))

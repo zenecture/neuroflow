@@ -44,17 +44,18 @@ class DenseNetworkNumTest extends Specification {
 
     import neuroflow.core.WeightProvider.ffn_double.fullyConnected
     import neuroflow.core.WeightProvider.normalSeed
+    import neuroflow.core.Extractor.extractor
     
     val f = Tanh
 
-    val layout =
+    val L =
          Input(2)      ::
          Dense(7, f)   ::
          Dense(8, f)   ::
          Dense(7, f)   ::
-        Loss(2, f)   ::  HNil
+         Dense(2, f)   ::  SquaredMeanError()
 
-    val rand = fullyConnected(layout.toList, normalSeed[Double](0.1, 0.1))
+    val rand = fullyConnected(extractor(L)._1, normalSeed[Double](0.1, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -65,14 +66,13 @@ class DenseNetworkNumTest extends Specification {
 
 
     val settings = Settings[Double](
-      lossFunction = SquaredMeanError(),
       prettyPrint = true,
       learningRate = { case (_, _) => 1.0 },
       iterations = 1
     )
 
-    val netA = Network(layout, settings.copy(updateRule = debuggableA))
-    val netB = Network(layout, settings.copy(updateRule = debuggableB, approximation = Some(FiniteDifferences(1E-5))))
+    val netA = Network(L, settings.copy(updateRule = debuggableA))
+    val netB = Network(L, settings.copy(updateRule = debuggableB, approximation = Some(FiniteDifferences(1E-5))))
 
     val xs = Seq(DenseVector(0.5, 0.5), DenseVector(0.7, 0.7))
     val ys = Seq(DenseVector(1.0, 0.0), DenseVector(0.0, 1.0))
