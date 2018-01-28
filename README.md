@@ -6,16 +6,16 @@ NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
 
 There are three modules:
 
-- core: the building blocks to create neural network architectures
-- application: plugins, helpers, functionality related to various applications
+- core: building blocks for neural networks
+- application: plugins, helpers, functionality related to application
 - playground: examples with resources
 
 To use NeuroFlow, add these dependencies to your SBT (Scala Version 2.12.x, oss.sonatype.org) project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.5",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.5"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.6",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.6"
 )
 ```
 
@@ -50,7 +50,7 @@ val net = Network(
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
 The weights are initialized randomly in range (-1, 1) by `WeightProvider`.  We have pre-defined activators, 
-so we can place a softly firing `Sigmoid` on the cells.
+so let us place a softly firing `Sigmoid` on the cells.
 
 In NeuroFlow, a full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
 implemented as a heterogenous list, allowing compile-time checks for valid compositions. For instance, 

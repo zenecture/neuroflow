@@ -1,6 +1,7 @@
 package neuroflow.playground
 
 import breeze.linalg.max
+import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
@@ -31,7 +32,7 @@ object ImageRecognition {
 
     println("Loading data ...")
 
-    val limits = (32, 10)
+    val limits = (320, 32)
 
     val train = new java.io.File(path + "/train").list().take(limits._1).par.map { s =>
       val c = classes.find(z => s.contains(z)).get
@@ -56,11 +57,11 @@ object ImageRecognition {
     val c5 = Convolution(dimIn = c4.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 32, activator = f)
     val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 32, activator = f)
 
-    val L = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Dense(100, f) :: Softmax()
+    val L = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Dense(100, f) :: Dense(10, f) :: Softmax()
 
     val config = (0 to 5).map(_ -> (0.01, 0.01)) :+ (6 -> (0.001, 0.001)) :+ (7 -> (0.01, 0.01))
     implicit val wp = neuroflow.core.WeightProvider.CNN[Double].normal(config.toMap)
-//    implicit val wp = IO.File.readDouble(wps + "-iter-2460.nf")
+//    implicit val wp = IO.File.readWeights[Double](wps + "-iter-11700.nf")
 
     val net = Network(
       layout = L,
@@ -72,7 +73,7 @@ object ImageRecognition {
         precision       = 1E-3,
         batchSize       = Some(32),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
-        waypoint        = Some(Waypoint(nth = 30, (iter, ws) => File.writeWeights(ws, wps + s"-iter-$iter.nf")))
+        waypoint        = Some(Waypoint(nth = 300, (iter, ws) => File.writeWeights(ws, wps + s"-iter-$iter.nf")))
       )
     )
 
@@ -81,7 +82,7 @@ object ImageRecognition {
     val rate = test.map {
       case (x, y) =>
         val v = net(x)
-        println(v)
+//        println(v)
         val c = v.toArray.indexOf(max(v))
         val t = y.toArray.indexOf(max(y))
         if (c == t) 1.0 else 0.0

@@ -21,7 +21,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.4.5
+      |            Version : 1.4.6
       |
       |            Network : $identifier
       |               Loss : ${self.lossFunction.getClass.getCanonicalName}
@@ -59,7 +59,7 @@ trait Welcoming { self: Network[_, _, _] =>
 
     val potency = layers.zipWithIndex.flatMap {
       case (c: Convolution[_], _)            => Seq( /* field, stride: prevent sanity checks */
-                                                  c.copy(dimIn = c.dimInPadded, field = (1, 1), stride = (1, 1)),
+//                                                  c.copy(dimIn = c.dimInPadded, field = (1, 1), stride = (1, 1)),
                                                   c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1))
                                                 )
       case (l: Layer, _)                     => Seq(l)
