@@ -77,7 +77,7 @@ val deeperNet = Network(
     iterations = 256,
     learningRate = { 
       case (iter, α) if iter < 128 => 1E-4 
-      case (_, _) => 1E-6
+      case (_, _)  => 1E-6
     }, 
     precision = 1E-8
   )
