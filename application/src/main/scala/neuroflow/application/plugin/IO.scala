@@ -29,14 +29,14 @@ object IO extends Logs {
     /**
       * Deserializes weights from `json` to construct a `WeightProvider`.
       */
-    def read[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = new WeightProvider[V] {
+    def readWeights[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = new WeightProvider[V] {
       def apply(ls: Seq[Layer]): Network.Weights[V] = cp(json)
     }
 
     /**
       * Serializes weights of `network` to json string.
       */
-    def write[V](weights: Weights[V])(implicit cp: (Weights[V] CanProduce String)): String = cp(weights)
+    def writeWeights[V](weights: Weights[V])(implicit cp: (Weights[V] CanProduce String)): String = cp(weights)
 
   }
 
@@ -46,12 +46,12 @@ object IO extends Logs {
     /**
       * Deserializes weights encoded as JSON from `file` to construct a `WeightProvider`.
       */
-    def read[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = ~> (Source.fromFile(file).mkString) map Json.read[V]
+    def readWeights[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = ~> (Source.fromFile(file).mkString) map Json.readWeights[V]
 
     /**
       * Serializes `weights` of a network to `file` using JSON.
       */
-    def write[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce String)): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.write(weights))) io (_.close)
+    def writeWeights[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce String)): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.writeWeights(weights))) io (_.close)
 
   }
 

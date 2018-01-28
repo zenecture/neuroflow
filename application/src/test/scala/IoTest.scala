@@ -31,8 +31,8 @@ class IoTest extends Specification {
   }
 
   def io = {
-    val serialized = Json.write(measure.weights)
-    implicit val wp = Json.read[Double](serialized)
+    val serialized = Json.writeWeights(measure.weights)
+    implicit val wp = Json.readWeights[Double](serialized)
     val deserialized = Network(layers)
 
     deserialized.weights.toArray.map(_.toArray) === measure.weights.toArray.map(_.toArray)

@@ -78,16 +78,16 @@ object LanguageProcessing {
 
     net.train(allTrain.map(_._1.denseVec), allTrain.map(_._2))
 
-    File.write(net.weights, netFile)
+    File.writeWeights(net.weights, netFile)
 
-    neuroflow.application.plugin.IO.File.write(net.weights, netFile)
+    neuroflow.application.plugin.IO.File.writeWeights(net.weights, netFile)
 
   }
 
   def test = {
 
     val net = {
-      implicit val wp = File.read[Double](netFile)
+      implicit val wp = File.readWeights[Double](netFile)
       Network(Input(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError(), Settings[Double]())
     }
 

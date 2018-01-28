@@ -64,14 +64,14 @@ object MovieCluster {
 
     net.train(topByUser.map(_._1), topByUser.map(_._2))
 
-    IO.File.write(net.weights, netFile)
+    IO.File.writeWeights(net.weights, netFile)
 
   }
 
   def find = {
 
     val net = {
-      implicit val wp = IO.File.read[Double](netFile)
+      implicit val wp = IO.File.readWeights[Double](netFile)
       Network(layout, Settings[Double]())
     }
 

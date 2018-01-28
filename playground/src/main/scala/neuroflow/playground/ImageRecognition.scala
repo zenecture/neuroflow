@@ -72,7 +72,7 @@ object ImageRecognition {
         precision       = 1E-3,
         batchSize       = Some(32),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
-        waypoint        = Some(Waypoint(nth = 30, (iter, ws) => File.write(ws, wps + s"-iter-$iter.nf")))
+        waypoint        = Some(Waypoint(nth = 30, (iter, ws) => File.writeWeights(ws, wps + s"-iter-$iter.nf")))
       )
     )
 

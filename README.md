@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies (Scala Version 2.12.x, oss.sonatype.org
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.4",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.4"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.5",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.5"
 )
 ```
 
@@ -223,24 +223,24 @@ We can save and load nets with `neuroflow.application.plugin.IO`. The weight mat
 import neuroflow.application.plugin.IO._
 
 val file = "/path/to/net.nf"
-implicit val weightProvider = File.read[Double](file)
-val net = Network(layers, settings)
-File.write(net.weights, file)
-val json = Json.write(net.weights)
+implicit val weightProvider = File.readWeights[Double](file)
+val net = Network(layout, settings)
+File.writeWeights(net.weights, file)
+val json = Json.writeWeights(net.weights)
 ```
 
-The implicit `WeightProvider[Double]` to construct `net` comes from `File.read`.
-To save the weights back to `file`, we use `File.write`. To write into a database, 
-we can use `Json.write` to retrieve a raw JSON string and fire a SQL query with it.
+The implicit `WeightProvider[Double]` to construct `net` comes from `File.readWeights`.
+To save the weights back to `file`, we use `File.writeWeights`. To write into a database, 
+we can use `Json.writeWeights` to retrieve a raw JSON string and fire a SQL query with it.
 
 ### Waypoints
 
 ```scala
 Settings(
-  waypoint = Some(Waypoint(nth = 3, (iter, weights) => File.write(weights, s"weights-iter-$iter.nf")))
+  waypoint = Some(Waypoint(nth = 3, (iter, weights) => File.writeWeights(weights, s"weights-iter-$iter.nf")))
 )
 ```
 
 It is a good idea to make use of a `Waypoint[V]` for long running sessions. For instance, when the cloud instance got killed for mysterious reasons, 
-periodically saved weights allow us to continue training from a recent point. Every `nth` step, the waypoint function is executed, receiving as input 
-iteration count and a snapshot of the weights.
+periodically saved weights allow us to continue training from a recent point. Here, every `nth = 3` step, the waypoint function is executed, receiving as input 
+iteration count and a snapshot of the weights to save them using `File.writeWeights`.
