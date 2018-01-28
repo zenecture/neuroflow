@@ -16,7 +16,7 @@ object Network extends TypeAliases {
 
   /**
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
-    * Additionally, it proves that the layout graph is a valid composition.
+    * Additionally, it proves that the [[Layout]] graph is a valid composition.
     */
   def apply[V, L <: Layout, N <: Network[_, _, _]]
                                      (layout: L,
@@ -64,8 +64,8 @@ trait Constructor[V, +N <: Network[_, _, _]] {
   *   `precision`           The training will stop if precision is high enough.
   *   `iterations`          The training will stop if maximum iterations is reached.
   *   `prettyPrint`         If true, the layout is rendered graphically on console.
-  *   `coordinator`         The coordinator host needs to be set for distributed training.
-  *   `transport`           Transport details need to be set for distributed training.
+  *   `coordinator`         The coordinator host address for distributed training.
+  *   `transport`           Transport throughput specifics for distributed training.
   *   `parallelism`         Controls how many threads are used for distributed training.
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
