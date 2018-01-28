@@ -53,7 +53,7 @@ The weights are initialized randomly in range (-1, 1) by `WeightProvider`. Furth
 we have pre-defined activators, so we can place a softly firing `Sigmoid` on the cells.
 
 In NeuroFlow, a full model is expressed as a `Layout` in combination with a `Settings` instance. 
-For instance, a little deeper net, with more rates and rules defined, could look like this:
+For instance, a little deeper net, with some rates and rules defined, could look like this:
 
 ```scala
 val (e, f) = (Linear, ReLU)

@@ -120,18 +120,18 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 
   sayHi()
 
-  val numericPrecision: String
-
   val identifier: String
 
-  /** Settings of this neural network. */
-  val settings: Settings[V]
+  val numericPrecision: String
 
   /** Layers of this neural network. */
   val layers: Seq[Layer]
 
   /** The attached loss function. */
   val lossFunction: LossFunction[V]
+
+  /** Settings of this neural network. */
+  val settings: Settings[V]
 
   /** The weights are a bunch of matrices. */
   val weights: Weights[V]
