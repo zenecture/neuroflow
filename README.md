@@ -75,7 +75,7 @@ val deeperNet = Network(
     updateRule = Vanilla(), 
     batchSize = Some(8), 
     iterations = 256,
-    learningRate { 
+    learningRate = { 
       case (iter, α) if iter < 128 => 1E-4 
       case (_, _) => 1E-6
     }, 
