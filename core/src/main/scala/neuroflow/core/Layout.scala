@@ -30,7 +30,6 @@ trait Extractor[L <: Layout, Target, V] {
   /**
     * Extracts from [[Layout]] `l` a list
     * of type `Target` and the loss function.
-    *
     */
   def apply(l: L): (List[Target], LossFunction[V])
 
