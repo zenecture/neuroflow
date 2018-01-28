@@ -16,7 +16,7 @@ object Network extends TypeAliases {
 
   /**
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
-    * Additionally, it will prove that the architecture of the net is sound.
+    * Additionally, it proves that the layout graph is a valid composition.
     */
   def apply[V, L <: Layout, N <: Network[_, _, _]]
                                      (layout: L,
