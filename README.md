@@ -49,11 +49,12 @@ val net = Network(
 ```
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
-The weights are initialized randomly in range (-1, 1) by `WeightProvider`. Further, 
-we have pre-defined activators, so we can place a softly firing `Sigmoid` on the cells.
+The weights are initialized randomly in range (-1, 1) by `WeightProvider`.  We have pre-defined activators, 
+so we can place a softly firing `Sigmoid` on the cells.
 
-In NeuroFlow, a full model is expressed as a `Layout` in combination with a `Settings` instance. 
-For instance, a little deeper net, with some rates and rules defined, could look like this:
+In NeuroFlow, a full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
+implemented as a heterogenous list, allowing compile-time checks for valid compositions. For instance, 
+a little deeper net, with some rates and rules defined, could look like this:
 
 ```scala
 val (e, f) = (Linear, ReLU)
@@ -93,9 +94,6 @@ satisfies `precision`.
 Another important aspect is the numerical type of the net, which is set by explicitly annotating `Double` on 
 the settings instance.  For instance, on the GPU, you might want to work with `Float` instead. 
 Have a look at the `Settings` class for the complete list of options.
-
-Be aware that a network must start with a layer typed `In` and end with a layer typed `Out`. 
-If a network doesn't follow this rule, it won't compile.
 
 # Training
 
