@@ -51,7 +51,7 @@ object DigitRecognition {
       iterations = 15000)
 
     val net = Network(
-         Vector(xs.head.length) ::
+         Input(xs.head.length) ::
          Dense(400, fn)         ::
          Dense(200, fn)         ::
          Dense(50, fn)          ::

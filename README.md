@@ -44,7 +44,7 @@ implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 val (g, h) = (Sigmoid, Sigmoid)
 
 val net = Network(
-  layout = Vector(2) :: Dense(3, g) :: Dense(1, h) :: SquaredMeanError()
+  layout = Input(2) :: Dense(3, g) :: Dense(1, h) :: SquaredMeanError()
 )
 ```
 
@@ -60,7 +60,7 @@ a little deeper net, with some rates and rules defined, could look like this:
 val (e, f) = (Linear, ReLU)
 
 val L =
-  Vector (50)               ::
+  Input  (50)               ::
   Focus  (Dense(10, e))     ::
   Dense  (20,  f)           ::
   Dense  (30,  f)           ::

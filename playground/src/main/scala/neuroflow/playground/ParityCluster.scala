@@ -64,7 +64,7 @@ object ParityCluster {
     }
 
     val net = Network(
-        Vector(dimension + 1)           ::
+        Input(dimension + 1)           ::
         Focus(Dense(3, Linear))         ::
         Dense(dimension + 1, Sigmoid)   :: SquaredMeanError(),
         Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })

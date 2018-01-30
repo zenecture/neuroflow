@@ -71,7 +71,7 @@ object Word2Vec {
 
     val net =
       Network(
-        Vector(dim)                 ::
+        Input(dim)                 ::
         Focus(Dense(20, Linear))    ::
         Dense(dim, Sigmoid)         ::  SquaredMeanError(),
         Settings[Double](

@@ -17,10 +17,10 @@ sealed trait Out
 
 
 /**
-  * A vector is the input for a dense net, where `dimension`
-  * can be seen as the number of neurons in this layer.
+  * Input for a dense net, where `dimension`
+  * can be seen as the number of `neurons` in this layer.
   */
-case class Vector(dimension: Int) extends Layer with In {
+case class Input(dimension: Int) extends Layer with In {
   val symbol: String = "Vector"
   val neurons: Int = dimension
 }

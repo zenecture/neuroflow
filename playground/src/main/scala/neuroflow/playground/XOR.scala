@@ -44,7 +44,7 @@ object XOR {
       iterations = 100000,
       lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
 
-    val net = Network(Vector(2) :: Dense(3, fn) :: Dense(1, fn) :: SquaredMeanError(), settings)
+    val net = Network(Input(2) :: Dense(3, fn) :: Dense(1, fn) :: SquaredMeanError(), settings)
     net.train(xs, ys)
 
     val a = net.evaluate(->(0.0, 0.0))

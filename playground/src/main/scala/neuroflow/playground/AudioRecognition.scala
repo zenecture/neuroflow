@@ -38,7 +38,7 @@ object AudioRecognition {
 
     val nets = ((a zip b) zip c).par.map {
       case ((x, y), z) =>
-        val net = Network(Vector(x.size) :: Dense(20, fn) :: Dense(2, fn) :: SquaredMeanError(), sets)
+        val net = Network(Input(x.size) :: Dense(20, fn) :: Dense(2, fn) :: SquaredMeanError(), sets)
         net.train(Array(x.denseVec, y.denseVec, z.denseVec), Array(->(1.0, -1.0), ->(-1.0, 1.0), ->(1.0, -1.0)))
         (net, x, y, z)
     }

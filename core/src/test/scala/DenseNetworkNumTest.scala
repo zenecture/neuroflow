@@ -48,7 +48,7 @@ class DenseNetworkNumTest extends Specification {
     val f = Tanh
 
     val L =
-         Vector(2)     ::
+         Input(2)     ::
          Dense(7, f)   ::
          Dense(8, f)   ::
          Dense(7, f)   ::
