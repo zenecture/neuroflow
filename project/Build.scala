@@ -8,7 +8,7 @@ object NeuroflowBuild extends Build {
 
     name in ThisBuild         := "neuroflow",
     organization in ThisBuild := "com.zenecture",
-    version                   := "1.4.7",
+    version                   := "1.4.8",
     scalaVersion              := "2.12.3",
     assemblyMergeStrategy
                   in assembly := {

@@ -21,7 +21,7 @@ sealed trait Out
   * can be seen as the number of `neurons` in this layer.
   */
 case class Input(dimension: Int) extends Layer with In {
-  val symbol: String = "Vector"
+  val symbol: String = "Input"
   val neurons: Int = dimension
 }
 
