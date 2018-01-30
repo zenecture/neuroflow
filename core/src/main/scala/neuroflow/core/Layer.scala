@@ -17,8 +17,8 @@ sealed trait Out
 
 
 /**
-  * A dense input layer is the first fully connected, where:
-  *   `neurons`      Number of neurons in this layer
+  * A vector is the input for a dense net, where `dimension`
+  * can be seen as the number of neurons in this layer.
   */
 case class Vector(dimension: Int) extends Layer with In {
   val symbol: String = "Vector"
@@ -27,8 +27,8 @@ case class Vector(dimension: Int) extends Layer with In {
 
 /**
   * A dense layer is fully connected, where:
-  *   `neurons`      Number of neurons in this layer
-  *   `activator`    The activator function gets applied on the output element-wise.
+  *  `neurons`      Number of neurons in this layer
+  *  `activator`    The activator function gets applied on the output element-wise.
   */
 case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
   val symbol: String = "Dense"
@@ -37,7 +37,7 @@ case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Ou
 /**
   * A focus layer is used if the desired model output
   * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
-  *   `inner`      The inner layer used as model output
+  *  `inner`      The inner layer used as model output
   */
 case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
