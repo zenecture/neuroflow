@@ -97,9 +97,9 @@ Have a look at the `Settings` class for the complete list of options.
 
 # Training
 
-Our small `net` is just a function. It maps from a two-dimensional vector `x` to a one-dimensional vector `y`.
-There are many functions out there of this kind. Here, we learn the XOR-Function. It is linearily not separable, 
-so we can check if `net` can capture this non-linearity.
+Our small `net` is a function. It maps from a two-dimensional vector `x` to a one-dimensional vector `y`.
+There are many functions out there of this kind to learn. Here, we go with the XOR function. 
+It is linearily not separable, so we can check if we can capture this non-linearity with our small architecture.
 
 In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
 Let's define the XOR training data using in-line vector notation:
