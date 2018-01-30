@@ -36,12 +36,9 @@ object Network extends TypeAliases {
 
 trait TypeAliases {
 
-  type SVector[V]    =    scala.Vector[V]
-  type Vector[V]     =     DenseVector[V]
-  type Matrix[V]     =     DenseMatrix[V]
-  type Vectors[V]    =    Seq[Vector[V]]
-  type Matrices[V]   =   Seq[Matrix[V]]
-  type Weights[V]    =    IndexedSeq[Matrix[V]]
+  type Vectors[V]    =    Seq[DenseVector[V]]
+  type Matrices[V]   =   Seq[DenseMatrix[V]]
+  type Weights[V]    =    IndexedSeq[DenseMatrix[V]]
   type LearningRate  =  PartialFunction[(Int, Double), Double]
 
 }
@@ -147,7 +144,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 }
 
 
-trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
+trait FFN[V] extends Network[V, DenseVector[V], DenseVector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -162,7 +159,7 @@ trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
 }
 
 
-trait CNN[V] extends Network[V, Matrix[V], Vector[V]] {
+trait CNN[V] extends Network[V, DenseMatrix[V], DenseVector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -197,7 +194,7 @@ trait DistributedTraining {
 }
 
 
-trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraining {
+trait DistFFN[V] extends Network[V, DenseVector[V], DenseVector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -209,7 +206,7 @@ trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraini
 }
 
 
-trait DistCNN[V] extends Network[V, Matrix[V], Vector[V]] with DistributedTraining {
+trait DistCNN[V] extends Network[V, DenseMatrix[V], DenseVector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)

@@ -44,10 +44,10 @@ private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: Los
                                      identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
-  type Vector   = Network.Vector[Double]
-  type Vectors  = Network.Vectors[Double]
-  type Matrix   = Network.Matrix[Double]
-  type Matrices = Network.Matrices[Double]
+  type Vector   = DenseVector[Double]
+  type Matrix   = DenseMatrix[Double]
+  type Vectors  = Seq[DenseVector[Double]]
+  type Matrices = Seq[DenseMatrix[Double]]
 
   private val hiddenLayers = layers.drop(1).dropRight(1)
   private val initialOut   = hiddenLayers.map(l => DenseMatrix.zeros[Double](1, l.neurons)).toArray

@@ -35,10 +35,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
                                            identifier: String = "neuroflow.nets.cpu.ConvNetwork", numericPrecision: String = "Double")
   extends CNN[Double] with WaypointLogic[Double] {
 
-  type Vector   = Network.Vector[Double]
-  type Vectors  = Network.Vectors[Double]
-  type Matrix   = Network.Matrix[Double]
-  type Matrices = Network.Matrices[Double]
+  type Vector   = DenseVector[Double]
+  type Matrix   = DenseMatrix[Double]
+  type Vectors  = Seq[DenseVector[Double]]
+  type Matrices = Seq[DenseMatrix[Double]]
 
   private val _allLayers = layers.map {
     case f: Focus[Double]         => f.inner
@@ -82,9 +82,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
-    if (settings.verbose) info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt} ...")
+    if (settings.verbose) {
+      info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
+      info(s"Grouping and merging batches ...")
+    }
     val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
-      batch.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
+      batch.par.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
     }
     run(xsys, learningRate(1 -> 1.0), xs.size, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }

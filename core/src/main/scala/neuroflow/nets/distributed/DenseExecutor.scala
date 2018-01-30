@@ -1,12 +1,14 @@
 package neuroflow.nets.distributed
 
 import akka.actor.{ActorSystem, Props}
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common.Logs
+import neuroflow.core
 import neuroflow.core.Network._
 import neuroflow.core._
 
 import scala.annotation.tailrec
+import scala.collection.Seq
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.forkjoin.ForkJoinPool
@@ -45,7 +47,9 @@ object DenseExecutor extends Logs {
 
 class DenseExecutor(xs: Vectors[Double], ys: Vectors[Double], settings: Settings[Double]) extends ExecutorActor[Vectors[Double], Vectors[Double]](xs, ys, settings) {
 
-  type Matrix = Network.Matrix[Double]
+  type Vector   = DenseVector[Double]
+  type Matrix   = DenseMatrix[Double]
+  type Matrices = Seq[DenseMatrix[Double]]
 
   protected def compute(xs: Vectors[Double], ys: Vectors[Double], layers: Seq[Layer], weights: ArrayBuffer[Matrix],
                       learningRate: Double, parallelism: Int): (Weights[Double], Matrix) = {

@@ -41,10 +41,10 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunc
                                       identifier: String = "neuroflow.nets.distributed.DenseNetwork", numericPrecision: String = "Double")
   extends DistFFN[Double] with WaypointLogic[Double] {
 
-  type Vector   = Network.Vector[Double]
-  type Vectors  = Network.Vectors[Double]
-  type Matrix   = Network.Matrix[Double]
-  type Matrices = Network.Matrices[Double]
+  type Vector   = DenseVector[Double]
+  type Matrix   = DenseMatrix[Double]
+  type Vectors  = Seq[DenseVector[Double]]
+  type Matrices = Seq[DenseMatrix[Double]]
 
   private val _layers = layers.map {
     case Focus(inner) => inner

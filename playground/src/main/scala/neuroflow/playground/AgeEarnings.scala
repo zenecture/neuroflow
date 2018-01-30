@@ -37,7 +37,7 @@ object AgeEarnings {
     import neuroflow.nets.gpu.DenseNetwork._
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
-    val network = Network(Input(1) :: Dense(20, Sigmoid) :: Dense(1, Sigmoid) :: SquaredMeanError(), sets)
+    val network = Network(Vector(1) :: Dense(20, Sigmoid) :: Dense(1, Sigmoid) :: SquaredMeanError(), sets)
 
     val maxAge = train.map(_._1).sorted.reverse.head
     val xs = train.map(a => ->(a._1 / maxAge))

@@ -37,10 +37,10 @@ object LBFGSNetwork {
 private[nets] case class LBFGSNetwork(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = "neuroflow.nets.cpu.LBFGSNetwork", numericPrecision: String = "Double") extends FFN[Double] {
 
-  type Vector   = Network.Vector[Double]
-  type Vectors  = Network.Vectors[Double]
-  type Matrix   = Network.Matrix[Double]
-  type Matrices = Network.Matrices[Double]
+  type Vector   = DenseVector[Double]
+  type Matrix   = DenseMatrix[Double]
+  type Vectors  = Seq[DenseVector[Double]]
+  type Matrices = Seq[DenseMatrix[Double]]
 
   private val fastLayers = layers.map {
     case Focus(inner) => inner

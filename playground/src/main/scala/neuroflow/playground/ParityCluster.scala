@@ -32,10 +32,10 @@ object ParityCluster {
     implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
     val classes = (0 until dimension) map (i => (i, Random.nextInt(2))) map {
-      case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
-      case (i, k) if i % 2 == 0 && k % 2 != 0 => ("xo", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(0.0))
-      case (i, k) if i % 2 != 0 && k % 2 == 0 => ("vw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(1.0))
-      case (i, k) if i % 2 != 0 && k % 2 != 0 => ("vo", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ Vector(0.0))
+      case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ scala.Vector(1.0))
+      case (i, k) if i % 2 == 0 && k % 2 != 0 => ("xo", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ scala.Vector(0.0))
+      case (i, k) if i % 2 != 0 && k % 2 == 0 => ("vw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ scala.Vector(1.0))
+      case (i, k) if i % 2 != 0 && k % 2 != 0 => ("vo", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ scala.Vector(0.0))
     }
 
     val evens = Range(0, dimension, 2).toVector
@@ -64,7 +64,7 @@ object ParityCluster {
     }
 
     val net = Network(
-        Input(dimension + 1)            ::
+        Vector(dimension + 1)           ::
         Focus(Dense(3, Linear))         ::
         Dense(dimension + 1, Sigmoid)   :: SquaredMeanError(),
         Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })

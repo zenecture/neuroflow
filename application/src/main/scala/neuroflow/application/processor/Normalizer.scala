@@ -1,8 +1,8 @@
 package neuroflow.application.processor
 
-import breeze.linalg.{max, sum}
+import breeze.linalg.{DenseVector, max, sum}
 import neuroflow.application.plugin.Notation.ζ
-import neuroflow.core.Network
+import neuroflow.core.Network.Vectors
 
 /**
   * @author bogdanski
@@ -10,14 +10,12 @@ import neuroflow.core.Network
   */
 object Normalizer {
 
-  type Vector  = Network.Vector[Double]
-  type Vectors = Network.Vectors[Double]
 
   object MaxUnit {
     /**
       * Normalizes `x` such that `x.max == 1.0`
       */
-    def apply(x: Vector): Vector = x.map(_ / max(x))
+    def apply(x: DenseVector[Double]): DenseVector[Double] = x.map(_ / max(x))
   }
 
   object Binary {
@@ -25,7 +23,7 @@ object Normalizer {
       * Turns `x` into a binary representation, where
       * components > `f` are considered to be 1, 0 otherwise.
       */
-    def apply(x: Vector, f: Double = 0.0): Vector = {
+    def apply(x: DenseVector[Double], f: Double = 0.0): DenseVector[Double] = {
       x.map {
         case i if i > f => 1.0
         case _          => 0.0
@@ -37,7 +35,7 @@ object Normalizer {
     /**
       * Scales all components in `xs` by max length vector division.
       */
-    def apply(xs: Vectors): Vectors = {
+    def apply(xs: Vectors[Double]): Vectors[Double] = {
       val max = xs.map(x => VectorLength(x)).max
       xs.map(x => x.map(_ / max))
     }
@@ -47,14 +45,14 @@ object Normalizer {
     /**
       * Computes the length of `x`.
       */
-    def apply(x: Vector): Double = math.sqrt(sum(x.map(x => x * x)))
+    def apply(x: DenseVector[Double]): Double = math.sqrt(sum(x.map(x => x * x)))
   }
 
   object VectorFlatten {
     /**
       * Extracts the original hot vectors from horizontally merged `x`.
       */
-    def apply(x: Vector): Vectors = x.data.zipWithIndex.flatMap {
+    def apply(x: DenseVector[Double]): Vectors[Double] = x.data.zipWithIndex.flatMap {
       case (v, i) if v >= 1.0 => Some({ val m = ζ[Double](x.size); m.update(i, 1.0); m })
       case (v, i) if v == 0.0 => None
       case (v, i) if v  < 0.0 => Some({ val m = ζ[Double](x.size); m.update(i, -1.0); m })
@@ -65,7 +63,7 @@ object Normalizer {
     /**
       * Locates the index of hot vector `x`.
       */
-    def apply(x: Vector): Int = {
+    def apply(x: DenseVector[Double]): Int = {
       val wi = x.data.zipWithIndex
       wi.find(_._1 == 1.0) match {
         case Some(h1) => h1._2
@@ -81,7 +79,7 @@ object Normalizer {
     /**
       * Harmonizes `x` by using `cap` as min/max.
       */
-    def apply(x: Vector, cap: Double = 1.0): Vector = x.map {
+    def apply(x: DenseVector[Double], cap: Double = 1.0): DenseVector[Double] = x.map {
       case v if v >  cap  =>  cap
       case v if v < -cap  => -cap
       case v              =>   v

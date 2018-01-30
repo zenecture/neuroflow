@@ -23,7 +23,7 @@ import scala.io.{Source, StdIn}
 
 object MovieCluster {
 
-  case class Movie(id: Int, title: String, vec: Network.SVector[Double])
+  case class Movie(id: Int, title: String, vec: scala.Vector[Double])
   case class Rating(user: Int, movieId: Int, rating: Int)
 
   val netFile = "/Users/felix/github/unversioned/movies.nf"
@@ -43,7 +43,7 @@ object MovieCluster {
   val observations: List[Rating] = Source.fromFile(getResourceFile("file/ml-100k/u.data"))
     .getLines.map(_.split("\t")).map(r => Rating(r(0).toInt, r(1).toInt, r(2).toInt)).toList
 
-  val layout = Input(movies.size) :: Focus(Dense(3, Linear)) :: Dense(movies.size, Sigmoid) :: SquaredMeanError()
+  val layout = Vector(movies.size) :: Focus(Dense(3, Linear)) :: Dense(movies.size, Sigmoid) :: SquaredMeanError()
 
   def apply = {
 

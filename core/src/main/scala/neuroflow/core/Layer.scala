@@ -20,8 +20,9 @@ sealed trait Out
   * A dense input layer is the first fully connected, where:
   *   `neurons`      Number of neurons in this layer
   */
-case class Input(neurons: Int) extends Layer with In {
-  val symbol: String = "In"
+case class Vector(dimension: Int) extends Layer with In {
+  val symbol: String = "Vector"
+  val neurons: Int = dimension
 }
 
 /**

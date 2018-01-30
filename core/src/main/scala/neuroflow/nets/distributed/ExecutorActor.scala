@@ -26,7 +26,7 @@ abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, setti
 
   private val _MSGGS = settings.transport.messageGroupSize
 
-  private val _weights = ArrayBuffer.empty[Matrix[Double]]
+  private val _weights = ArrayBuffer.empty[DenseMatrix[Double]]
   private var _job: Job = _
   private var _batchCount = 0
   private val _buffer = ArrayBuffer.empty[WeightBatch]
@@ -95,7 +95,7 @@ abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, setti
     _weights.clear()
   }
 
-  private def sendResults(job: Job, weights: Weights[Double], error: Matrix[Double], sender: ActorRef): Unit = {
+  private def sendResults(job: Job, weights: Weights[Double], error: DenseMatrix[Double], sender: ActorRef): Unit = {
     val weightsWi = weights.map(_.data.zipWithIndex.grouped(_MSGGS)).zipWithIndex
     val errorWi = error.data.zipWithIndex.grouped(_MSGGS)
     weightsWi.foreach {
@@ -115,8 +115,8 @@ abstract class ExecutorActor[In <: Seq[_], Out <: Seq[_]](xs: In, ys: Out, setti
 
   }
 
-  protected def compute(xs: In, ys: Out, layers: Seq[Layer], weights: ArrayBuffer[Matrix[Double]],
-                      learningRate: Double, parallelism: Int): (Weights[Double], Matrix[Double])
+  protected def compute(xs: In, ys: Out, layers: Seq[Layer], weights: ArrayBuffer[DenseMatrix[Double]],
+                      learningRate: Double, parallelism: Int): (Weights[Double], DenseMatrix[Double])
 
 
 }

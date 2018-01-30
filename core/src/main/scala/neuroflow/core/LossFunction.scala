@@ -2,11 +2,11 @@ package neuroflow.core
 
 import breeze.linalg._
 import breeze.linalg.operators._
-import breeze.math.Field
+import breeze.math.{Field, Semiring}
 import breeze.numerics._
+import breeze.storage.Zero
 import jcuda.jcublas.cublasHandle
 import neuroflow.cuda._
-import scala.collection.immutable.{ :: => all }
 
 import scala.reflect.ClassTag
 
@@ -27,7 +27,7 @@ trait LossFunction[V] extends Layout {
             _max: max.Impl[DenseMatrix[V], V],
             _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
             _sum: sum.Impl[DenseMatrix[V], V],
-            _log: log.Impl[V, V],
+            _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
             _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
             _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
             _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
@@ -47,7 +47,7 @@ trait LossFunction[V] extends Layout {
             _max: max.Impl[CuMatrix[V], V],
             _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
             _sum: sum.Impl[CuMatrix[V], V],
-            _log: log.Impl[V, V],
+            _log: log.Impl[CuMatrix[V], CuMatrix[V]],
             _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
             _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
             _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
@@ -58,7 +58,7 @@ trait LossFunction[V] extends Layout {
             _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
             _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
             _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
             _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
@@ -84,7 +84,7 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
             _max: max.Impl[DenseMatrix[V], V],
             _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
             _sum: sum.Impl[DenseMatrix[V], V],
-            _log: log.Impl[V, V],
+            _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
             _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
             _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
             _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
@@ -116,7 +116,7 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
             _max: max.Impl[CuMatrix[V], V],
             _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
             _sum: sum.Impl[CuMatrix[V], V],
-            _log: log.Impl[V, V],
+            _log: log.Impl[CuMatrix[V], CuMatrix[V]],
             _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
             _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
             _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
@@ -127,7 +127,7 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
             _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
             _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
             _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
             _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
@@ -173,7 +173,7 @@ case class Softmax[V]() extends LossFunction[V] {
             _max: max.Impl[DenseMatrix[V], V],
             _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
             _sum: sum.Impl[DenseMatrix[V], V],
-            _log: log.Impl[V, V],
+            _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
             _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
             _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
             _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
@@ -187,18 +187,11 @@ case class Softmax[V]() extends LossFunction[V] {
             _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
 
-    val batchSize = y.rows
+    val probs = SoftmaxImpl(x)
+    val err = -(y *:* _log(probs))
+    val grad = probs - y
 
-    (0 until batchSize).map { i =>
-      val (_x, _y) = (x.t(all, i).asDenseMatrix, y.t(all, i).asDenseMatrix)
-      val probs = SoftmaxImpl(_x)
-      val mask = _sum(_y *:* probs)
-      val err = _y *:* -_log(mask)
-      val grad = probs - _y
-      (err, grad)
-    }.reduce { (a, b) =>
-      DenseMatrix.vertcat(a._1, b._1) -> DenseMatrix.vertcat(a._2, b._2)
-    }
+    (err, grad)
 
   }
 
@@ -208,7 +201,7 @@ case class Softmax[V]() extends LossFunction[V] {
             _max: max.Impl[CuMatrix[V], V],
             _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
             _sum: sum.Impl[CuMatrix[V], V],
-            _log: log.Impl[V, V],
+            _log: log.Impl[CuMatrix[V], CuMatrix[V]],
             _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
             _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
             _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
@@ -219,64 +212,65 @@ case class Softmax[V]() extends LossFunction[V] {
             _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
             _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
-            _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
             _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
             _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
             _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
 
-    val batchSize = y.rows
+    val probs = SoftmaxImpl(x)
+    val err = -(y *:* _log(probs))
+    val grad = probs - y
 
-    val (err, grad) = (0 until batchSize).map { i =>
-      val (_x, _y) = (x.t(all, i).t, y.t(all, i).t)
-      val probs = SoftmaxImpl(_x)
-      val r1 = _y *:* probs
-      val mask = _sum(r1)
-      val err = _y *:* -_log(mask)
-      val grad = probs - _y
-      probs.release()
-      r1.release()
-      (err.toDense, grad.toDense)
-    }.reduce { (a, b) =>
-      DenseMatrix.vertcat(a._1, b._1) -> DenseMatrix.vertcat(a._2, b._2)
-    }
+    probs.release()
 
-    CuMatrix.fromDense(err) -> CuMatrix.fromDense(grad)
+    (err, grad)
 
   }
 
 }
 
+
+/**
+  * Computes e^x / Σe^X for given matrix `x` by row.
+  */
 object SoftmaxImpl {
 
-  def apply[V](x: DenseMatrix[V])
+  def apply[V: ClassTag : Zero : Semiring](x: DenseMatrix[V])
               (implicit
                _max: max.Impl[DenseMatrix[V], V],
                _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
                _sum: sum.Impl[DenseMatrix[V], V],
                _sub: OpSub.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
-               _div: OpDiv.Impl2[DenseMatrix[V], V, DenseMatrix[V]]): DenseMatrix[V] = {
+               _div: OpDiv.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] = {
     val r1 = x - _max(x)
     val r2 = _exp(r1)
-    val probs = r2 / _sum(r2)
+    val id = DenseMatrix.ones[V](x.cols, x.cols)
+    val sm = r2 * id
+    val probs = r2 / sm
     probs
   }
 
-  def apply[V](x: CuMatrix[V])
+  def apply[V: ClassTag : Zero : Semiring](x: CuMatrix[V])
               (implicit
+               _cs: OpSet.InPlaceImpl2[CuMatrix[V],V],
                _max: max.Impl[CuMatrix[V], V],
                _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
+               _mat: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
                _sum: sum.Impl[CuMatrix[V], V],
                _sub: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
-               _div: OpDiv.Impl2[CuMatrix[V], V, CuMatrix[V]]): CuMatrix[V] = {
+               _div: OpDiv.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]]): CuMatrix[V] = {
     val r1 = x - _max(x)
     val r2 = _exp(r1)
-    val r3 = _sum(r2)
-    val r4 = r2 / r3
+    val id = CuMatrix.ones[V](x.cols, x.cols)
+    val sm = r2 * id
+    val probs = r2 / sm
     r1.release()
     r2.release()
-    r4
+    sm.release()
+    id.release()
+    probs
   }
 
 }

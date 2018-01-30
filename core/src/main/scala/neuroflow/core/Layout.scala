@@ -17,12 +17,12 @@ import scala.annotation.{implicitNotFound, tailrec}
 trait Layout extends Serializable {
 
   /** Prepends this layout with a new layer `head`. */
-  def ::[H](head: H): H :: this.type = neuroflow.core.::(head, tail = this)
+  def ::[H <: Layer](head: H): H :: this.type = neuroflow.core.::(head, tail = this)
 
 }
 
 
-case class ::[+H, +T <: Layout](head: H, tail: T) extends Layout
+case class ::[+H <: Layer, +T <: Layout](head: H, tail: T) extends Layout
 
 
 trait Extractor[L <: Layout, Target, V] {
@@ -79,9 +79,9 @@ trait EndsWith[L <: Layout, +Predicate]
 
 object EndsWith {
 
-  implicit def hsme[P, V]: (P :: SquaredMeanError[V]) EndsWith P = new ((P :: SquaredMeanError[V]) EndsWith P) { }
+  implicit def hsme[P <: Layer, V]: (P :: SquaredMeanError[V]) EndsWith P = new ((P :: SquaredMeanError[V]) EndsWith P) { }
 
-  implicit def hsmx[P, V]: (P :: Softmax[V]) EndsWith P = new ((P :: Softmax[V]) EndsWith P) { }
+  implicit def hsmx[P <: Layer, V]: (P :: Softmax[V]) EndsWith P = new ((P :: Softmax[V]) EndsWith P) { }
 
   implicit def hlist[H <: Layer, P, L <: Layout]
     (implicit e: L EndsWith P): (H :: L) EndsWith P = new ((H :: L) EndsWith P) { }

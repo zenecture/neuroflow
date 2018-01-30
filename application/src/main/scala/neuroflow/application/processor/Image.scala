@@ -8,7 +8,6 @@ import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common.Logs
-import neuroflow.core.Network.{Matrix, Vector}
 
 import scala.io.Source
 
@@ -24,9 +23,9 @@ object Image extends Logs {
     * of all color channels and pixels, where values are normalized to be <= 1.0.
     */
 
-  def extractRgb(path: String): Vector[Double] = extractRgb(new File(path))
+  def extractRgb(path: String): DenseVector[Double] = extractRgb(new File(path))
 
-  def extractRgb(file: File): Vector[Double] = {
+  def extractRgb(file: File): DenseVector[Double] = {
     val img = ImageIO.read(file)
     val res =
       (0 until img.getHeight).flatMap { h =>
@@ -45,13 +44,13 @@ object Image extends Logs {
     * rgb values are scaled from [0, 255] to [0.0, 1.0].
     */
 
-  def extractRgb3d(url: URL): Matrix[Double] = extractRgb3d(ImageIO.read(url))
+  def extractRgb3d(url: URL): DenseMatrix[Double] = extractRgb3d(ImageIO.read(url))
 
-  def extractRgb3d(path: String): Matrix[Double] = extractRgb3d(new File(path))
+  def extractRgb3d(path: String): DenseMatrix[Double] = extractRgb3d(new File(path))
 
-  def extractRgb3d(file: File): Matrix[Double] = extractRgb3d(ImageIO.read(file))
+  def extractRgb3d(file: File): DenseMatrix[Double] = extractRgb3d(ImageIO.read(file))
 
-  def extractRgb3d(img: BufferedImage): Matrix[Double] = {
+  def extractRgb3d(img: BufferedImage): DenseMatrix[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
     (0 until h).foreach { _h =>
@@ -73,9 +72,9 @@ object Image extends Logs {
     * Loads portable gray map as flat vector
     */
 
-  def extractPgm(path: String): Vector[Double] = extractPgm(new File(path))
+  def extractPgm(path: String): DenseVector[Double] = extractPgm(new File(path))
 
-  def extractPgm(file: File): Vector[Double] = {
+  def extractPgm(file: File): DenseVector[Double] = {
     val raw = Source.fromFile(file).getLines.drop(2).toArray // P2, width, height
     val max = raw.head.toDouble
     val img = raw.tail.flatMap(_.split(" ")).map(_.toDouble / max)
@@ -88,9 +87,9 @@ object Image extends Logs {
     * activated based on `selector` result
     */
 
-  def extractBinary(path: String, selector: Int => Boolean): Vector[Double] = extractBinary(new File(path), selector)
+  def extractBinary(path: String, selector: Int => Boolean): DenseVector[Double] = extractBinary(new File(path), selector)
 
-  def extractBinary(file: File, selector: Int => Boolean): Vector[Double] = {
+  def extractBinary(file: File, selector: Int => Boolean): DenseVector[Double] = {
     val img = ImageIO.read(file)
     val res =
       (0 until img.getHeight).flatMap { h =>

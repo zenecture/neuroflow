@@ -1,5 +1,6 @@
 package neuroflow.core
 
+import breeze.linalg.DenseMatrix
 import breeze.linalg.operators.{OpDiv, OpSub}
 import breeze.math._
 import neuroflow.core.Network._
@@ -15,11 +16,11 @@ import neuroflow.core.Network._
   * For GPU implementations calling `sync` between updates is necessary.
   */
 trait Approximation[V] extends Serializable {
-  def apply(weights: Weights[V], lossFunction: () => Matrix[V], sync: () => Unit, layer: Int, weight: (Int, Int))
+  def apply(weights: Weights[V], lossFunction: () => DenseMatrix[V], sync: () => Unit, layer: Int, weight: (Int, Int))
            (implicit
             ring: Semiring[V],
-            div: OpDiv.Impl2[Matrix[V], V, Matrix[V]],
-            sub: OpSub.Impl2[Matrix[V], Matrix[V], Matrix[V]]): Matrix[V]
+            div: OpDiv.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V]
 }
 
 /**
@@ -29,11 +30,11 @@ case class FiniteDifferences[V: Numeric](Δ: V) extends Approximation[V] {
 
   import Numeric.Implicits._
 
-  def apply(weights: Weights[V], lossFunction: () => Matrix[V], sync: () => Unit, layer: Int, weight: (Int, Int))
+  def apply(weights: Weights[V], lossFunction: () => DenseMatrix[V], sync: () => Unit, layer: Int, weight: (Int, Int))
            (implicit
             ring: Semiring[V],
-            div: OpDiv.Impl2[Matrix[V], V, Matrix[V]],
-            sub: OpSub.Impl2[Matrix[V], Matrix[V], Matrix[V]]): Matrix[V] = {
+            div: OpDiv.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] = {
 
     val w = weights(layer)(weight)
     weights(layer).update(weight, w - Δ)

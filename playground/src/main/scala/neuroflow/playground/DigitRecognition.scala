@@ -1,12 +1,12 @@
 package neuroflow.playground
 
+import breeze.linalg.DenseVector
 import neuroflow.application.plugin.Extensions._
 import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
 import neuroflow.core.Activator.ReLU
-import neuroflow.core.Network.Vector
 import neuroflow.core._
 import neuroflow.nets.cpu.DenseNetwork._
 
@@ -25,7 +25,7 @@ object DigitRecognition {
   */
 
 
-  def digitSet2Vec(path: String): Seq[Vector[Double]] = {
+  def digitSet2Vec(path: String): Seq[DenseVector[Double]] = {
     val selector: Int => Boolean = _ < 255
     (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector))
   }
@@ -51,11 +51,12 @@ object DigitRecognition {
       iterations = 15000)
 
     val net = Network(
-         Input(xs.head.length) ::
-         Dense(400, fn)        ::
-         Dense(200, fn)        ::
-         Dense(50, fn)         ::
-         Dense(10, fn)         :: Softmax(), settings)
+         Vector(xs.head.length) ::
+         Dense(400, fn)         ::
+         Dense(200, fn)         ::
+         Dense(50, fn)          ::
+         Dense(10, fn)          ::  Softmax(),
+      settings)
 
     net.train(xs, ys)
 

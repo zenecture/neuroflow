@@ -1,12 +1,11 @@
 package neuroflow.nets
 
-import breeze.linalg._
+import breeze.linalg.DenseVector
 import neuroflow.core.Activator._
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
-import shapeless._
 
 
 /**
@@ -49,7 +48,7 @@ class DenseNetworkNumTest extends Specification {
     val f = Tanh
 
     val L =
-         Input(2)      ::
+         Vector(2)     ::
          Dense(7, f)   ::
          Dense(8, f)   ::
          Dense(7, f)   ::
