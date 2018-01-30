@@ -49,8 +49,8 @@ val net = Network(
 ```
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
-The weights are initialized randomly in range (-1, 1) by `WeightProvider`.  We have pre-defined activators, 
-so let us place a softly firing `Sigmoid` on the cells.
+The weights are initialized randomly in range (-1, 1) by `WeightProvider`.  We have pre-defined activators and 
+place a softly firing `Sigmoid` on the cells.
 
 In NeuroFlow, a full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
 implemented as a heterogenous list, allowing compile-time checks for valid compositions. For instance, 
@@ -97,9 +97,9 @@ Have a look at the `Settings` class for the complete list of options.
 
 # Training
 
-We want to map from a two-dimensional vector `x` to a one-dimensional vector `y` with our architecture.
-There are many functions out there of this kind; here we use the XOR-Function. It is linearily not separable,
-so we can check whether our net can capture this non-linearity.
+Our small `net` is just a function. It maps from a two-dimensional vector `x` to a one-dimensional vector `y`.
+There are many functions out there of this kind. Here, we learn the XOR-Function. It is linearily not separable, 
+so we can check if `net` can capture this non-linearity.
 
 In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
 Let's define the XOR training data using in-line vector notation:
@@ -115,7 +115,7 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 
 net.train(xs, ys)
 ```
-And then we `train` our `net`. The `SquaredMeanError` loss function is defined as follows:
+And then we call `train` on `net`. The `SquaredMeanError` loss function is defined as follows:
 
     L(W) = Σ1/2(t - net(x))²
 
