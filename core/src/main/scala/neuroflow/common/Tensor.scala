@@ -26,7 +26,7 @@ trait Tensorish[K, V] extends (K => V) {
     matrix(row, col)
   }
 
-  def map(x: K)(f: V => V): Tensorish[K, V]
+  def mapAt(x: K)(f: V => V): Tensorish[K, V]
 
   def mapAll[T: ClassTag : Zero](f: V => T): Tensorish[K, T]
 

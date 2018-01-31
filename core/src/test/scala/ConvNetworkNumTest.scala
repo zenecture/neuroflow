@@ -169,7 +169,7 @@ object Helper {
   class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor[V] {
 
     val projection: ((Int, Int, Int)) => (Int, Int) = K => (K._3, K._1 * height + K._2)
-    def map(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = ???
+    def mapAt(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = ???
     def mapAll[T: ClassTag : Zero](f: V => T): Tensorish[(Int, Int, Int), T] = ???
 
   }

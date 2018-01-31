@@ -70,14 +70,16 @@ object Image extends Logs {
 
 
   /**
-    * Represents a RGB image, linearized into a full row
+    * Represents a RGB image, accessible with (x, y, z) coordinates,
+    * where x, y are width, height and z is the color channel.
+    * The `projection` linearizes the image into a full row
     * per color channel using column major.
     */
   class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor[V] {
 
     val projection: ((Int, Int, Int)) => (Int, Int) = K => (K._3, K._1 * height + K._2)
 
-    def map(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = {
+    def mapAt(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = {
       val newMat = matrix.copy
       val (row, col) = projection(x._1, x._2, x._3)
       newMat.update(row, col, f(apply(x)))
