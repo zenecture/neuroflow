@@ -54,30 +54,30 @@ object Image extends Logs {
   def extractRgb3d(img: BufferedImage): Tensor[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
+    val tensor = new RgbTensor[Double](w, h, out)
     (0 until w).foreach { x =>
       (0 until h).foreach { y =>
         val c = new Color(img.getRGB(x, y))
-        val r = c.getRed   / 255.0
-        val g = c.getGreen / 255.0
-        val b = c.getBlue  / 255.0
-        out.update(0, x * h + y, r)
-        out.update(1, x * h + y, g)
-        out.update(2, x * h + y, b)
+        val rgb = (c.getRed / 255.0) :: (c.getGreen / 255.0) :: (c.getBlue  / 255.0) :: Nil
+        (0 until 3).foreach { z =>
+          val (row, col) = tensor.projection(x, y, z)
+          out.update(row, col, rgb(z))
+        }
       }
     }
-    new RgbTensor[Double](w, h, out)
+    tensor
   }
 
 
   /**
-    * Represents a RGB image, accessible with (x, y, z) coordinates,
-    * where x, y are width, height and z is the color channel.
+    * Represents a RGB image, accessible by (x, y, z) coordinates.
+    * Where x, y are width, height and z is the color channel.
     * The `projection` linearizes the image into a full row
     * per color channel using column major.
     */
   class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor[V] {
 
-    val projection: ((Int, Int, Int)) => (Int, Int) = K => (K._3, K._1 * height + K._2)
+    val projection: ((Int, Int, Int)) => (Int, Int) = { case (x, y, z) => (z, x * height + y) }
 
     def mapAt(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = {
       val newMat = matrix.copy
