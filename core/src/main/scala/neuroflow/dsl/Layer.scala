@@ -44,7 +44,7 @@ case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   val neurons: Int = inner.neurons
 }
 
-object Ω { // Alias for Fokus
+object Ω { // Alias syntax for Focus
   def apply[V](inner: Layer with HasActivator[V]): Focus[V] = Focus(inner)
 }
 
