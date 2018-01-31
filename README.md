@@ -10,7 +10,7 @@ There are three modules:
 - application: plugins, helpers, functionality related to application
 - playground: examples with resources
 
-To use NeuroFlow, add these dependencies to your SBT (Scala Version 2.12.x, oss.sonatype.org) project:
+To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
