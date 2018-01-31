@@ -17,8 +17,8 @@ trait StartsWith[L <: Layout, +Predicate]
 
 object StartsWith {
 
-  implicit def startsWith[H <: Layer, L <: Layout, H0]
-  (implicit eq: H =:= H0): StartsWith[H :: L, H0] = new StartsWith[H :: L, H0] {}
+  implicit def startsWith[H <: Layer, L <: Layout, H0 <: Layer]
+  (implicit eq: H =:= H0): StartsWith[H :: L, H0] = new StartsWith[H :: L, H0] { }
 
 }
 
@@ -34,7 +34,7 @@ object EndsWith {
 
   implicit def hsmx[P <: Layer, V]: (P :: Softmax[V]) EndsWith P = new ((P :: Softmax[V]) EndsWith P) { }
 
-  implicit def hlist[H <: Layer, P, L <: Layout]
-  (implicit e: L EndsWith P): (H :: L) EndsWith P = new ((H :: L) EndsWith P) { }
+  implicit def hlist[H <: Layer, P <: Layer, L <: Layout]
+    (implicit e: L EndsWith P): (H :: L) EndsWith P = new ((H :: L) EndsWith P) { }
 
 }
