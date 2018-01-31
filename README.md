@@ -101,7 +101,7 @@ Our small `net` is a function `f: X -> Y`. It maps from 2d-vector `X` to 1d-vect
 There are many functions out there of this kind to learn. Here, we go with the XOR function. 
 It is linearly not separable, so we can check whether the net can capture this non-linearity.
 
-To learn, we need to know what it means to be right and wrong. The `SquaredMeanError` loss function is defined as follows:
+To learn, we need to know what it means to be wrong. The `SquaredMeanError` loss function is defined as follows:
 
     L(W) = Σ1/2(t - net(x))²
 
