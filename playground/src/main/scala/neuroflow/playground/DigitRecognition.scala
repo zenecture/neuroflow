@@ -45,19 +45,20 @@ object DigitRecognition {
 
     val fn = ReLU
 
-    val settings = Settings[Float](
-      learningRate = { case (_, _) => 1E-5 },
-      updateRule = Momentum(0.8f),
-      precision = 1E-3,
-      iterations = 15000)
-
     val net = Network(
-         Vector(xs.head.length) ::
-         Dense(400, fn)         ::
-         Dense(200, fn)         ::
-         Dense(50, fn)          ::
-         Dense(10, fn)          ::  Softmax(),
-      settings)
+      layout =
+         Vector (xs.head.length)  ::
+         Dense  (400, fn)         ::
+         Dense  (200, fn)         ::
+         Dense  (50, fn)          ::
+         Dense  (10, fn)          ::  Softmax(),
+      settings = Settings[Float](
+        learningRate = { case (_, _) => 1E-5 },
+        updateRule = Momentum(0.8f),
+        precision = 1E-3,
+        iterations = 15000
+      )
+    )
 
     net.train(xs, ys)
 
