@@ -18,7 +18,7 @@ trait StartsWith[L <: Layout, +Predicate]
 object StartsWith {
 
   implicit def startsWith[H <: Layer, L <: Layout, H0 <: Layer]
-  (implicit eq: H =:= H0): StartsWith[H :: L, H0] = new StartsWith[H :: L, H0] { }
+    (implicit eq: H =:= H0): StartsWith[H :: L, H0] = new StartsWith[H :: L, H0] { }
 
 }
 
