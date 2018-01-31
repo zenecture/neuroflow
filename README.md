@@ -37,6 +37,7 @@ Let's construct the fully connected feed-forward net (FFN) depicted above.
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.dsl._
+import neuroflow.nets.cpu.DenseNetwork._
 
 implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
@@ -48,7 +49,7 @@ val net = Network(
 ```
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
-The weights are initialized randomly in range (-1, 1) by `WeightProvider`.  We have pre-defined activators and 
+The weights are initialized in range (-1, 1) by random `WeightProvider`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
 In NeuroFlow, a full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
@@ -96,9 +97,21 @@ Have a look at the `Settings` class for the complete list of options.
 
 # Training
 
-Our small `net` is a function. It maps from a two-dimensional vector `x` to a one-dimensional vector `y`.
+Our small `net` is a function `f: X -> Y`. It maps from 2d-vector `X` to 1d-vector `Y`.
 There are many functions out there of this kind to learn. Here, we go with the XOR function. 
-It is linearily not separable, so we can check if we can capture this non-linearity with our small architecture.
+It is linearly not separable, so we can check whether the net can capture this non-linearity.
+
+To learn, we need to know what it means to be right and wrong. The `SquaredMeanError` loss function is defined as follows:
+
+    L(W) = Σ1/2(t - net(x))²
+
+Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
+the square `²` gives a convex functional form. For 1-of-K classification, there is also the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`Softmax`</a> loss function, 
+but here we treat the XOR-adder as a regression challenge.
+
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
+
+<small><em>Example: Derivative for w<sub>8</sub></em></small>
 
 In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
 Let's define the XOR training data using in-line vector notation:
@@ -116,17 +129,7 @@ val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 
 net.train(xs, ys)
 ```
-And then we call `train` on `net`. The `SquaredMeanError` loss function is defined as follows:
-
-    L(W) = Σ1/2(t - net(x))²
-
-Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
-the square `²` gives a convex functional form. For 1-of-K classification, there is also the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`Softmax`</a> loss function, 
-but here we treat the XOR-adder as a regression challenge.
-
-<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
-
-<small><em>Example: Derivative for w<sub>8</sub></em></small>
+And then we call `train` on `net` to start.
 
 # Monitoring
 
