@@ -98,7 +98,7 @@ Have a look at the `Settings` class for the complete list of options.
 # Training
 
 Our small `net` is a function `f: X -> Y`. It maps from 2d-vector `X` to 1d-vector `Y`.
-There are many functions out there of this kind to learn. Here, we go with the XOR function. 
+There are many functions of this kind to learn out there. Here, we go with the XOR function. 
 It is linearly not separable, so we can check whether the net can capture this non-linearity.
 
 To learn, we need to know what it means to be wrong. The `SquaredMeanError` loss function is defined as follows:
