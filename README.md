@@ -141,15 +141,15 @@ The training progress is printed on console so we can track it.
 ...
 ```
 
-One line is printed per iteration, `Iteration a.b` where `a` is the iteration count and `b` is the batch and `Avg. Loss` is the mean of the summed batch loss `Vector`.
+One line is printed per iteration, `Iteration a.b` where `a` is the iteration count, `b` is the batch and `Avg. Loss` is the mean of the summed batch loss `Vector`.
 The batch count `b` loops, depending on the batch size, whereas the iteration count `a` progresses linearly until training is finished. 
 
 
-To visualize the loss function, we can append the total loss per iteration to `file` with `LossFuncOutput`.
+To visualize the loss function, we can iteratively append the `Avg. Loss` to a `file` with `LossFuncOutput`.
 
 ```scala
 Settings(
-  lossFuncOutput = Some(LossFuncOutput(file = Some("~/NF/lossFunc.txt"), action = Some(loss => sendToDashboard(loss))))
+  lossFuncOutput = Some(LossFuncOutput(file = Some("~/NF/lossFunc.txt")))
 )
 ```
 
@@ -162,9 +162,18 @@ gnuplot> plot '~/NF/lossFunc.txt' with linespoints ls 1
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/errgraph3.png" width=448 height=321 />
 
+Another way to visualize the training progress is to use the `LossFuncOutput` with a function `action: Double => Unit`.
 
-To be more flexible, we can provide function `action` of type `Double => Unit` which gets executed in the background 
-after each iteration, using the respective loss as input. One example is sending the loss to a real-time TV dashboard.
+```scala
+Settings(
+  lossFuncOutput = Some(LossFuncOutput(action = Some(loss => sendToDashboard(loss))))
+)
+
+def sendToDashboard(loss: Double): Unit = /* ... * /
+```
+
+This function gets executed in the background after each iteration, using the `Avg. Loss` as input. 
+One example is sending the loss to a real-time TV dashboard.
 
 ### Useful JVM args
 
