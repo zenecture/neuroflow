@@ -9,6 +9,7 @@ import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.dsl.Layer
 
 import scala.annotation.tailrec
 import scala.collection._

@@ -4,7 +4,9 @@ import java.util.concurrent.ThreadLocalRandom
 
 import breeze.linalg.DenseMatrix
 import breeze.storage.Zero
+import neuroflow.common.CanProduce
 import neuroflow.core.Network.Weights
+import neuroflow.dsl._
 
 import scala.annotation.implicitNotFound
 import scala.reflect.ClassTag

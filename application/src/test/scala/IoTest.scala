@@ -1,10 +1,10 @@
 import neuroflow.application.plugin.IO._
 import neuroflow.core.Activator.Sigmoid
 import neuroflow.core._
+import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
-import shapeless._
 
 /**
   * @author bogdanski

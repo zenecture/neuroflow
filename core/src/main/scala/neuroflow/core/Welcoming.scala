@@ -1,6 +1,9 @@
 package neuroflow.core
 
-import java.text.NumberFormat.{ getIntegerInstance => formatter }
+import java.text.NumberFormat.{getIntegerInstance => formatter}
+
+import neuroflow.common.TypeSize
+import neuroflow.dsl.{Convolution, Layer}
 
 /**
   * @author bogdanski
@@ -21,7 +24,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.4.8
+      |            Version : 1.5.0
       |
       |            Network : $identifier
       |

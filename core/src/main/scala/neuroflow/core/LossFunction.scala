@@ -7,6 +7,7 @@ import breeze.numerics._
 import breeze.storage.Zero
 import jcuda.jcublas.cublasHandle
 import neuroflow.cuda._
+import neuroflow.dsl.Layout
 
 import scala.reflect.ClassTag
 

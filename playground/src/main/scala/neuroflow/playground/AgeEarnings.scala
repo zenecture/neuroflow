@@ -4,6 +4,7 @@ import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core._
+import neuroflow.dsl._
 
 /**
   * @author bogdanski

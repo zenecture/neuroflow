@@ -7,6 +7,7 @@ import breeze.linalg.DenseMatrix
 import neuroflow.common.Logs
 import neuroflow.core._
 import neuroflow.core.Network._
+import neuroflow.dsl.Layer
 
 import scala.collection.IndexedSeq
 import scala.collection.mutable.ArrayBuffer

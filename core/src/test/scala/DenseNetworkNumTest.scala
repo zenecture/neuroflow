@@ -4,6 +4,7 @@ import breeze.linalg.DenseVector
 import neuroflow.core.Activator._
 import neuroflow.core.Network.Weights
 import neuroflow.core._
+import neuroflow.dsl._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 
@@ -43,7 +44,7 @@ class DenseNetworkNumTest extends Specification {
 
     import neuroflow.core.WeightProvider.ffn_double.fullyConnected
     import neuroflow.core.WeightProvider.normalSeed
-    import neuroflow.core.Extractor.extractor
+    import neuroflow.dsl.Extractor.extractor
     
     val f = Tanh
 

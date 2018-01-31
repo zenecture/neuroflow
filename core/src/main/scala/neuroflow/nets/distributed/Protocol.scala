@@ -1,6 +1,6 @@
 package neuroflow.nets.distributed
 
-import neuroflow.core.Layer
+import neuroflow.dsl.Layer
 
 /**
   * @author bogdanski

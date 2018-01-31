@@ -8,6 +8,7 @@ import neuroflow.application.processor.Image._
 import neuroflow.common.~>
 import neuroflow.core.Activator.ReLU
 import neuroflow.core._
+import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 
 /**

@@ -6,6 +6,7 @@ import neuroflow.common.Logs
 import neuroflow.core
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.dsl.Layer
 
 import scala.annotation.tailrec
 import scala.collection.Seq

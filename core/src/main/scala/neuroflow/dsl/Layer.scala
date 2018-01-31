@@ -1,4 +1,6 @@
-package neuroflow.core
+package neuroflow.dsl
+
+import neuroflow.core.{Activator, HasActivator}
 
 /**
   * @author bogdanski
@@ -17,8 +19,8 @@ sealed trait Out
 
 
 /**
-  * Input [[breeze.linalg.DenseVector]] for a dense net,
-  * where `dimension` is the number of `neurons` of this layer.
+  * Input for a dense net, where `dimension` is
+  * the number of `neurons` of this layer.
   */
 case class Vector(dimension: Int) extends Layer with In {
   val symbol: String = "Vector"

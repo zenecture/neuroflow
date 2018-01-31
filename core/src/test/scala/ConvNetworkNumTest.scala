@@ -12,6 +12,7 @@ import neuroflow.common.{Tensor, Tensorish}
 import neuroflow.core.Activator._
 import neuroflow.core.Network.Weights
 import neuroflow.core._
+import neuroflow.dsl._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 
@@ -55,7 +56,7 @@ class ConvNetworkNumTest  extends Specification {
 
     import neuroflow.core.WeightProvider.cnn_double.convoluted
     import neuroflow.core.WeightProvider.normalSeed
-    import neuroflow.core.Extractor.extractor
+    import neuroflow.dsl.Extractor.extractor
 
     val dim = (4, 4, 3)
     val out = 2

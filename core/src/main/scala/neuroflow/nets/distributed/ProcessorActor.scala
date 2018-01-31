@@ -6,6 +6,7 @@ import akka.actor.{Actor, ActorRef, ActorSelection, PoisonPill}
 import breeze.linalg._
 import neuroflow.common.Logs
 import neuroflow.core._
+import neuroflow.dsl.Layer
 
 import scala.collection.Seq
 import scala.concurrent.duration._

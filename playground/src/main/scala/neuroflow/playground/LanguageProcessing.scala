@@ -7,6 +7,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.core.Activator._
 import neuroflow.core._
+import neuroflow.dsl._
 import neuroflow.nets.cpu.LBFGSNetwork._
 
 /**

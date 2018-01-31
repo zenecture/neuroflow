@@ -3,6 +3,7 @@ package neuroflow.playground
 import neuroflow.application.plugin.Extensions._
 import neuroflow.core.Activator._
 import neuroflow.core._
+import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 
 import scala.annotation.tailrec

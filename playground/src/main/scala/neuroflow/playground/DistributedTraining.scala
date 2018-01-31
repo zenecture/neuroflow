@@ -5,6 +5,7 @@ import breeze.stats.distributions.Gaussian
 import neuroflow.common.Logs
 import neuroflow.core.Activator._
 import neuroflow.core._
+import neuroflow.dsl._
 import neuroflow.nets.distributed.DenseExecutor
 import neuroflow.nets.distributed.DenseNetwork._
 

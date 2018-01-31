@@ -1,4 +1,4 @@
-package neuroflow.core
+package neuroflow.common
 
 import scala.annotation.implicitNotFound
 

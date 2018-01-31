@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies to your SBT (Scala Version 2.12.x, oss.
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.4.9",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.4.9"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.0",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.0"
 )
 ```
 
@@ -34,10 +34,9 @@ Neural Nets bring a lot of joy into your project, a journey full of fun and expe
 Let's construct the fully connected feed-forward net (FFN) depicted above.
 
 ```scala
-import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activator._
 import neuroflow.core._
-import neuroflow.nets.cpu.DenseNetwork._
+import neuroflow.dsl._
 
 implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
 
@@ -105,6 +104,8 @@ In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</
 Let's define the XOR training data using in-line vector notation:
 
 ```scala
+import neuroflow.application.plugin.Notation._
+
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
 val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 

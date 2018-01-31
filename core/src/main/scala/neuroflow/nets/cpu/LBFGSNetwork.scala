@@ -7,6 +7,7 @@ import breeze.stats._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
+import neuroflow.dsl.{Focus, Layer}
 
 import scala.annotation.tailrec
 import scala.collection.Seq

@@ -7,8 +7,9 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
 import neuroflow.core.Activator._
-import neuroflow.core.Convolution.IntTupler
+import neuroflow.dsl.Convolution.IntTupler
 import neuroflow.core._
+import neuroflow.dsl._
 import neuroflow.nets.cpu.ConvNetwork._
 
 /**

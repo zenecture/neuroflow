@@ -3,6 +3,7 @@ package neuroflow.core
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common._
 import neuroflow.core.Network._
+import neuroflow.dsl.{ Vector => _, _ }
 
 import scala.annotation.implicitNotFound
 import scala.collection._
@@ -36,10 +37,12 @@ object Network extends TypeAliases {
 
 trait TypeAliases {
 
-  type Vectors[V]    =  Seq[DenseVector[V]]
-  type Matrices[V]   =  Seq[DenseMatrix[V]]
+  type Vector[V]     =  DenseVector[V]
+  type Matrix[V]     =  DenseMatrix[V]
+  type Vectors[V]    =  Seq[Vector[V]]
+  type Matrices[V]   =  Seq[Matrix[V]]
   type Tensors[V]    =  Seq[Tensor[V]]
-  type Weights[V]    =  IndexedSeq[DenseMatrix[V]]
+  type Weights[V]    =  IndexedSeq[Matrix[V]]
   type LearningRate  =  PartialFunction[(Int, Double), Double]
 
 }
@@ -145,7 +148,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 }
 
 
-trait FFN[V] extends Network[V, DenseVector[V], DenseVector[V]] {
+trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -160,7 +163,7 @@ trait FFN[V] extends Network[V, DenseVector[V], DenseVector[V]] {
 }
 
 
-trait CNN[V] extends Network[V, Tensor[V], DenseVector[V]] {
+trait CNN[V] extends Network[V, Tensor[V], Vector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -195,7 +198,7 @@ trait DistributedTraining {
 }
 
 
-trait DistFFN[V] extends Network[V, DenseVector[V], DenseVector[V]] with DistributedTraining {
+trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -207,7 +210,7 @@ trait DistFFN[V] extends Network[V, DenseVector[V], DenseVector[V]] with Distrib
 }
 
 
-trait DistCNN[V] extends Network[V, DenseMatrix[V], DenseVector[V]] with DistributedTraining {
+trait DistCNN[V] extends Network[V, Tensor[V], Vector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
