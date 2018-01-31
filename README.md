@@ -14,8 +14,8 @@ To use NeuroFlow, add these dependencies to your SBT (Scala Version 2.12.x, oss.
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.0",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.0"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.1",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.1"
 )
 ```
 
@@ -60,15 +60,15 @@ a little deeper net, with some rates and rules defined, could look like this:
 val (e, f) = (Linear, ReLU)
 
 val L =
-  Vector (50)               ::
-  Focus  (Dense(10, e))     ::
-  Dense  (20,  f)           ::
-  Dense  (30,  f)           ::
-  Dense  (40,  f)           ::
-  Dense  (420, f)           ::
-  Dense  (40,  f)           ::
-  Dense  (30,  f)           :: 
-  Dense  (20,  f)           ::   Softmax()
+      Vector  (50)           ::
+    Ω(Dense   (10, e))       ::
+      Dense   (20, f)        ::
+      Dense   (30, f)        ::
+      Dense   (40, f)        ::
+      Dense  (420, f)        ::
+      Dense   (40, f)        ::
+      Dense   (30, f)        :: 
+      Dense   (20, f)        ::   Softmax()
 
 val deeperNet = Network(
   layout = L, 
@@ -77,7 +77,7 @@ val deeperNet = Network(
     batchSize = Some(8), 
     iterations = 256,
     learningRate = { 
-      case (iter, α) if iter < 128 => 1E-4 
+      case (iter, α) if iter < 128 => 1E-4
       case (_, _)  => 1E-6
     }, 
     precision = 1E-8

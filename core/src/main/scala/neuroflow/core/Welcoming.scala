@@ -24,7 +24,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
       |
       |
-      |            Version : 1.5.0
+      |            Version : 1.5.1
       |
       |            Network : $identifier
       |
