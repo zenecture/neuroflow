@@ -58,7 +58,7 @@ object Image extends Logs {
     (0 until w).foreach { x =>
       (0 until h).foreach { y =>
         val c = new Color(img.getRGB(x, y))
-        val rgb = (c.getRed / 255.0) :: (c.getGreen / 255.0) :: (c.getBlue  / 255.0) :: Nil
+        val rgb = c.getRed / 255.0 :: c.getGreen / 255.0 :: c.getBlue  / 255.0 :: Nil
         (0 until 3).foreach { z =>
           val (row, col) = tensor.projection(x, y, z)
           out.update(row, col, rgb(z))
