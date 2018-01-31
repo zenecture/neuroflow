@@ -18,51 +18,44 @@ trait CuMatrixConvOps extends Logs { this: CuMatrix.type =>
       CuModule(getClass.getResourceAsStream(s"/cuda/matrix_convops_$typeName.ptx"))
     }
 
-    private val im2col_kernel = module.getKernel13[Pointer, Pointer, Pointer, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int](s"im2col_$typeName")
-    private val im2col_bp_kernel = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"im2col_backprop_$typeName")
+    private val kernel_convolute = module.getKernel13[Pointer, Pointer, Pointer, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int](s"convolute_$typeName")
+    private val kernel_convolute_bp = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"convolute_bp_$typeName")
+    private val kernel_reshape_batch = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"reshape_batch_$typeName")
+    private val kernel_reshape_batch_bp = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"reshape_batch_bp_$typeName")
 
-    def im2col(m: CuMatrix[V], idc: CuMatrix[Int], dim: (Int, Int, Int), field: (Int, Int), padding: (Int, Int), stride: (Int, Int), withIndices: Boolean)
-              (implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
-
-      val dimOut = (
-        (dim._1 + 2 * padding._1 - field._1) / stride._1 + 1,
-        (dim._2 + 2 * padding._2 - field._2) / stride._2 + 1
-      )
-
-      val resSize = (field._1 * field._2 * dim._3, dimOut._1 * dimOut._2)
-      val res = CuMatrix.zeros[V](resSize._1, resSize._2)
+    def convolute(in: CuMatrix[V])(implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
 
       val threads = (4, 4, 4)
-
-      val blocks = (
-        math.ceil(dimOut._1.toDouble / threads._1.toDouble).toInt,
-        math.ceil(dimOut._2.toDouble / threads._2.toDouble).toInt,
-        math.ceil(dim._3.toDouble / threads._3.toDouble).toInt
-      )
-
-      im2col_kernel(blocks, threads)(m.offsetPointer, res.offsetPointer, idc.offsetPointer, dim._1, dim._2, dim._3, field._1, field._2, padding._1, padding._2, stride._1, stride._2, if (withIndices) 1 else 0)
-
-      res
+      val blocks = (4, 4, 4)
+//      kernel_convolute(blocks, threads)(in)
+      ???
 
     }
 
-    def im2col_backprop(m: CuMatrix[V], idc: CuMatrix[Int], dim: (Int, Int, Int), field: (Int, Int))
-              (implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
-
-      val resSize = (field._1 * field._2 * dim._3, dim._1 * dim._2)
-      val res = CuMatrix.zeros[V](resSize._1, resSize._2)
+    def convolute_bp(in: CuMatrix[V])(implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
 
       val threads = (4, 4, 4)
+      val blocks = (4, 4, 4)
+//      kernel_convolute_bp(blocks, threads)(in)
+      ???
 
-      val blocks = (
-        math.ceil(dim._1.toDouble / threads._1.toDouble).toInt,
-        math.ceil(dim._2.toDouble / threads._2.toDouble).toInt,
-        math.ceil(dim._3.toDouble / threads._3.toDouble).toInt
-      )
+    }
 
-      im2col_bp_kernel(blocks, threads)(m.offsetPointer, m.majorStride, res.offsetPointer, res.majorStride, idc.offsetPointer, idc.majorStride, dim._1, dim._2, dim._3, field._1, field._2)
+    def reshape_batch(in: CuMatrix[V])(implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
 
-      res
+      val threads = (4, 4, 4)
+      val blocks = (4, 4, 4)
+//      kernel_convolute(blocks, threads)(in)
+      ???
+
+    }
+
+    def reshape_batch_bp(in: CuMatrix[V])(implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
+
+      val threads = (4, 4, 4)
+      val blocks = (4, 4, 4)
+//      kernel_convolute(blocks, threads)(in)
+      ???
 
     }
 

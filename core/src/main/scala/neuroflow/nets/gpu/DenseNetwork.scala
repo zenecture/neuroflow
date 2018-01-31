@@ -259,12 +259,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
 
   }
 
-  private def syncWeights(): Unit = {
-    weights.zip(_cuWeights).foreach {
-      case (w, cw) => w := cw.toDense
-    }
-  }
-
   /** For debugging, approximates the gradients using `settings.approximation`. */
   private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
 
@@ -319,6 +313,12 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
 
     out
 
+  }
+
+  private def syncWeights(): Unit = {
+    weights.zip(_cuWeights).foreach {
+      case (w, cw) => w := cw.toDense
+    }
   }
 
 }
@@ -544,12 +544,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
 
   }
 
-  private def syncWeights(): Unit = {
-    weights.zip(_cuWeights).foreach {
-      case (w, cw) => w := cw.toDense
-    }
-  }
-
   /** For debugging, approximates the gradients using `settings.approximation`. */
   private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Float): Matrix = {
 
@@ -604,6 +598,12 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
 
     out
 
+  }
+
+  private def syncWeights(): Unit = {
+    weights.zip(_cuWeights).foreach {
+      case (w, cw) => w := cw.toDense
+    }
   }
 
 }

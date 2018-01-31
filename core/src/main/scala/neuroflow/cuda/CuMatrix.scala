@@ -700,12 +700,17 @@ trait CuMatrixFuns extends CuMatrixKernels with CuMatrixConvOps { this: CuMatrix
 
   object ConvOps {
 
-    def im2col[T](m: CuMatrix[T], idc: CuMatrix[Int], dim: (Int, Int, Int), field: (Int, Int),
-                  padding: (Int, Int), stride: (Int, Int), withIndices: Boolean)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.im2col(m, idc, dim, field, padding, stride, withIndices)
+    def convolute[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.convolute(in)
 
-    def im2col_backprop[T](m: CuMatrix[T], idc: CuMatrix[Int], dim: (Int, Int, Int), field: (Int, Int))(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.im2col_backprop(m, idc, dim, field)
+    def convolute_bp[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.convolute_bp(in)
+
+    def reshape_batch[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.reshape_batch(in)
+
+    def reshape_batch_bp[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.reshape_batch_bp(in)
 
   }
 
