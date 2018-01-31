@@ -42,7 +42,7 @@ object Sequences {
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
     val f = Tanh
-    val net = Network(Input(1) :: Dense(5, f) :: Dense(1, f) :: SquaredMeanError(),
+    val net = Network(Vector(1) :: Dense(5, f) :: Dense(1, f) :: SquaredMeanError(),
       Settings[Double](iterations = 5000, learningRate = { case (_, _) => 0.2 }, approximation = Some(FiniteDifferences(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
@@ -70,7 +70,7 @@ object Sequences {
     val stepSize = 0.01
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x),->(if (x < 0.8) 0.5 else 1.0)))
     val f = Sigmoid
-    val net = Network(Input(1) :: Dense(3, f) :: Dense(3, f) :: Dense(1, f) :: SquaredMeanError(),
+    val net = Network(Vector(1) :: Dense(3, f) :: Dense(3, f) :: Dense(1, f) :: SquaredMeanError(),
       Settings[Double](iterations = 5000, learningRate = { case _ => 0.2 },
         approximation = Some(FiniteDifferences(1E-12)),
         lossFuncOutput = Some(LossFuncOutput(file = Some("/Users/felix/Downloads/class-out-3.txt")))))
@@ -98,7 +98,7 @@ object Sequences {
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x), ->(sin(10 * x), cos(10 * x))))
     val f = Tanh
-    val net = Network(Input(1) :: Dense(7, f) :: Dense(7, f) :: Dense(2, f) :: SquaredMeanError(),
+    val net = Network(Vector(1) :: Dense(7, f) :: Dense(7, f) :: Dense(2, f) :: SquaredMeanError(),
       Settings[Double](iterations = 5000, learningRate = { case _ => 0.5 }, approximation = Some(FiniteDifferences(1E-9))))
 
     net.train(xsys.map(_._1), xsys.map(_._2))
@@ -130,7 +130,7 @@ object Sequences {
     val b = Range.Double.inclusive(0.0, 1.0, stepSize).map(x => (->(cos(3 * x)), ∞[Double](2))).dropRight(1) :+ (->(cos(3 * 1.0)), ->(1.0, -1.0))
     val all = a ++ b
     val f = Tanh
-    val net = Network(Input(1) :: Dense(3, f) :: Dense(2, f) :: SquaredMeanError(),
+    val net = Network(Vector(1) :: Dense(3, f) :: Dense(2, f) :: SquaredMeanError(),
       Settings[Double](iterations = 500 ,
         learningRate = { case _ => 0.2 },
         partitions = Some(Set(a.indices.last)),
@@ -172,7 +172,7 @@ object Sequences {
     val xs = (1 to 9) map (_ => ρ[Double](3))
     val ys = (1 to 9) map (_ => ρ[Double](3))
 
-    val net = Network(Input(3) :: Dense(6, Tanh) :: Dense(3, Tanh) :: SquaredMeanError(),
+    val net = Network(Vector(3) :: Dense(6, Tanh) :: Dense(3, Tanh) :: SquaredMeanError(),
       Settings[Double](iterations = 2000,
         learningRate = { case _ => 0.5 },
         approximation = Some(FiniteDifferences(1E-9)),
@@ -208,7 +208,7 @@ object Sequences {
     }
 
     val f = Tanh
-    val net = Network(Input(k) :: Dense(10, f) :: Dense(c, f) :: SquaredMeanError(),
+    val net = Network(Vector(k) :: Dense(10, f) :: Dense(c, f) :: SquaredMeanError(),
       Settings[Double](iterations = 2500,
         learningRate = { case _ => 0.2 },
         partitions = Some(Π(c, n)),

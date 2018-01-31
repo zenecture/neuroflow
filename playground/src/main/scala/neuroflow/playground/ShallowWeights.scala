@@ -34,7 +34,7 @@ object ShallowWeights {
       iterations = 100000
     )
 
-    val net = Network(Input(2) :: Dense(1, Sigmoid) :: SquaredMeanError(), settings)
+    val net = Network(Vector(2) :: Dense(1, Sigmoid) :: SquaredMeanError(), settings)
 
     net.train(Seq(->(0.3, 0.3)), Seq(->(0.5)))
 

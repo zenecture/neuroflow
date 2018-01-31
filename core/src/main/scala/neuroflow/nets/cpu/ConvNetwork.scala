@@ -2,6 +2,7 @@ package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.stats._
+import neuroflow.core
 import neuroflow.core.Network._
 import neuroflow.core._
 
@@ -37,8 +38,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
+  type Tensor   = neuroflow.common.Tensor[Double]
   type Vectors  = Seq[DenseVector[Double]]
   type Matrices = Seq[DenseMatrix[Double]]
+  type Tensors  = Seq[neuroflow.common.Tensor[Double]]
 
   private val _allLayers = layers.map {
     case f: Focus[Double]         => f.inner
@@ -62,11 +65,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
   /**
     * Computes output for `x`.
     */
-  def apply(x: Matrix): Vector = {
+  def apply(x: Tensor): Vector = {
     _focusLayer.map { cl =>
-      flow(x, layers.indexOf(cl), batchSize = 1)
+      flow(x.matrix, layers.indexOf(cl), batchSize = 1)
     }.getOrElse {
-      val r = flow(x, _lastWlayerIdx, batchSize = 1)
+      val r = flow(x.matrix, _lastWlayerIdx, batchSize = 1)
       lossFunction match {
         case _: SquaredMeanError[_] => r
         case _: Softmax[_]          => SoftmaxImpl(r)
@@ -75,10 +78,11 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     }.toDenseVector
   }
 
+
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Matrices, ys: Vectors): Unit = {
+  def train(xs: Tensors, ys: Vectors): Unit = {
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
@@ -86,7 +90,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Grouping and merging batches ...")
     }
-    val xsys = xs.zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
+    val xsys = xs.map(_.matrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
       batch.par.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
     }
     run(xsys, learningRate(1 -> 1.0), xs.size, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)

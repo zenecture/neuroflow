@@ -36,9 +36,10 @@ object Network extends TypeAliases {
 
 trait TypeAliases {
 
-  type Vectors[V]    =    Seq[DenseVector[V]]
-  type Matrices[V]   =   Seq[DenseMatrix[V]]
-  type Weights[V]    =    IndexedSeq[DenseMatrix[V]]
+  type Vectors[V]    =  Seq[DenseVector[V]]
+  type Matrices[V]   =  Seq[DenseMatrix[V]]
+  type Tensors[V]    =  Seq[Tensor[V]]
+  type Weights[V]    =  IndexedSeq[DenseMatrix[V]]
   type LearningRate  =  PartialFunction[(Int, Double), Double]
 
 }
@@ -159,7 +160,7 @@ trait FFN[V] extends Network[V, DenseVector[V], DenseVector[V]] {
 }
 
 
-trait CNN[V] extends Network[V, DenseMatrix[V], DenseVector[V]] {
+trait CNN[V] extends Network[V, Tensor[V], DenseVector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -169,7 +170,7 @@ trait CNN[V] extends Network[V, DenseMatrix[V], DenseVector[V]] {
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Matrices[V], ys: Vectors[V]): Unit
+  def train(xs: Tensors[V], ys: Vectors[V]): Unit
 
 }
 

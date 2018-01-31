@@ -30,7 +30,7 @@ object DistributedTraining extends Logs {
 
     val net: DistFFN[Double]  =
       Network(
-        Input (dim)              ::
+        Vector(dim)               ::
         Dense(out, f)             ::
         Dense(out, f)             ::
         Dense(out, f)             ::

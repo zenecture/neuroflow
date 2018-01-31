@@ -7,12 +7,15 @@ import java.net.URL
 import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.storage.Zero
+import neuroflow.common.{Tensor, Tensorish}
 import neuroflow.core.Activator._
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
-import shapeless._
+
+import scala.reflect.ClassTag
 
 
 /**
@@ -130,27 +133,45 @@ object Helper {
 
   // Borrowed from neuroflow.application
 
-  def extractRgb3d(url: URL): DenseMatrix[Double] = extractRgb3d(ImageIO.read(url))
+  /**
+    * Loads image from `url`, `path` or `file` and returns a [[RgbTensor]].
+    * All pixel colors are scaled from [0, 255] to [0.0, 1.0].
+    */
 
-  def extractRgb3d(path: String): DenseMatrix[Double] = extractRgb3d(new File(path))
+  def extractRgb3d(url: URL): Tensor[Double] = extractRgb3d(ImageIO.read(url))
 
-  def extractRgb3d(file: File): DenseMatrix[Double] = extractRgb3d(ImageIO.read(file))
+  def extractRgb3d(path: String): Tensor[Double] = extractRgb3d(new File(path))
 
-  def extractRgb3d(img: BufferedImage): DenseMatrix[Double] = {
+  def extractRgb3d(file: File): Tensor[Double] = extractRgb3d(ImageIO.read(file))
+
+  def extractRgb3d(img: BufferedImage): Tensor[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
-    (0 until h).foreach { _h =>
-      (0 until w).foreach { _w =>
-        val c = new Color(img.getRGB(_w, _h))
-        val r = c.getRed / 255.0
+    (0 until w).foreach { x =>
+      (0 until h).foreach { y =>
+        val c = new Color(img.getRGB(x, y))
+        val r = c.getRed   / 255.0
         val g = c.getGreen / 255.0
-        val b = c.getBlue / 255.0
-        out.update(0, _w * h + _h, r)
-        out.update(1, _w * h + _h, g)
-        out.update(2, _w * h + _h, b)
+        val b = c.getBlue  / 255.0
+        out.update(0, x * h + y, r)
+        out.update(1, x * h + y, g)
+        out.update(2, x * h + y, b)
       }
     }
-    out
+    new RgbTensor[Double](w, h, out)
+  }
+
+
+  /**
+    * Represents a RGB image, linearized into a full row
+    * per color channel using column major.
+    */
+  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor[V] {
+
+    val projection: ((Int, Int, Int)) => (Int, Int) = K => (K._3, K._1 * height + K._2)
+    def map(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = ???
+    def mapAll[T: ClassTag : Zero](f: V => T): Tensorish[(Int, Int, Int), T] = ???
+
   }
 
 }

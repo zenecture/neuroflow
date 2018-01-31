@@ -19,17 +19,17 @@ class ImageTest extends Specification {
     This spec will test image processor related functionality.
 
     It should:
-      - Load a rgb image into a Matrix             $rgbMatrix
+      - Load a RGB image into a Tensor             $img2Tensor
 
   """
 
 
   val image = new URL("http://znctr.com/new-landing/senchabg.jpg")
 
-  def rgbMatrix = {
+  def img2Tensor = {
     val img = ImageIO.read(image)
-    val vol = Image.extractRgb3d(image)
-    if (img.getWidth * img.getHeight == vol.cols && vol.rows == 3) success else failure
+    val tensor = Image.extractRgb3d(image)
+    if (img.getWidth * img.getHeight == tensor.matrix.cols && tensor.matrix.rows == 3) success else failure
   }
 
 }

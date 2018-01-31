@@ -17,27 +17,27 @@ sealed trait Out
 
 
 /**
-  * Input for a dense net, where `dimension`
-  * can be seen as the number of `neurons` in this layer.
+  * Input [[breeze.linalg.DenseVector]] for a dense net,
+  * where `dimension` can be seen as the number of `neurons`
+  * of this layer.
   */
-case class Input(dimension: Int) extends Layer with In {
+case class Vector(dimension: Int) extends Layer with In {
   val symbol: String = "Input"
   val neurons: Int = dimension
 }
 
 /**
-  * A dense layer is fully connected, where:
-  *  `neurons`      Number of neurons in this layer
-  *  `activator`    The activator function gets applied on the output element-wise.
+  * A dense layer is fully connected, where `neurons` are
+  * the number of neurons of this layer. The `activator` function
+  * gets applied on the output element wise.
   */
 case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
   val symbol: String = "Dense"
 }
 
 /**
-  * A focus layer is used if the desired model output
-  * is not the [[Out]] layer, but a hidden one. (AutoEncoders, PCA, ...)
-  *  `inner`      The inner layer used as model output
+  * A focus layer is used if the desired model output is not
+  * the [[Out]] layer, but the `inner` one. (AutoEncoders, PCA, ...)
   */
 case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
   val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
@@ -46,7 +46,7 @@ case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
 
 /**
   *
-  * Convolutes the input volume, where:
+  * Convolutes the input [[neuroflow.common.Tensor]], where:
   *
   *   `dimIn`      Input dimension. (x, y, z)
   *   `padding`    A padding can be specified to ensure full convolution. (x, y)
