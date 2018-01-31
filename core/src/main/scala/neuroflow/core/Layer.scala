@@ -18,11 +18,10 @@ sealed trait Out
 
 /**
   * Input [[breeze.linalg.DenseVector]] for a dense net,
-  * where `dimension` can be seen as the number of `neurons`
-  * of this layer.
+  * where `dimension` is the number of `neurons` of this layer.
   */
 case class Vector(dimension: Int) extends Layer with In {
-  val symbol: String = "Input"
+  val symbol: String = "Vector"
   val neurons: Int = dimension
 }
 
