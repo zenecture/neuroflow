@@ -105,8 +105,8 @@ To learn, we need to know what it means to be wrong. The `SquaredMeanError` loss
     L(W) = Σ1/2(t - net(x))²
 
 Where `W` are the weights, `t` is the target and `net(x)` the prediction. The sum `Σ` is taken over all samples and 
-the square `²` gives a convex functional form. For 1-of-K classification, there is also the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`Softmax`</a> loss function, 
-but here we treat the XOR-adder as a regression challenge.
+the square `²` gives a convex functional form. The XOR-adder is a regression challenge, so the `SquaredMeanError` is the choice. 
+Alternatively, for 1-of-K classification challenges, there is the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`Softmax`</a> loss function.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
 
