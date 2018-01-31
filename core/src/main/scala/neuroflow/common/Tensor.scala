@@ -38,3 +38,5 @@ trait Tensorish[K, V] extends (K => V) {
   * coordinates.
   */
 trait Tensor[V] extends Tensorish[(Int, Int, Int), V]
+
+
