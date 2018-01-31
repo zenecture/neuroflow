@@ -28,9 +28,8 @@ case class Vector(dimension: Int) extends Layer with In {
 }
 
 /**
-  * A dense layer is fully connected, where `neurons` are
-  * the number of neurons of this layer. The `activator` function
-  * gets applied on the output element wise.
+  * A dense layer is fully connected, with `neurons` in this layer.
+  * The `activator` function gets applied on the output element wise.
   */
 case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
   val symbol: String = "Dense"
