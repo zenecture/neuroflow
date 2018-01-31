@@ -168,8 +168,6 @@ Another way to visualize the training progress is to use the `LossFuncOutput` wi
 Settings(
   lossFuncOutput = Some(LossFuncOutput(action = Some(loss => sendToDashboard(loss))))
 )
-
-def sendToDashboard(loss: Double): Unit = /* ... * /
 ```
 
 This function gets executed in the background after each iteration, using the `Avg. Loss` as input. 
