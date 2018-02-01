@@ -71,7 +71,7 @@ val L =
 
 val deeperNet = Network(
   layout = L, 
-  settings = Settings(
+  settings = Settings[Double](
     updateRule = Vanilla(), 
     batchSize = Some(8), 
     iterations = 256,
@@ -91,7 +91,7 @@ and learning rate producing a new learning rate. Training terminates after `iter
 satisfies `precision`. 
 
 Another important aspect of the net is its numerical type. For example, on the GPU, you might want to work with `Float` instead of `Double`.
-The numerical type is set by explicitly annotating it on the `WeightProvider` instance.
+The numerical type is set by explicitly annotating it on both the `WeightProvider` and `Settings` instances.
 
 Have a look at the `Settings` class for the complete list of options.
 
