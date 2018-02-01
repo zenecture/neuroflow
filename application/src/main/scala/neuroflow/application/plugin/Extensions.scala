@@ -1,8 +1,9 @@
 package neuroflow.application.plugin
 
 import breeze.generic.UFunc
-import breeze.linalg.{DenseVector, _}
+import breeze.linalg.{DenseMatrix, DenseVector, norm}
 import breeze.linalg.operators.OpMulInner
+import neuroflow.common.Tensor
 
 import scala.reflect.ClassTag
 
@@ -61,6 +62,22 @@ object Extensions {
 
   implicit class DenseVectorFloatToDouble(v: DenseVector[Float]) {
     def double: DenseVector[Double] = v.map(_.toDouble)
+  }
+
+  implicit class DenseMatrixDoubleToFloat(m: DenseMatrix[Double]) {
+    def float: DenseMatrix[Float] = m.map(_.toFloat)
+  }
+
+  implicit class DenseMatrixFloatToDouble(m: DenseMatrix[Float]) {
+    def double: DenseMatrix[Double] = m.map(_.toDouble)
+  }
+
+  implicit class TensorDoubleToFloat(t: Tensor[Double]) {
+    def float: Tensor[Float] = t.mapAll(_.toFloat)
+  }
+
+  implicit class TensorFloatToDouble(t: Tensor[Float]) {
+    def double: Tensor[Double] = t.mapAll(_.toDouble)
   }
 
 }

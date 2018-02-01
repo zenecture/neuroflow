@@ -79,14 +79,14 @@ object Image extends Logs {
 
     val projection: ((Int, Int, Int)) => (Int, Int) = { case (x, y, z) => (z, x * height + y) }
 
-    def mapAt(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = {
+    def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = {
       val newMat = matrix.copy
       val (row, col) = projection(x._1, x._2, x._3)
       newMat.update(row, col, f(apply(x)))
       new RgbTensor(width, height, newMat)
     }
 
-    def mapAll[T: ClassTag : Zero](f: V => T): Tensorish[(Int, Int, Int), T] = {
+    def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = {
       val mapped = matrix.data.map(f)
       new RgbTensor(width, height, DenseMatrix.create(matrix.rows, matrix.cols, mapped))
     }

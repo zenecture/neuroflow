@@ -37,6 +37,12 @@ trait Tensorish[K, V] extends (K => V) {
   * underlying `matrix` using (x, y, z)
   * coordinates.
   */
-trait Tensor[V] extends Tensorish[(Int, Int, Int), V]
+trait Tensor[V] extends Tensorish[(Int, Int, Int), V] {
+
+  def mapAll[T: ClassTag : Zero](f: V => T): Tensor[T]
+
+  def mapAt(x: (Int, Int, Int))(f: V => V): Tensor[V]
+
+}
 
 
