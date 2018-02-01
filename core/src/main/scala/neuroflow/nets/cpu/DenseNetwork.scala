@@ -61,7 +61,11 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
 
   private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
 
-  private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h }
+  private val _layersNI       = _layers.tail.map {
+    case h: HasActivator[Double] => h.activator
+    case h: HasActivator[Float]  => h.activator.map[Double](_.toFloat, _.toDouble)
+  }
+
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 
@@ -141,7 +145,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     val fa  = collection.mutable.Map.empty[Int, Matrix]
     @tailrec def forward(in: Matrix, i: Int): Unit = {
       val p = in * weights(i)
-      val a = p.map(_layersNI(i).activator)
+      val a = p.map(_layersNI(i))
       fa += i -> a
       if (i < outLayer) forward(a, i + 1)
     }
@@ -166,8 +170,8 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
 
     @tailrec def forward(in: Matrix, i: Int): Unit = {
       val p = in * weights(i)
-      val a = p.map(_layersNI(i).activator)
-      val b = p.map(_layersNI(i).activator.derivative)
+      val a = p.map(_layersNI(i))
+      val b = p.map(_layersNI(i).derivative)
       fa += i -> a
       fb += i -> b
       if (i < _lastWlayerIdx) forward(a, i + 1)
@@ -281,7 +285,11 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
 
   private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
 
-  private val _layersNI       = _layers.tail.map { case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat) }
+  private val _layersNI       = _layers.tail.map {
+    case h: HasActivator[Float]  => h.activator
+    case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat)
+  }
+
   private val _outputDim      = _layers.last.neurons
   private val _lastWlayerIdx  = weights.size - 1
 

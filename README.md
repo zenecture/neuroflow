@@ -14,8 +14,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.1",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.1"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.2",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.2"
 )
 ```
 
@@ -39,7 +39,7 @@ import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 
-implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
+implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
@@ -49,10 +49,10 @@ val net = Network(
 ```
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
-The weights are initialized in range (-1, 1) by random `WeightProvider`. We have predefined activators and 
+The weights are initialized randomly in range (-1, 1) by `WeightProvider`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
-In NeuroFlow, a full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
+A full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
 implemented as a heterogenous list, allowing compile-time checks for valid compositions. For instance, 
 a little deeper net, with some rates and rules defined, could look like this:
 
@@ -71,7 +71,7 @@ val L =
 
 val deeperNet = Network(
   layout = L, 
-  settings = Settings[Double](
+  settings = Settings(
     updateRule = Vanilla(), 
     batchSize = Some(8), 
     iterations = 256,
@@ -90,8 +90,9 @@ samples are presented per weight update. The `learningRate` is a partial functio
 and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss 
 satisfies `precision`. 
 
-Another important aspect is the numerical type of the net, which is set by explicitly annotating `Double` on 
-the settings instance.  For instance, on the GPU, you might want to work with `Float` instead. 
+Another important aspect of the net is its numerical type. For example, on the GPU, you might want to work with `Float` instead of `Double`.
+The numerical type is set by explicitly annotating it on the `WeightProvider` instance.
+
 Have a look at the `Settings` class for the complete list of options.
 
 # Training
