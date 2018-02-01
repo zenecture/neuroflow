@@ -27,11 +27,15 @@ import scala.collection.Seq
 
 
 object LBFGSNetwork {
-  implicit val double: Constructor[Double, LBFGSNetwork] = new Constructor[Double, LBFGSNetwork] {
+
+  implicit object double extends Constructor[Double, LBFGSNetwork] {
     def apply(ls: Seq[Layer], loss: LossFunction[Double],settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LBFGSNetwork = {
       LBFGSNetwork(ls, SquaredMeanError(),settings, weightProvider(ls))
     }
   }
+
+  implicit object weights_double extends neuroflow.core.WeightProvider.FFN[Double]
+
 }
 
 

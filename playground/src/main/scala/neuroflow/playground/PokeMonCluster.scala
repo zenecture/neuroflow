@@ -58,7 +58,7 @@ object PokeMonCluster {
     val  xs = pokemons.map(p => p -> toVector(p).denseVec)
     val dim = xs.head._2.size
 
-    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
 
     val net =
       Network(

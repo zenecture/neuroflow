@@ -20,8 +20,8 @@ import scala.reflect.ClassTag
   * A [[WeightProvider]] connects the neurons of a [[Layer]] through the weights, or synapses.
   */
 @implicitNotFound(
-  "No `WeightProvider` in scope for type ${V}. Add your own or use a predefined provider: " +
-  "neuroflow.core.WeightProvider.X[${V}] (where X = { CNN | FFN | RNN })")
+  "No `WeightProvider` in scope for type ${V}. Add your own or use a " +
+    "predefined provider: implicit val wp = neuroflow.core.WeightProvider[${V}]")
 trait WeightProvider[V] extends (Seq[Layer] => Weights[V])
 
 
@@ -90,17 +90,22 @@ trait BaseOps[V] {
         in ++ cells
     }
 
+  /**
+    * Gives a seed function to generate weights in range `i`.
+    */
+  def randomSeed(i: (Double, Double))(implicit cp: Double CanProduce V): () => V = () => cp(ThreadLocalRandom.current.nextDouble(i._1, i._2))
+  def normalSeed(μ: Double, σ: Double)(implicit cp: Double CanProduce V): () => V = () => cp(breeze.stats.distributions.Gaussian(μ, σ).draw())
+
 }
 
 object WeightProvider {
 
   /**
-    * Gives a seed function to generate weights in range `i`.
+    * Constructs a `WeightProvider` with `breeder` in scope.
     */
-  def randomSeed[V](i: (Double, Double))(implicit cp: Double CanProduce V): () => V = () => cp(ThreadLocalRandom.current.nextDouble(i._1, i._2))
-  def normalSeed[V](μ: Double, σ: Double)(implicit cp: Double CanProduce V): () => V = () => cp(breeze.stats.distributions.Gaussian(μ, σ).draw())
+  def apply[V](implicit breeder: Breeder[V]): Breeder[V] = breeder
 
-  trait FFN[V] extends BaseOps[V] {
+  trait FFN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.FFN[V]] {
 
     /**
       * Gives a weight provider with weights drawn from normal distribution.
@@ -138,7 +143,7 @@ object WeightProvider {
 
   }
 
-  trait CNN[V] extends BaseOps[V] {
+  trait CNN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.CNN[V]] {
 
     /**
       * Gives a weight provider with weights drawn from normal distribution.
@@ -176,7 +181,7 @@ object WeightProvider {
 
   }
 
-  trait RNN[V] extends BaseOps[V] {
+  trait RNN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.RNN[V]] {
 
     /**
       * Gives a weight provider with random weights in range `r`.
@@ -188,19 +193,32 @@ object WeightProvider {
       }
     }
 
+    // TODO.
+    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
+    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
+
   }
 
-  implicit object ffn_double extends FFN[Double]
-  implicit object ffn_float extends FFN[Float]
+  implicit object breeder_double extends Breeder[Double]
+  implicit object breeder_float extends Breeder[Float]
 
-  implicit object cnn_double extends CNN[Double]
-  implicit object cnn_float extends CNN[Float]
+  trait BuildsWeightsFor[V, N <: Network[V, _, _]] {
+    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
+    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
+    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
+  }
 
-  implicit object rnn_double extends RNN[Double]
-  implicit object rnn_float extends RNN[Float]
-
-  def FFN[V](implicit impl: FFN[V]) = impl
-  def CNN[V](implicit impl: CNN[V]) = impl
-  def RNN[V](implicit impl: RNN[V]) = impl
+  trait Breeder[V] {
+    def normal[N <: Network[V, _, _]](μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.normal(μ, σ)
+    def normal[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.normal(config)
+    def random[N <: Network[V, _, _]](r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.random(r)
+    def random[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.random(config)
+    def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.static(seed)
+  }
 
 }
+

@@ -38,7 +38,7 @@ object Sequences {
   def cosine2sine = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = neuroflow.core.WeightProvider.RNN[Double].random(-0.2, 0.2)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-0.2, 0.2)
 
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))
@@ -66,7 +66,7 @@ object Sequences {
   def linear2Step = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = neuroflow.core.WeightProvider.RNN[Double].random(-5.0, 5.0)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-5.0, 5.0)
 
     val stepSize = 0.01
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x),->(if (x < 0.8) 0.5 else 1.0)))
@@ -94,7 +94,7 @@ object Sequences {
   def linear2cosineSine = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = neuroflow.core.WeightProvider.RNN[Double].random(-1.0, 1.0)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1.0, 1.0)
 
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(x), ->(sin(10 * x), cos(10 * x))))
@@ -124,7 +124,7 @@ object Sequences {
   def cosineSineClassifier = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = neuroflow.core.WeightProvider.RNN[Double].random(-1.0, 1.0)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1.0, 1.0)
 
     val stepSize = 0.01
     val a = Range.Double.inclusive(-1.0, 0.0, stepSize).map(x => (->(sin(10 * x)), ∞[Double](2))).dropRight(1) :+ (->(sin(0.0)), ->(-1.0, 1.0))
@@ -168,7 +168,7 @@ object Sequences {
   def randomPointMapping = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = neuroflow.core.WeightProvider.RNN[Double].random(-1.0, 1.0)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1.0, 1.0)
 
     val xs = (1 to 9) map (_ => ρ[Double](3))
     val ys = (1 to 9) map (_ => ρ[Double](3))
@@ -200,7 +200,7 @@ object Sequences {
   def randomPointClassifier = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val wp = neuroflow.core.WeightProvider.RNN[Double].random(-1.0, 1.0)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1.0, 1.0)
 
     val (c, n, k) = (5, 5, 3)
 

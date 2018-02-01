@@ -54,8 +54,8 @@ class ConvNetworkNumTest  extends Specification {
 
   def check[Net <: CNN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
-    import neuroflow.core.WeightProvider.cnn_double.convoluted
-    import neuroflow.core.WeightProvider.normalSeed
+    implicit object weights extends neuroflow.core.WeightProvider.CNN[Double]
+
     import neuroflow.dsl.Extractor.extractor
 
     val dim = (4, 4, 3)
@@ -71,7 +71,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val L = a :: b :: Dense(out, f) :: Softmax()
 
-    val rand = convoluted(extractor(L)._1, normalSeed[Double](1.0, 0.1))
+    val rand = weights.convoluted(extractor(L)._1, weights.normalSeed(1.0, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)

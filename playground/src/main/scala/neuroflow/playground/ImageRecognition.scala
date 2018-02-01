@@ -61,7 +61,7 @@ object ImageRecognition {
     val L = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Dense(100, f) :: Dense(10, f) :: Softmax()
 
     val config = (0 to 5).map(_ -> (0.01, 0.01)) :+ (6 -> (0.001, 0.001)) :+ (7 -> (0.01, 0.01))
-    implicit val wp = neuroflow.core.WeightProvider.CNN[Double].normal(config.toMap)
+    implicit val wp = neuroflow.core.WeightProvider[Double].normal(config.toMap)
 //    implicit val wp = IO.File.readWeights[Double](wps + "-iter-11700.nf")
 
     val net = Network(

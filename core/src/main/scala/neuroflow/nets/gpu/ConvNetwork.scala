@@ -26,11 +26,13 @@ import scala.collection.mutable.ArrayBuffer
 
 object ConvNetwork {
 
-  implicit val single: Constructor[Float, ConvNetworkSingle] = new Constructor[Float, ConvNetworkSingle] {
+  implicit object single extends Constructor[Float, ConvNetworkSingle] {
     def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): ConvNetworkSingle = {
       ConvNetworkSingle(ls, loss, settings, weightProvider(ls))
     }
   }
+
+  implicit object weights_single extends neuroflow.core.WeightProvider.CNN[Float]
 
 }
 

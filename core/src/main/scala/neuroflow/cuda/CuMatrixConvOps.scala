@@ -18,10 +18,10 @@ trait CuMatrixConvOps extends Logs { this: CuMatrix.type =>
       CuModule(getClass.getResourceAsStream(s"/cuda/matrix_convops_$typeName.ptx"))
     }
 
-    private val kernel_convolute = module.getKernel13[Pointer, Pointer, Pointer, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int](s"convolute_$typeName")
-    private val kernel_convolute_bp = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"convolute_bp_$typeName")
-    private val kernel_reshape_batch = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"reshape_batch_$typeName")
-    private val kernel_reshape_batch_bp = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"reshape_batch_bp_$typeName")
+//    private val kernel_convolute = module.getKernel13[Pointer, Pointer, Pointer, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int](s"convolute_$typeName")
+//    private val kernel_convolute_bp = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"convolute_bp_$typeName")
+//    private val kernel_reshape_batch = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"reshape_batch_$typeName")
+//    private val kernel_reshape_batch_bp = module.getKernel11[Pointer, Int, Pointer, Int, Pointer, Int, Int, Int, Int, Int, Int](s"reshape_batch_bp_$typeName")
 
     def convolute(in: CuMatrix[V])(implicit context: CuContext = CuContext.ensureContext): CuMatrix[V] = {
 

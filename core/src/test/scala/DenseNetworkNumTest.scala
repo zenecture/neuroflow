@@ -42,8 +42,7 @@ class DenseNetworkNumTest extends Specification {
 
   def check[Net <: FFN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
-    import neuroflow.core.WeightProvider.ffn_double.fullyConnected
-    import neuroflow.core.WeightProvider.normalSeed
+    implicit object weights extends neuroflow.core.WeightProvider.FFN[Double]
     import neuroflow.dsl.Extractor.extractor
     
     val f = Tanh
@@ -55,7 +54,7 @@ class DenseNetworkNumTest extends Specification {
          Dense(7, f)   ::
          Dense(2, f)   ::  SquaredMeanError()
 
-    val rand = fullyConnected(extractor(L)._1, normalSeed[Double](0.1, 0.1))
+    val rand = weights.fullyConnected(extractor(L)._1, weights.normalSeed(0.1, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)

@@ -62,7 +62,7 @@ object LanguageProcessing {
 
   def apply = {
 
-    implicit val wp = neuroflow.core.WeightProvider.FFN[Double].random(-1, 1)
+    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
 
     val cars = normalize(readAll("file/newsgroup/cars/"))
     val med = normalize(readAll("file/newsgroup/med/"))
