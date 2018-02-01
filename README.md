@@ -103,9 +103,9 @@ It is linearly not separable, so we can check whether the net can capture this n
 
 To learn, we need to know what it means to be wrong. The `SquaredMeanError` loss function is defined as follows:
 
-    L(W) = Σ1/2(y - net(W, x))²
+    L(X, Y, W) = Σ1/2(Y - net(W, X))²
 
-Where `W` are the weights, `y` is the target and `net(W, x)` the prediction. The sum `Σ` is taken over all samples and 
+Where `W` are the weights, `Y` is the target and `net(W, X)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form. The XOR-adder is a regression challenge, so the `SquaredMeanError` is the choice. 
 Alternatively, for 1-of-K classification challenges, there is the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`Softmax`</a> loss function.
 
