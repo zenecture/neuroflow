@@ -178,8 +178,7 @@ One example is sending the loss to a real-time TV dashboard.
 
 ````bash
 -Dorg.slf4j.simpleLogger.defaultLogLevel=info # or: debug
--J-XX:+UseG1GC # recommended for CUDA 
--J-Xmx24G # example to increase heap size
+-Xmx24G # example to increase heap size
 ````
 
 # Evaluation
