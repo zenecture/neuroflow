@@ -29,7 +29,7 @@ __global__ void MAKE_NAME(convolute, T)(\
           int aNp = a - PX;\
           int bNp = b - PY;\
           int rowOut = (z * FX * FY) + fX * FY + fY;\
-          int colIn = (xb * IX * IY) + aNp * IY + bNp;\
+          int colIn  = (xb * IX * IY) + aNp * IY + bNp;\
           int colOut = (xb * X * Y) + xs * Y + y;\
           out[rowOut + colOut * OS] = in[z + colIn * Z];\
         }\
