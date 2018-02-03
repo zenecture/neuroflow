@@ -45,10 +45,8 @@ class ConvNetworkNumTest  extends Specification {
 
   def gradCheckGPU = {
 
-//    import neuroflow.nets.gpu.ConvNetwork._
-//    check()
-
-    success
+    import neuroflow.nets.gpu.ConvNetwork._
+    check()
 
   }
 
@@ -66,12 +64,12 @@ class ConvNetworkNumTest  extends Specification {
     val debuggableA = Debuggable[Double]()
     val debuggableB = Debuggable[Double]()
 
-    val a = Convolution(dimIn = dim,      padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 1, activator = f)
-    val b = Convolution(dimIn = a.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 1, activator = f)
+    val a = Convolution(dimIn = dim,      padding = (0, 0), field = (2, 2), stride = (1, 1), filters = 4, activator = f)
+    val b = Convolution(dimIn = a.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 4, activator = f)
 
-    val L = a :: b :: Dense(out, f) :: Softmax()
+    val L = a :: b :: Dense(out, f) :: SquaredMeanError()
 
-    val rand = weights.convoluted(extractor(L)._1, weights.normalSeed(1.0, 0.1))
+    val rand = weights.convoluted(extractor(L)._1, weights.normalSeed(0.1, 0.01))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -79,7 +77,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val settings = Settings[Double](
       prettyPrint = true,
-      learningRate = { case (_, _) => 0.01 },
+      learningRate = { case (_, _) => 0.1 },
       iterations = 1
     )
 
@@ -104,22 +102,19 @@ class ConvNetworkNumTest  extends Specification {
       case ((i, a), (_, b)) =>
         (a - b).forall { (w, v) =>
           val e = v.abs
-          if (e == 0.0) true else {
-            val x = debuggableA.lastGradients(i)(w)
-            val y = debuggableB.lastGradients(i)(w)
+          val x = debuggableA.lastGradients(i)(w)
+          val y = debuggableB.lastGradients(i)(w)
+          if (e == 0.0) true
+          else if (x == 0.0 && e < tolerance) true
+          else {
             val m = math.max(x.abs, y.abs)
             val r = e / m
             if (r >= tolerance) {
               println(s"i = $i")
               println(s"e = $e")
               println(s"$r >= $tolerance")
-              true
-            } else {
-              println(s"i = $i")
-              println(s"e = $e")
-              println(s"$r < $tolerance")
-              true
-            }
+              false
+            } else true
           }
         }
     }.reduce { (l, r) => l && r }
@@ -158,8 +153,8 @@ object Helper {
 
     val projection: ((Int, Int, Int)) => (Int, Int) = { case (x, y, z) => (z, x * height + y) }
 
-    def mapAt(x: (Int, Int, Int))(f: V => V): Tensorish[(Int, Int, Int), V] = ???
-    def mapAll[T: ClassTag : Zero](f: V => T): Tensorish[(Int, Int, Int), T] = ???
+    def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = ???
+    def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = ???
 
   }
 

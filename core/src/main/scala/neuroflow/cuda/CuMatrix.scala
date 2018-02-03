@@ -700,17 +700,19 @@ trait CuMatrixFuns extends CuMatrixKernels with CuMatrixConvOps { this: CuMatrix
 
   object ConvOps {
 
-    def convolute[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.convolute(in)
+    def convolute[T](in: CuMatrix[T], IX: Int, IY: Int, X: Int, Y: Int, Z: Int, BS: Int,
+                     FX: Int, FY: Int, SX: Int, SY: Int, PX: Int, PY: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.convolute(in, IX, IY, X, Y, Z, BS, FX, FY, SX, SY, PX, PY)
 
-    def convolute_bp[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.convolute_bp(in)
+    def convolute_bp[T](in: CuMatrix[T], IX: Int, IY: Int, X: Int, Y: Int, Z: Int, BS: Int,
+                        FX: Int, FY: Int, SX: Int, SY: Int, PX: Int, PY: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.convolute_bp(in, IX, IY, X, Y, Z, BS, FX, FY, SX, SY, PX, PY)
 
-    def reshape_batch[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.reshape_batch(in)
+    def reshape_batch[T](in: CuMatrix[T], X: Int, Y: Int, Z: Int, BS: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.reshape_batch(in, X, Y, Z, BS)
 
-    def reshape_batch_bp[T](in: CuMatrix[T])(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.reshape_batch_bp(in)
+    def reshape_batch_bp[T](in: CuMatrix[T], X: Int, Y: Int, Z: Int, BS: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
+      broker.reshape_batch_bp(in, X, Y, Z, BS)
 
   }
 

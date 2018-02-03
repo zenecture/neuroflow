@@ -16,15 +16,15 @@
 	.param .b64 __internal_accurate_pow_param_0
 )
 ;
-// map2_transpose_add_float$__cuda_local_var_16371_1730_non_const_tile has been demoted
-// map2_transpose_sub_float$__cuda_local_var_16372_1730_non_const_tile has been demoted
-// map2_transpose_mul_float$__cuda_local_var_16373_1730_non_const_tile has been demoted
-// map2_transpose_div_float$__cuda_local_var_16374_1730_non_const_tile has been demoted
-// map2_transpose_mod_float$__cuda_local_var_16375_1730_non_const_tile has been demoted
-// map2_transpose_pow_float$__cuda_local_var_16376_1730_non_const_tile has been demoted
-// map2_transpose_max_float$__cuda_local_var_16377_1730_non_const_tile has been demoted
-// map2_transpose_min_float$__cuda_local_var_16378_1730_non_const_tile has been demoted
-// map2_transpose_set_float$__cuda_local_var_16379_1730_non_const_tile has been demoted
+// map2_transpose_add_float$__cuda_local_var_16365_1730_non_const_tile has been demoted
+// map2_transpose_sub_float$__cuda_local_var_16366_1730_non_const_tile has been demoted
+// map2_transpose_mul_float$__cuda_local_var_16367_1730_non_const_tile has been demoted
+// map2_transpose_div_float$__cuda_local_var_16368_1730_non_const_tile has been demoted
+// map2_transpose_mod_float$__cuda_local_var_16369_1730_non_const_tile has been demoted
+// map2_transpose_pow_float$__cuda_local_var_16370_1730_non_const_tile has been demoted
+// map2_transpose_max_float$__cuda_local_var_16371_1730_non_const_tile has been demoted
+// map2_transpose_min_float$__cuda_local_var_16372_1730_non_const_tile has been demoted
+// map2_transpose_set_float$__cuda_local_var_16373_1730_non_const_tile has been demoted
 .const .align 4 .b8 __cudart_i2opi_f[24] = {65, 144, 67, 60, 153, 149, 98, 219, 192, 221, 52, 245, 209, 87, 39, 252, 41, 21, 68, 78, 110, 131, 249, 162};
 
 .visible .entry map_relu_a_float(
@@ -9744,7 +9744,7 @@ BB58_6:
 	.reg .b32 	%r<68>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_add_float$__cuda_local_var_16371_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_add_float$__cuda_local_var_16365_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_add_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_add_float_param_1];
@@ -9799,7 +9799,7 @@ BB59_7:
 	ld.global.f32 	%f1, [%rd10];
 	sub.s32 	%r45, %r65, %r62;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_add_float$__cuda_local_var_16371_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_add_float$__cuda_local_var_16365_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -9837,7 +9837,7 @@ BB59_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r67, %r63;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_add_float$__cuda_local_var_16371_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_add_float$__cuda_local_var_16365_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -10124,7 +10124,7 @@ BB62_6:
 	.reg .b32 	%r<68>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_sub_float$__cuda_local_var_16372_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_sub_float$__cuda_local_var_16366_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_sub_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_sub_float_param_1];
@@ -10179,7 +10179,7 @@ BB63_7:
 	ld.global.f32 	%f1, [%rd10];
 	sub.s32 	%r45, %r65, %r62;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_sub_float$__cuda_local_var_16372_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_sub_float$__cuda_local_var_16366_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -10217,7 +10217,7 @@ BB63_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r67, %r63;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_sub_float$__cuda_local_var_16372_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_sub_float$__cuda_local_var_16366_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -10504,7 +10504,7 @@ BB66_6:
 	.reg .b32 	%r<68>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_mul_float$__cuda_local_var_16373_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_mul_float$__cuda_local_var_16367_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_mul_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_mul_float_param_1];
@@ -10559,7 +10559,7 @@ BB67_7:
 	ld.global.f32 	%f1, [%rd10];
 	sub.s32 	%r45, %r65, %r62;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_mul_float$__cuda_local_var_16373_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_mul_float$__cuda_local_var_16367_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -10597,7 +10597,7 @@ BB67_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r67, %r63;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_mul_float$__cuda_local_var_16373_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_mul_float$__cuda_local_var_16367_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -10884,7 +10884,7 @@ BB70_6:
 	.reg .b32 	%r<68>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_div_float$__cuda_local_var_16374_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_div_float$__cuda_local_var_16368_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_div_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_div_float_param_1];
@@ -10939,7 +10939,7 @@ BB71_7:
 	ld.global.f32 	%f1, [%rd10];
 	sub.s32 	%r45, %r65, %r62;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_div_float$__cuda_local_var_16374_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_div_float$__cuda_local_var_16368_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -10977,7 +10977,7 @@ BB71_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r67, %r63;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_div_float$__cuda_local_var_16374_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_div_float$__cuda_local_var_16368_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -11616,7 +11616,7 @@ BB74_19:
 	.reg .b32 	%r<85>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_mod_float$__cuda_local_var_16375_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_mod_float$__cuda_local_var_16369_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r27, [map2_transpose_mod_float_param_0];
 	ld.param.u32 	%r28, [map2_transpose_mod_float_param_1];
@@ -11671,7 +11671,7 @@ BB75_7:
 	ld.global.f32 	%f20, [%rd10];
 	sub.s32 	%r47, %r82, %r79;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_mod_float$__cuda_local_var_16375_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_mod_float$__cuda_local_var_16369_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r47, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -11709,7 +11709,7 @@ BB75_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r57, %r84, %r80;
 	mul.wide.s32 	%rd18, %r57, 132;
-	mov.u64 	%rd19, map2_transpose_mod_float$__cuda_local_var_16375_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_mod_float$__cuda_local_var_16369_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -12639,7 +12639,7 @@ BB78_19:
 	.reg .b32 	%r<93>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_pow_float$__cuda_local_var_16376_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_pow_float$__cuda_local_var_16370_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_pow_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_pow_float_param_1];
@@ -12692,7 +12692,7 @@ BB79_7:
 	ld.global.f32 	%f18, [%rd10];
 	sub.s32 	%r45, %r90, %r87;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_pow_float$__cuda_local_var_16376_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_pow_float$__cuda_local_var_16370_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -12730,7 +12730,7 @@ BB79_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r92, %r88;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_pow_float$__cuda_local_var_16376_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_pow_float$__cuda_local_var_16370_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -13201,7 +13201,7 @@ BB82_6:
 	.reg .b32 	%r<68>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_max_float$__cuda_local_var_16377_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_max_float$__cuda_local_var_16371_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_max_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_max_float_param_1];
@@ -13256,7 +13256,7 @@ BB83_7:
 	ld.global.f32 	%f1, [%rd10];
 	sub.s32 	%r45, %r65, %r62;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_max_float$__cuda_local_var_16377_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_max_float$__cuda_local_var_16371_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -13294,7 +13294,7 @@ BB83_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r67, %r63;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_max_float$__cuda_local_var_16377_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_max_float$__cuda_local_var_16371_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -13581,7 +13581,7 @@ BB86_6:
 	.reg .b32 	%r<68>;
 	.reg .b64 	%rd<25>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_min_float$__cuda_local_var_16378_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_min_float$__cuda_local_var_16372_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r25, [map2_transpose_min_float_param_0];
 	ld.param.u32 	%r26, [map2_transpose_min_float_param_1];
@@ -13636,7 +13636,7 @@ BB87_7:
 	ld.global.f32 	%f1, [%rd10];
 	sub.s32 	%r45, %r65, %r62;
 	mul.lo.s64 	%rd11, %rd4, 132;
-	mov.u64 	%rd12, map2_transpose_min_float$__cuda_local_var_16378_1730_non_const_tile;
+	mov.u64 	%rd12, map2_transpose_min_float$__cuda_local_var_16372_1730_non_const_tile;
 	add.s64 	%rd13, %rd12, %rd11;
 	mul.wide.s32 	%rd14, %r45, 4;
 	add.s64 	%rd15, %rd13, %rd14;
@@ -13674,7 +13674,7 @@ BB87_12:
 	add.s64 	%rd17, %rd2, %rd16;
 	sub.s32 	%r55, %r67, %r63;
 	mul.wide.s32 	%rd18, %r55, 132;
-	mov.u64 	%rd19, map2_transpose_min_float$__cuda_local_var_16378_1730_non_const_tile;
+	mov.u64 	%rd19, map2_transpose_min_float$__cuda_local_var_16372_1730_non_const_tile;
 	add.s64 	%rd20, %rd19, %rd18;
 	shl.b64 	%rd21, %rd5, 2;
 	add.s64 	%rd22, %rd20, %rd21;
@@ -13941,7 +13941,7 @@ BB90_6:
 	.reg .b32 	%r<65>;
 	.reg .b64 	%rd<21>;
 	// demoted variable
-	.shared .align 4 .b8 map2_transpose_set_float$__cuda_local_var_16379_1730_non_const_tile[4224];
+	.shared .align 4 .b8 map2_transpose_set_float$__cuda_local_var_16373_1730_non_const_tile[4224];
 
 	ld.param.u32 	%r24, [map2_transpose_set_float_param_0];
 	ld.param.u32 	%r25, [map2_transpose_set_float_param_1];
@@ -13993,7 +13993,7 @@ BB91_7:
 	ld.global.f32 	%f1, [%rd8];
 	sub.s32 	%r43, %r62, %r59;
 	mul.lo.s64 	%rd9, %rd3, 132;
-	mov.u64 	%rd10, map2_transpose_set_float$__cuda_local_var_16379_1730_non_const_tile;
+	mov.u64 	%rd10, map2_transpose_set_float$__cuda_local_var_16373_1730_non_const_tile;
 	add.s64 	%rd11, %rd10, %rd9;
 	mul.wide.s32 	%rd12, %r43, 4;
 	add.s64 	%rd13, %rd11, %rd12;
@@ -14027,7 +14027,7 @@ BB91_10:
 BB91_12:
 	sub.s32 	%r52, %r64, %r60;
 	mul.wide.s32 	%rd14, %r52, 132;
-	mov.u64 	%rd15, map2_transpose_set_float$__cuda_local_var_16379_1730_non_const_tile;
+	mov.u64 	%rd15, map2_transpose_set_float$__cuda_local_var_16373_1730_non_const_tile;
 	add.s64 	%rd16, %rd15, %rd14;
 	shl.b64 	%rd17, %rd4, 2;
 	add.s64 	%rd18, %rd16, %rd17;

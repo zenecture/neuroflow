@@ -1,84 +1,116 @@
 /**
-  * Author: Felix Bogdanski, since 10/2017
+  * Author: Felix Bogdanski, since 02.02.2018
   */
 
 #define MAKE_NAME(prefix, T) prefix ## _ ## T
 
-#define MAKE_IM2COL(T) \
-extern "C" \
-__global__ void MAKE_NAME(im2col, T)( \
-    T *in, T *out, int *idc,\
-    int X, int Y, int Z, \
-    int fieldX, int fieldY, \
-    int paddingX, int paddingY, \
-    int strideX, int strideY, int withIndices) { \
-  int x = threadIdx.x + blockIdx.x * blockDim.x; \
-  int y = threadIdx.y + blockIdx.y * blockDim.y; \
-  int z = threadIdx.z + blockIdx.z * blockDim.z; \
-  int XM = ((X + 2 * paddingX - fieldX) / strideX) + 1; \
-  int YM = ((Y + 2 * paddingY - fieldY) / strideY) + 1; \
-  int outStride = fieldX * fieldY * Z; \
-  int idcStride = Y * fieldY; \
-  if (x < XM && y < YM && z < Z) { \
-    int fX = 0; \
-    while (fX < fieldX) { \
-      int fY = 0; \
-      while (fY < fieldY) { \
-        int a = fY + (y * strideY); \
-        int b = fX + (x * strideX); \
-        if (a >= paddingY && a < (Y + paddingY) && b >= paddingX && b < (X + paddingX)) { \
-          int a_nop = a - paddingY; \
-          int b_nop = b - paddingX; \
-          int ab_lin = b_nop * Y + a_nop; \
-          int i = (x * YM) + y; \
-          int c = z * fieldX * fieldY; \
-          int l = c + (fX * fieldY + fY); \
-          out[i * outStride + l] = in[ab_lin * Z + z]; \
-          if (withIndices == 1) { \
-            int id_r = a_nop * fieldY + fY; \
-            int id_c = b_nop * fieldX + fX; \
-            idc[id_c * idcStride + id_r] = i + 1; \
-          } \
-        } \
-        fY++; \
-      } \
-      fX++; \
-    } \
-  } \
-} \
 
-#define MAKE_IM2COL_BACKPROP(T) \
-extern "C" \
-__global__ void MAKE_NAME(im2col_backprop, T)( \
-  T *in, int inStride, \
-  T *out, int outStride, \
-  int *idc, int idcStride, \
-  int X, int Y, int Z, \
-  int fieldX, int fieldY) { \
-  int x = threadIdx.x + blockIdx.x * blockDim.x; \
-  int y = threadIdx.y + blockIdx.y * blockDim.y; \
-  int z = threadIdx.z + blockIdx.z * blockDim.z; \
-  if (x < X && y < Y && z < Z) { \
-    int fX = 0; \
-    int p = 0; \
-    while (fX < fieldX) { \
-      int fY = 0; \
-      while (fY < fieldY) { \
-        int i_r = (y * fieldY) + fY; \
-        int i_c = (x * fieldX) + fX; \
-        int idx = idc[i_c * idcStride + i_r]; \
-        if (idx > 0) { \
-          int t_r = z * fieldX * fieldY + p; \
-          int t_c = x * Y + y; \
-          out[t_c * outStride + t_r] = in[(idx - 1) * inStride + z]; \
-        } \
-        p++; \
-        fY++; \
-      } \
-      fX++; \
-    } \
-  } \
-} \
+#define MAKE_CONVOLUTE(T)\
+extern "C"\
+__global__ void MAKE_NAME(convolute, T)(\
+  T *in, T *out, int IX, int IY, int X, int Y, int Z, int BS,\
+  int FX, int FY, int SX, int SY, int PX, int PY) {\
+  int XB = X * BS;\
+  int OS = FX * FY * Z;\
+  int x = threadIdx.x + blockIdx.x * blockDim.x;\
+  int y = threadIdx.y + blockIdx.y * blockDim.y;\
+  int z = threadIdx.z + blockIdx.z * blockDim.z;\
+  if (x < XB && y < Y && z < Z) {\
+    int fX = 0;\
+    while (fX < FX) {\
+      int fY = 0;\
+      while (fY < FY) {\
+        int xs = x % X;\
+        int xb = x / X;\
+        int a = (xs * SX) + fX;\
+        int b = (y * SY) + fY;\
+        if (a >= PX && a < (PX + IX) &&\
+            b >= PY && b < (PY + IY)) {\
+          int aNp = a - PX;\
+          int bNp = b - PY;\
+          int rowOut = (z * FX * FY) + fX * FY + fY;\
+          int colIn = (xb * IX * IY) + aNp * IY + bNp;\
+          int colOut = (xb * X * Y) + xs * Y + y;\
+          out[rowOut + colOut * OS] = in[z + colIn * Z];\
+        }\
+        fY++;\
+      }\
+      fX++;\
+    }\
+  }\
+}\
 
-MAKE_IM2COL(TYPE)
-MAKE_IM2COL_BACKPROP(TYPE)
+
+#define MAKE_CONVOLUTE_BP(T)\
+extern "C"\
+__global__ void MAKE_NAME(convolute_bp, T)(\
+  T *in, T *out, int IX, int IY, int X, int Y, int Z, int BS,\
+  int FX, int FY, int SX, int SY, int PX, int PY) {\
+  int XB = X * BS;\
+  int OS = FX * FY * Z;\
+  int x = threadIdx.x + blockIdx.x * blockDim.x;\
+  int y = threadIdx.y + blockIdx.y * blockDim.y;\
+  int z = threadIdx.z + blockIdx.z * blockDim.z;\
+  if (x < XB && y < Y && z < Z) {\
+    int fX = 0;\
+    while (fX < FX) {\
+      int fY = 0;\
+      while (fY < FY) {\
+        int xs = x % X;\
+        int xb = x / X;\
+        int a = (xs * SX) + fX;\
+        int b = (y * SY) + fY;\
+        if (a >= PX && a < (PX + IX) &&\
+            b >= PY && b < (PY + IY)) {\
+          int aNp = a - PX;\
+          int bNp = b - PY;\
+          int rowOut = (z * FX * FY) + fX * FY + fY;\
+          int colIn  = (xb * X * Y) + xs * Y + y;\
+          int colOut = (xb * IX * IY) + aNp * IY + bNp;\
+          out[rowOut + colOut * OS] = in[z + colIn * Z];\
+        }\
+        fY++;\
+      }\
+      fX++;\
+    }\
+  }\
+}\
+
+
+#define MAKE_RESHAPE_BATCH(T)\
+extern "C"\
+__global__ void MAKE_NAME(reshape_batch, T)(\
+  T *in, T *out, int X, int Y, int Z, int BS) {\
+  int x = threadIdx.x + blockIdx.x * blockDim.x;\
+  int y = threadIdx.y + blockIdx.y * blockDim.y;\
+  if (x < X * Y * Z && y < BS) {\
+    int a = x % (X * Y);\
+    int b = x / (X * Y);\
+    int c = y * (X * Y);\
+    out[y + x * BS] = in[b + (c + a) * Z];\
+  }\
+}\
+
+
+#define MAKE_RESHAPE_BATCH_BP(T)\
+extern "C"\
+__global__ void MAKE_NAME(reshape_batch_bp, T)(\
+  T *in, T *out, int X, int Y, int Z, int BS) {\
+  int x = threadIdx.x + blockIdx.x * blockDim.x;\
+  int y = threadIdx.y + blockIdx.y * blockDim.y;\
+  if (x < X * Y * Z && y < BS) {\
+    int a = x % (X * Y);\
+    int b = x / (X * Y);\
+    int c = y * (X * Y);\
+    out[b + (c + a) * Z] = in[y + x * BS];\
+  }\
+}\
+
+
+
+MAKE_CONVOLUTE(TYPE)
+MAKE_CONVOLUTE_BP(TYPE)
+MAKE_RESHAPE_BATCH(TYPE)
+MAKE_RESHAPE_BATCH_BP(TYPE)
+
+

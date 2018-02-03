@@ -21,19 +21,19 @@ trait Welcoming { self: Network[_, _, _] =>
       |            / | / /__  __  ___________  / ____/ /___ _      __
       |           /  |/ / _ \\/ / / / ___/ __ \\/ /_  / / __ \\ | /| / /
       |          / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
-      |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/
+      |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/   
+      |                                                            1.5.2
       |
-      |
-      |            Version : 1.5.2
       |
       |            Network : $identifier
       |
       |            Weights : ${formatter.format(weights.map(_.size).sum)} (≈ ${weights.map(_.size).sum.toDouble * sizeOf(numericPrecision) / 1024.0 / 1024.0}%.6g MB)
       |          Precision : $numericPrecision
       |
-      |             Layout : ${layers.foldLeft("")((s, l) => s + buildString(l) + "\n                      ").dropRight(2)}
       |               Loss : ${self.lossFunction.getClass.getCanonicalName}
       |             Update : ${self.settings.updateRule.getClass.getCanonicalName}
+      |
+      |             Layout : ${layers.foldLeft("")((s, l) => s + buildString(l) + "\n                      ").dropRight(2)}
       |
       |
       |

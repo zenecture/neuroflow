@@ -43,18 +43,19 @@ class DenseNetworkNumTest extends Specification {
   def check[Net <: FFN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
     implicit object weights extends neuroflow.core.WeightProvider.FFN[Double]
+
     import neuroflow.dsl.Extractor.extractor
     
-    val f = Tanh
+    val f = ReLU
 
     val L =
-         Vector(2)     ::
-         Dense(7, f)   ::
-         Dense(8, f)   ::
-         Dense(7, f)   ::
-         Dense(2, f)   ::  SquaredMeanError()
+         Vector (2)      ::
+         Dense  (7, f)   ::
+         Dense  (8, f)   ::
+         Dense  (7, f)   ::
+         Dense  (2, f)   ::  SquaredMeanError()
 
-    val rand = weights.fullyConnected(extractor(L)._1, weights.normalSeed(0.1, 0.1))
+    val rand = weights.fullyConnected(extractor(L)._1, weights.normalSeed(1.0, 0.1))
 
     implicit val wp = new WeightProvider[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
@@ -85,9 +86,11 @@ class DenseNetworkNumTest extends Specification {
       case ((i, a), (_, b)) =>
         (a - b).forall { (w, v) =>
           val e = v.abs
-          if (e == 0.0) true else {
-            val x = debuggableA.lastGradients(i)(w)
-            val y = debuggableB.lastGradients(i)(w)
+          val x = debuggableA.lastGradients(i)(w)
+          val y = debuggableB.lastGradients(i)(w)
+          if (e == 0.0) true
+          else if (x == 0.0 && e < tolerance) true
+          else {
             val m = math.max(x.abs, y.abs)
             val r = e / m
             if (r >= tolerance) {

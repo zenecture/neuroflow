@@ -24,6 +24,7 @@ import scala.collection.{Map, Set}
   *   `transport`           Transport throughput specifics for distributed training.
   *   `parallelism`         Controls how many threads are used for distributed training.
   *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
+  *   `gcThreshold`         Fine tune GC for GPU, the threshold is set in bytes
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
   *   `waypoint`            Periodic actions can be executed, e.g. saving the weights every n steps.
   *   `approximation`       If set, the gradients are approximated numerically.
@@ -43,6 +44,7 @@ case class Settings[V]
                      transport         :  Transport                    =  Transport(100000, "128 MiB"),
                      parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),
                      batchSize         :  Option[Int]                  =  None,
+                     gcThreshold       :  Option[Long]                 =  None,
                      lossFuncOutput    :  Option[LossFuncOutput]       =  None,
                      waypoint          :  Option[Waypoint[V]]          =  None,
                      approximation     :  Option[Approximation[V]]     =  None,

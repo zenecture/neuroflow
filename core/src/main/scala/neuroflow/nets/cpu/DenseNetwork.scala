@@ -110,7 +110,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) {
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
-      info(s"Grouping and merging batches ...")
+      info(s"Breeding batches ...")
     }
     val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
       xy.par.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.par.map(_._2).reduce(DenseMatrix.vertcat(_, _))
@@ -334,7 +334,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     val batchSize = settings.batchSize.getOrElse(xs.size)
     if (settings.verbose) {
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
-      info(s"Grouping and merging batches ...")
+      info(s"Breeding batches ...")
     }
     val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
       xy.par.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.par.map(_._2).reduce(DenseMatrix.vertcat(_, _))
