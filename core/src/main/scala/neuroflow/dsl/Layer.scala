@@ -50,7 +50,7 @@ object Ω { // Alias syntax for Focus
 
 /**
   *
-  * Convolutes the input [[neuroflow.common.Tensor]], where:
+  * Convolutes the input [[neuroflow.common.Tensor3D]], where:
   *
   *   `dimIn`      Input dimension. (x, y, z)
   *   `padding`    A padding can be specified to ensure full convolution. (x, y)

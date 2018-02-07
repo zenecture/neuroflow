@@ -58,10 +58,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
-  type Tensor   = neuroflow.common.Tensor[Double]
+  type Tensor   = neuroflow.common.Tensor3D[Double]
   type Vectors  = Seq[DenseVector[Double]]
   type Matrices = Seq[DenseMatrix[Double]]
-  type Tensors  = Seq[neuroflow.common.Tensor[Double]]
+  type Tensors  = Seq[neuroflow.common.Tensor3D[Double]]
 
   private val _allLayers  = layers.map {
     case f: Focus[_]         => f.inner
@@ -371,10 +371,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Float]
   type Matrix   = DenseMatrix[Float]
-  type Tensor   = neuroflow.common.Tensor[Float]
+  type Tensor   = neuroflow.common.Tensor3D[Float]
   type Vectors  = Seq[DenseVector[Float]]
   type Matrices = Seq[DenseMatrix[Float]]
-  type Tensors  = Seq[neuroflow.common.Tensor[Float]]
+  type Tensors  = Seq[neuroflow.common.Tensor3D[Float]]
 
   private val _allLayers  = layers.map {
     case f: Focus[_]         => f.inner

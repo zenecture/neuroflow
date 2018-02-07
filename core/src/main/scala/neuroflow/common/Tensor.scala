@@ -12,10 +12,9 @@ import scala.reflect.ClassTag
 
 
 /**
-  * A tensorish exposes access to underlying
-  * `matrix` under a `projection` for coordinates `K`.
+  * A tensor exposes access to underlying `matrix` under a `projection` for coordinates `K`.
   */
-trait Tensorish[K, V] extends (K => V) {
+trait Tensor[K, V] extends (K => V) {
 
   val matrix: DenseMatrix[V]
 
@@ -26,23 +25,20 @@ trait Tensorish[K, V] extends (K => V) {
     matrix(row, col)
   }
 
-  def mapAt(x: K)(f: V => V): Tensorish[K, V]
+  def mapAt(x: K)(f: V => V): Tensor[K, V]
 
-  def mapAll[T: ClassTag : Zero](f: V => T): Tensorish[K, T]
+  def mapAll[T: ClassTag : Zero](f: V => T): Tensor[K, T]
 
 }
 
 /**
-  * A standard tensor exposes access to
-  * underlying `matrix` using (x, y, z)
-  * coordinates.
+  * A 3d-tensor exposes access to underlying `matrix` using (x, y, z) coordinates.
   */
-trait Tensor[V] extends Tensorish[(Int, Int, Int), V] {
+trait Tensor3D[V] extends Tensor[(Int, Int, Int), V] {
 
-  def mapAll[T: ClassTag : Zero](f: V => T): Tensor[T]
+  def mapAll[T: ClassTag : Zero](f: V => T): Tensor3D[T]
 
-  def mapAt(x: (Int, Int, Int))(f: V => V): Tensor[V]
+  def mapAt(x: (Int, Int, Int))(f: V => V): Tensor3D[V]
 
 }
-
 

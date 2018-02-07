@@ -41,7 +41,7 @@ trait Lexicon {
   type Matrix[V]     =  DenseMatrix[V]
   type Vectors[V]    =  Seq[Vector[V]]
   type Matrices[V]   =  Seq[Matrix[V]]
-  type Tensors[V]    =  Seq[Tensor[V]]
+  type Tensors[V]    =  Seq[Tensor3D[V]]
   type Weights[V]    =  IndexedSeq[Matrix[V]]
   type LearningRate  =  PartialFunction[(Int, Double), Double]
 
@@ -103,7 +103,7 @@ trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
 }
 
 
-trait CNN[V] extends Network[V, Tensor[V], Vector[V]] {
+trait CNN[V] extends Network[V, Tensor3D[V], Vector[V]] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
@@ -150,7 +150,7 @@ trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraini
 }
 
 
-trait DistCNN[V] extends Network[V, Tensor[V], Vector[V]] with DistributedTraining {
+trait DistCNN[V] extends Network[V, Tensor3D[V], Vector[V]] with DistributedTraining {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)

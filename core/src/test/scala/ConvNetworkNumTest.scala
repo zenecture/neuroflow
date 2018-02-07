@@ -8,7 +8,7 @@ import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.storage.Zero
-import neuroflow.common.{Tensor, Tensorish}
+import neuroflow.common.Tensor3D
 import neuroflow.core.Activator._
 import neuroflow.core.Network.Weights
 import neuroflow.core._
@@ -129,10 +129,10 @@ object Helper {
 
   // Borrowed from neuroflow.application
 
-  def extractRgb3d(url: URL): Tensor[Double] = extractRgb3d(ImageIO.read(url))
-  def extractRgb3d(file: File): Tensor[Double] = extractRgb3d(ImageIO.read(file))
+  def extractRgb3d(url: URL): Tensor3D[Double] = extractRgb3d(ImageIO.read(url))
+  def extractRgb3d(file: File): Tensor3D[Double] = extractRgb3d(ImageIO.read(file))
 
-  def extractRgb3d(img: BufferedImage): Tensor[Double] = {
+  def extractRgb3d(img: BufferedImage): Tensor3D[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
     val tensor = new RgbTensor[Double](w, h, out)
@@ -149,7 +149,7 @@ object Helper {
     tensor
   }
 
-  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor[V] {
+  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
 
     val projection: ((Int, Int, Int)) => (Int, Int) = { case (x, y, z) => (z, x * height + y) }
 

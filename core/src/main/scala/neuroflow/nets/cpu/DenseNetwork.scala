@@ -60,7 +60,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
   }.toArray
 
   private val _focusLayer   = layers.collectFirst { case c: Focus[_] => c }
-  private val _layersNI     = _layers.tail.map { case h: HasActivator[Float]  => h.activator.map[Double](_.toFloat, _.toDouble) }
+  private val _layersNI     = _layers.tail.map { case h: HasActivator[Double]  => h.activator }
   private val _outputDim    = _layers.last.neurons
   private val _lastLayerIdx = weights.size - 1
 

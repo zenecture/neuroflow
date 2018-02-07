@@ -3,7 +3,7 @@ package neuroflow.application.plugin
 import breeze.generic.UFunc
 import breeze.linalg.{DenseMatrix, DenseVector, norm}
 import breeze.linalg.operators.OpMulInner
-import neuroflow.common.Tensor
+import neuroflow.common.{Tensor, Tensor3D}
 
 import scala.reflect.ClassTag
 
@@ -72,12 +72,12 @@ object Extensions {
     def double: DenseMatrix[Double] = m.map(_.toDouble)
   }
 
-  implicit class TensorDoubleToFloat(t: Tensor[Double]) {
-    def float: Tensor[Float] = t.mapAll(_.toFloat)
+  implicit class Tensor3DDoubleToFloat(t: Tensor3D[Double]) {
+    def float: Tensor3D[Float] = t.mapAll(_.toFloat)
   }
 
-  implicit class TensorFloatToDouble(t: Tensor[Float]) {
-    def double: Tensor[Double] = t.mapAll(_.toDouble)
+  implicit class Tensor3DFloatToDouble(t: Tensor3D[Float]) {
+    def double: Tensor3D[Double] = t.mapAll(_.toDouble)
   }
 
 }

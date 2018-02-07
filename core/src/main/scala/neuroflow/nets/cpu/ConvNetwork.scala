@@ -49,10 +49,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
-  type Tensor   = neuroflow.common.Tensor[Double]
+  type Tensor   = neuroflow.common.Tensor3D[Double]
   type Vectors  = Seq[DenseVector[Double]]
   type Matrices = Seq[DenseMatrix[Double]]
-  type Tensors  = Seq[neuroflow.common.Tensor[Double]]
+  type Tensors  = Seq[neuroflow.common.Tensor3D[Double]]
 
   private val _allLayers = layers.map {
     case f: Focus[Double]         => f.inner
@@ -68,6 +68,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
   }.toMap.mapValues {
     case c: Convolution[Double]   => c
   }
+
+  private val _activators = _allLayers.map(_.activator)
 
   private val _outputDim = _allLayers.last.neurons
   private val _lastC     = _convLayers.maxBy(_._1)._1
@@ -135,7 +137,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     @tailrec def conv(_in: Matrix, i: Int): Unit = {
       val l = _convLayers(i)
       val p = weights(i) * convolute(_in, l, batchSize)
-      val a = p.map(l.activator)
+      val a = p.map(_activators(i))
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
       if (i < _lastC) conv(a, i + 1)
     }
@@ -143,7 +145,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     @tailrec def fully(_in: Matrix, i: Int): Unit = {
       val l = _allLayers(i)
       val p = _in * weights(i)
-      val a = p.map(l.activator)
+      val a = p.map(_activators(i))
       _fa += a
       if (i < _lastL) fully(a, i + 1)
     }
@@ -343,8 +345,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       val l = _convLayers(i)
       val c = convolute(_in, l, batchSize)
       val p = weights(i) * c
-      val a = p.map(l.activator)
-      val b = p.map(l.activator.derivative)
+      val a = p.map(_activators(i))
+      val b = p.map(_activators(i).derivative)
       fa += i -> { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
       fb += i -> b
       fc += i -> c
@@ -354,8 +356,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     @tailrec def fully(_in: Matrix, i: Int): Unit = {
       val l = _allLayers(i)
       val p = _in * weights(i)
-      val a = p.map(l.activator)
-      val b = p.map(l.activator.derivative)
+      val a = p.map(_activators(i))
+      val b = p.map(_activators(i).derivative)
       fa += i -> a
       fb += i -> b
       if (i < _lastL) fully(a, i + 1)
@@ -473,10 +475,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Float]
   type Matrix   = DenseMatrix[Float]
-  type Tensor   = neuroflow.common.Tensor[Float]
+  type Tensor   = neuroflow.common.Tensor3D[Float]
   type Vectors  = Seq[DenseVector[Float]]
   type Matrices = Seq[DenseMatrix[Float]]
-  type Tensors  = Seq[neuroflow.common.Tensor[Float]]
+  type Tensors  = Seq[neuroflow.common.Tensor3D[Float]]
 
   private val _allLayers = layers.map {
     case f: Focus[Double]         => f.inner

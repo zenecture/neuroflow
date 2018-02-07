@@ -8,7 +8,7 @@ import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.storage.Zero
-import neuroflow.common.{Logs, Tensor, Tensorish}
+import neuroflow.common.{Logs, Tensor3D, Tensor}
 
 import scala.io.Source
 import scala.reflect.ClassTag
@@ -21,8 +21,8 @@ object Image extends Logs {
 
 
   /**
-    * Loads image from `file` or `path` and returns flattened sequence
-    * of all color channels and pixels, where values are normalized to be <= 1.0.
+    * Loads image from `file` or `path` and returns flattened [[DenseVector]]
+    * holding all color channels, where pixel values are normalized to be <= 1.0.
     */
 
   def extractRgb(path: String): DenseVector[Double] = extractRgb(new File(path))
@@ -45,13 +45,13 @@ object Image extends Logs {
     * All pixel colors are scaled from [0, 255] to [0.0, 1.0].
     */
 
-  def extractRgb3d(url: URL): Tensor[Double] = extractRgb3d(ImageIO.read(url))
+  def extractRgb3d(url: URL): RgbTensor[Double] = extractRgb3d(ImageIO.read(url))
 
-  def extractRgb3d(path: String): Tensor[Double] = extractRgb3d(new File(path))
+  def extractRgb3d(path: String): RgbTensor[Double] = extractRgb3d(new File(path))
 
-  def extractRgb3d(file: File): Tensor[Double] = extractRgb3d(ImageIO.read(file))
+  def extractRgb3d(file: File): RgbTensor[Double] = extractRgb3d(ImageIO.read(file))
 
-  def extractRgb3d(img: BufferedImage): Tensor[Double] = {
+  def extractRgb3d(img: BufferedImage): RgbTensor[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
     val tensor = new RgbTensor[Double](w, h, out)
@@ -75,7 +75,7 @@ object Image extends Logs {
     * The `projection` linearizes the image into a full row
     * per color channel using column major.
     */
-  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor[V] {
+  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
 
     val projection: ((Int, Int, Int)) => (Int, Int) = { case (x, y, z) => (z, x * height + y) }
 
