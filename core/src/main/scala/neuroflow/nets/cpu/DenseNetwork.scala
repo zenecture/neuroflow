@@ -59,15 +59,11 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     case layer: Layer => layer
   }.toArray
 
-  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
+  private val _focusLayer   = layers.collectFirst { case c: Focus[_] => c }
+  private val _layersNI     = _layers.tail.map { case h: HasActivator[Float]  => h.activator.map[Double](_.toFloat, _.toDouble) }
+  private val _outputDim    = _layers.last.neurons
+  private val _lastLayerIdx = weights.size - 1
 
-  private val _layersNI       = _layers.tail.map {
-    case h: HasActivator[Double] => h.activator
-    case h: HasActivator[Float]  => h.activator.map[Double](_.toFloat, _.toDouble)
-  }
-
-  private val _outputDim      = _layers.last.neurons
-  private val _lastWlayerIdx  = weights.size - 1
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -92,7 +88,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
       val r = flow(input, i)
       r
     }.getOrElse {
-      val r = flow(input, _lastWlayerIdx)
+      val r = flow(input, _lastLayerIdx)
       lossFunction match {
         case _: SquaredMeanError[_] => r
         case _: Softmax[_]          => SoftmaxImpl(r)
@@ -174,17 +170,17 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
       val b = p.map(_layersNI(i).derivative)
       fa += i -> a
       fb += i -> b
-      if (i < _lastWlayerIdx) forward(a, i + 1)
+      if (i < _lastLayerIdx) forward(a, i + 1)
     }
 
     @tailrec def derive(i: Int): Unit = {
-      if (i == 0 && _lastWlayerIdx == 0) {
+      if (i == 0 && _lastLayerIdx == 0) {
         val (err, grad) = lossFunction(y, fa(0))
         val d = grad *:* fb(0)
         val dw = x.t * d
         dws += 0 -> dw
         loss += err
-      } else if (i == _lastWlayerIdx) {
+      } else if (i == _lastLayerIdx) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = fa(i - 1).t * d
@@ -192,7 +188,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
         ds += i -> d
         loss += err
         derive(i - 1)
-      } else if (i < _lastWlayerIdx && i > 0) {
+      } else if (i < _lastLayerIdx && i > 0) {
         val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
         val dw = fa(i - 1).t * d
         dws += i -> dw
@@ -206,9 +202,9 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     }
 
     forward(x, 0)
-    derive(_lastWlayerIdx)
+    derive(_lastLayerIdx)
 
-    (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
+    (0 to _lastLayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
     val lossReduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
     lossReduced
@@ -222,7 +218,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def lossFunc(): Matrix = {
-      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val loss = lossFunction(ys, flow(xs, _lastLayerIdx))._1
       val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
       reduced
     }
@@ -283,15 +279,11 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     case layer: Layer => layer
   }.toArray
 
-  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
+  private val _focusLayer   = layers.collectFirst { case c: Focus[_] => c }
+  private val _layersNI     = _layers.tail.map { case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat) }
+  private val _outputDim    = _layers.last.neurons
+  private val _lastLayerIdx = weights.size - 1
 
-  private val _layersNI       = _layers.tail.map {
-    case h: HasActivator[Float]  => h.activator
-    case h: HasActivator[Double] => h.activator.map[Float](_.toDouble, _.toFloat)
-  }
-
-  private val _outputDim      = _layers.last.neurons
-  private val _lastWlayerIdx  = weights.size - 1
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -316,7 +308,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
       val r = flow(input, i)
       r
     }.getOrElse {
-      val r = flow(input, _lastWlayerIdx)
+      val r = flow(input, _lastLayerIdx)
       lossFunction match {
         case _: SquaredMeanError[_] => r
         case _: Softmax[_]          => SoftmaxImpl(r)
@@ -398,17 +390,17 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
       val b = p.map(_layersNI(i).derivative)
       fa += i -> a
       fb += i -> b
-      if (i < _lastWlayerIdx) forward(a, i + 1)
+      if (i < _lastLayerIdx) forward(a, i + 1)
     }
 
     @tailrec def derive(i: Int): Unit = {
-      if (i == 0 && _lastWlayerIdx == 0) {
+      if (i == 0 && _lastLayerIdx == 0) {
         val (err, grad) = lossFunction(y, fa(0))
         val d = grad *:* fb(0)
         val dw = x.t * d
         dws += 0 -> dw
         loss += err
-      } else if (i == _lastWlayerIdx) {
+      } else if (i == _lastLayerIdx) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = fa(i - 1).t * d
@@ -416,7 +408,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
         ds += i -> d
         loss += err
         derive(i - 1)
-      } else if (i < _lastWlayerIdx && i > 0) {
+      } else if (i < _lastLayerIdx && i > 0) {
         val d = (ds(i + 1) * weights(i + 1).t) *:* fb(i)
         val dw = fa(i - 1).t * d
         dws += i -> dw
@@ -430,9 +422,9 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     }
 
     forward(x, 0)
-    derive(_lastWlayerIdx)
+    derive(_lastLayerIdx)
 
-    (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
+    (0 to _lastLayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
     val lossReduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
     lossReduced
@@ -446,7 +438,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def lossFunc(): Matrix = {
-      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val loss = lossFunction(ys, flow(xs, _lastLayerIdx))._1
       val reduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
       reduced
     }
