@@ -32,7 +32,7 @@ trait Tensor[K, V] extends (K => V) {
 }
 
 /**
-  * A 3d-tensor exposes access using (x, y, z) coordinates.
+  * A 3d-tensor exposes access to underlying `matrix` using (x, y, z) coordinates.
   * Internally, it is linearized using `projection` and `stride`.
   */
 trait Tensor3D[V] extends Tensor[(Int, Int, Int), V] {
