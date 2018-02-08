@@ -151,7 +151,7 @@ object Helper {
 
   class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
 
-    val projection: ((Int, Int, Int)) => (Int, Int) = { case (x, y, z) => (z, x * height + y) }
+    val stride: Int = height
 
     def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = ???
     def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = ???
