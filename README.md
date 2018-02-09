@@ -188,7 +188,7 @@ When training is done, the net can be evaluated like a regular function:
 ```scala
 val x = ->(0.0, 1.0)
 val result = net(x)
-// result: DenseVector(0.980237270455592)
+// result: DenseVector(0.9940081702899719)
 ```
 
 The resulting vector has dimension = 1, as specified for the XOR-example.

@@ -50,14 +50,15 @@ object Ω { // Alias syntax for Focus
 
 /**
   *
-  * Convolutes the input [[neuroflow.common.Tensor3D]], where:
+  * Convolutes the input [[neuroflow.common.Tensor3D]], producing a new one, where:
   *
-  *   `dimIn`      Input dimension. (x, y, z)
+  *   `dimIn`      Input tensor dimension. (x, y, z)
+  *   `dimOut`     Output tensor dimension. (x, y, z)
   *   `padding`    A padding can be specified to ensure full convolution. (x, y)
-  *   `field`      The receptive field. (x, y)
-  *   `filters`    Number of filters attached to the input.
-  *   `stride`     Sliding the receptive field over the input volume with stride. (x, y)
-  *   `activator`  The activator function gets applied on the output element-wise.
+  *   `field`      The size of the receptive field. (x, y)
+  *   `filters`    Number of filters attached to the input. (dimOut.z = filters)
+  *   `stride`     Striding the receptive field over the input tensor. (x, y)
+  *   `activator`  The activator function gets applied on the output tensor.
   *
   */
 case class Convolution[V](dimIn      :  (Int, Int, Int),
