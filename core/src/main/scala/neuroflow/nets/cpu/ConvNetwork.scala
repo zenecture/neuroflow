@@ -13,8 +13,8 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
   *
-  * Convolutional Neural Network, using
-  * gradient descent to optimize the loss function.
+  * Convolutional Neural Network running on CPU,
+  * uses gradient descent to optimize the loss function.
   *
   * @author bogdanski
   * @since 31.08.17
@@ -96,9 +96,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Tensors, ys: Vectors): Unit = {
-    require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
+    require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
+    require(xs.size % batchSize == 0, s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
     if (settings.verbose) {
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
@@ -106,14 +107,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     val xsys = xs.map(_.matrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
       batch.par.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
     }
-    run(xsys, learningRate(1 -> 1.0), xs.size, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0), batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, sampleSize: Double, batchSize: Int,
-                           precision: Double, batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, batchSize: Int, precision: Double,
+                           batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
@@ -123,7 +124,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize), sampleSize, batchSize,
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSize,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
@@ -403,11 +404,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     fully(fa(_lastC), _lastC + 1)
     derive(_lastWlayerIdx)
 
-//    fa.foreach(l => println(s"cpu-fa(${l._1}) = " + l._2.toString(1000, 1000)))
-//    fb.foreach(l => println(s"cpu-fb(${l._1}) = " + l._2.toString(1000, 1000)))
-//    fc.foreach(l => println(s"cpu-fc(${l._1}) = " + l._2.toString(1000, 1000)))
-//    ds.foreach(l => println(s"cpu-ds(${l._1}) = " + l._2.toString(1000, 1000)))
-
     (0 to _lastWlayerIdx).foreach(i => updateRule(weights(i), dws(i), stepSize, i))
 
     val lossReduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
@@ -522,9 +518,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
     * Trains this net with input `xs` against output `ys`.
     */
   def train(xs: Tensors, ys: Vectors): Unit = {
-    require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
+    require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
+    require(xs.size % batchSize == 0, s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
     if (settings.verbose) {
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
@@ -532,14 +529,14 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
     val xsys = xs.map(_.matrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
       batch.par.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
     }
-    run(xsys, learningRate(1 -> 1.0).toFloat, xs.size, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0).toFloat, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, sampleSize: Double, batchSize: Int,
-                           precision: Double, batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, batchSize: Int, precision: Double,
+                           batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
@@ -549,7 +546,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
     maybeGraph(lossMean)
     waypoint(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, sampleSize, batchSize,
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, batchSize,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
