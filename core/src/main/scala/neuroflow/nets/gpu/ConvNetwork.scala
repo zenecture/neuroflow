@@ -47,7 +47,7 @@ object ConvNetwork {
 
 
 
-// <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
+// <editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
 private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                            identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Double")
@@ -221,7 +221,13 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       val p = _cuWeights(i) * c
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
-      fa += i -> { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
+      fa += i -> {
+        if (i == _lastC) {
+          val rb = reshape_batch(a, l.dimOut, batchSize)
+          a.release()
+          rb
+        } else a
+      }
       fb += i -> b
       fc += i -> c
       if (i < _lastC) conv(a, i + 1)
@@ -534,7 +540,13 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
       val p = _cuWeights(i) * c
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
-      fa += i -> { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
+      fa += i -> {
+        if (i == _lastC) {
+          val rb = reshape_batch(a, l.dimOut, batchSize)
+          a.release()
+          rb
+        } else a
+      }
       fb += i -> b
       fc += i -> c
       p.release()
