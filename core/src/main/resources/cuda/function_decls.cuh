@@ -2,8 +2,8 @@
 #define INFINITY __int_as_float(0x7f800000)
 #endif
 
-__device__ inline TYPE relu_a(TYPE a) { if (a > 0.0) return a; else return 0.0; }
-__device__ inline TYPE relu_d(TYPE a) { if (a > 0.0) return 1.0; else return 0.0; }
+__device__ inline TYPE relu_a(TYPE a) { if (a > 0) return a; else return 0; }
+__device__ inline TYPE relu_d(TYPE a) { if (a > 0) return 1; else return 0; }
 
 __device__ inline TYPE linear_a(TYPE a) { return a; }
 __device__ inline TYPE linear_d(TYPE a) { return 1.0; }

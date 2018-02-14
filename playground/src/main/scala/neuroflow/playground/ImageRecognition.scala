@@ -11,7 +11,7 @@ import neuroflow.core.Activator._
 import neuroflow.dsl.Convolution.IntTupler
 import neuroflow.core._
 import neuroflow.dsl._
-import neuroflow.nets.cpu.ConvNetwork._
+import neuroflow.nets.gpu.ConvNetwork._
 
 /**
   * @author bogdanski
@@ -35,7 +35,7 @@ object ImageRecognition {
 
     println("Loading data ...")
 
-    val limits = (256, 32)
+    val limits = (50000, 10000)
 
     val train = new java.io.File(path + "/train").list().take(limits._1).par.map { s =>
       val c = classes.find(z => s.contains(z)).get
@@ -53,48 +53,56 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val c1 = Convolution(dimIn = (32, 32, 3),  padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
+    val c0 = Convolution(dimIn = (32, 32, 3),  padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
+    val c1 = Convolution(dimIn = c0.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
     val c2 = Convolution(dimIn = c1.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
-    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 48, activator = f)
-    val c4 = Convolution(dimIn = c3.dimOut,    padding = 1`²`, field = 3`²`, stride = 3`²`, filters = 96, activator = f)
-    val c5 = Convolution(dimIn = c4.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
-    val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
+    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1`²`, field = 3`²`, stride = 3`²`, filters = 96, activator = f)
+    val c4 = Convolution(dimIn = c3.dimOut,    padding = 2`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
+    val c5 = Convolution(dimIn = c4.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 96, activator = f)
 
-    val L = c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: Dense(100, f) :: Dense(10, f) :: Softmax()
+    val L = c0 :: c1 :: c2 :: c3 :: c4 :: c5 :: Dense(100, f) :: Dense(10, f) :: Softmax()
+
+    val b = 0.001
 
     implicit val wp = neuroflow.core.WeightProvider[Float].normal(Map(
-      0 -> (0.01, 0.01), 1 -> (0.01, 0.01), 2 -> (0.01, 0.01),
-      3 -> (0.001, 0.001), 4 -> (0.001, 0.001), 5 -> (0.001, 0.001),
-      6 -> (0.0001, 0.0001), 7 -> (0.01, 0.01)
+      0 -> (b, 0.1), 1 -> (b, 0.1), 2 -> (b, 0.1),
+      3 -> (b, 0.1), 4 -> (b, 0.1), 5 -> (b, 0.1),
+      6 -> (0.0001, 0.0001),
+      7 -> (0.01, 0.01)
     ))
 
-//    implicit val wp = IO.File.readWeights[Float](wps + "-iter-1000.nf")
+//    implicit val wp = IO.File.readWeights[Float](wps + "-iter-19000.nf")
 
     val net = Network(
       layout = L,
       Settings[Float](
         prettyPrint     = true,
-        learningRate    = { case _ => 1E-7 },
+        learningRate    = {
+          case (i, _) if i < 20000 => 1E-6
+          case (i, _)              => 1E-7
+        },
         updateRule      = Momentum(μ = 0.8f),
-        iterations      = 100000,
+        iterations      = Int.MaxValue,
         precision       = 1E-3,
-        batchSize       = Some(256),
+        batchSize       = Some(250),
         gcThreshold     = Some(100 * 1024 * 1024L),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
         waypoint        = Some(Waypoint(nth = 1000, (iter, ws) => File.writeWeights(ws, wps + s"-iter-$iter.nf")))
       )
     )
 
-  net.train(train.map(_._1), train.map(_._2))
+    net.train(train.map(_._1), train.map(_._2))
 
-    val rate = train.map {
+    val rate = test.map {
       case (x, y) =>
         val v = net(x)
-//        println(v)
         val c = v.toArray.indexOf(max(v))
         val t = y.toArray.indexOf(max(y))
+        // println(v)
+        // println(y)
+        // println()
         if (c == t) 1.0 else 0.0
-    }.sum / train.size.toDouble
+    }.sum / test.size.toDouble
 
     println(s"Recognition rate = ${rate * 100.0} %, Error rate = ${(1.0 - rate) * 100.0} %!")
 
