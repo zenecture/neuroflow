@@ -249,8 +249,8 @@ Settings(
 )
 ```
 
-It is good practice to use the `Waypoint[V]` option for nets with long training times. The training progress can be seen as an 
-infinite sampling wheel, and with a waypoint, we can harvest weights now and then and compute intermediate results. Also, when the 
-cloud instance got killed for mysterious reasons, periodically saved weights allow us to continue training from a recent point. 
-Here, every `nth = 3` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights, 
-which is written to file using `File.writeWeights`.
+It is good practice to use the `Waypoint[V]` option for nets with long training times. The training process can be seen as an 
+infinite sampling wheel, and with a waypoint, we can harvest weights now and then to compute intermediate results. Another reason 
+to use it is when the process (or cloud instance, hardware, etc) crashes, periodically saved weights allow us to continue training 
+from a recent point. Here, every `nth = 3` step, the waypoint function is executed, receiving as input iteration count and a 
+snapshot of the weights, which is written to file using `File.writeWeights`.
