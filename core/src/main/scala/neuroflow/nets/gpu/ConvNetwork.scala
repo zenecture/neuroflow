@@ -178,7 +178,9 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     conv(CuMatrix.fromDense(in), 0)
     fully(_fa(_lastC), _lastC + 1)
 
-    _fa(target).toDense
+    val r = _fa(target).toDense
+    _fa.foreach(_.release())
+    r
 
   }
 
@@ -498,7 +500,9 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
     conv(CuMatrix.fromDense(in), 0)
     fully(_fa(_lastC), _lastC + 1)
 
-    _fa(target).toDense
+    val r = _fa(target).toDense
+    _fa.foreach(_.release())
+    r
 
   }
 

@@ -42,7 +42,7 @@ trait Welcoming { self: Network[_, _, _] =>
 
   private def buildString(l: Layer): String =
     l match {
-      case c:  Convolution[_] => s"${c.dimInPadded._1}*${c.dimInPadded._2}*${c.dimInPadded._3} ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
+      case c:  Convolution[_] => s"${c.dimInPadded._1}*${c.dimInPadded._2}*${c.dimInPadded._3} ~> [${c.field._1}*${c.field._2} : ${c.stride._1}*${c.stride._2}] ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
       case h: HasActivator[_] => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
       case _                  => s"${l.neurons} ${l.symbol}"
     }

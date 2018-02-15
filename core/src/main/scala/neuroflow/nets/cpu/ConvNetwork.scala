@@ -613,7 +613,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
               val a = (xs * SX) + fX
               val b = (y * SY) + fY
               if (a >= PX && a < (PX + IX) &&
-                b >= PY && b < (PY + IY)) {
+                  b >= PY && b < (PY + IY)) {
                 val aNp = a - PX
                 val bNp = b - PY
                 val p = in(z, (xb * IX * IY) + aNp * IY + bNp)
@@ -670,7 +670,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
               val a = (xs * SX) + fX
               val b = (y * SY) + fY
               if (a >= PX && a < (PX + IX) &&
-                b >= PY && b < (PY + IY)) {
+                  b >= PY && b < (PY + IY)) {
                 val aNp = a - PX
                 val bNp = b - PY
                 val d = in(z, (xb * X * Y) + xs * Y + y)
