@@ -12,7 +12,7 @@ object App extends App {
   scala.io.StdIn.readInt() match {
 
     case  1 => XOR.apply
-    case  2 => ShallowWeights.apply
+    case  2 => ShallowNet.apply
     case  3 => TrendDetection.apply
     case  4 => AgeEarnings.apply
     case  5 => ImageRecognition.apply

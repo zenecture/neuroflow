@@ -10,7 +10,7 @@ import neuroflow.nets.cpu.DenseNetwork._
   * @author bogdanski
   * @since 03.01.16
   */
-object ShallowWeights {
+object ShallowNet {
 
   /*
 
