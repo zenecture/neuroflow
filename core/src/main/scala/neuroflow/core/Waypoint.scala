@@ -8,9 +8,8 @@ import neuroflow.core.Network.Weights
   */
 
 /**
-  * Performs `action` on every `nth` iteration during training.
-  * The function gets the iteration which triggered the waypoint
-  * execution and a snapshot of the weights as arguments.
+  * Performs function `action` every `nth` step.
+  * The function is passed iteration count and a snapshot of the weights.
   */
 case class Waypoint[V](nth: Int, action: (Int, Weights[V]) => Unit)
 
