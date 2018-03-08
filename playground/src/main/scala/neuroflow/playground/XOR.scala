@@ -29,7 +29,7 @@ object XOR {
     import neuroflow.nets.cpu.DenseNetwork._
 
     implicit val breeder = neuroflow.core.WeightBreeder[Double].normal {
-      Map ( // normal config per weight layer
+      Map ( // normal config per layer index
         1 -> (0.0, 1.0),
         2 -> (0.0, 0.1)
       )
