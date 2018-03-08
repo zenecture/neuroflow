@@ -67,15 +67,15 @@ object TextClassification {
     val cars = normalize(readAll("file/newsgroup/cars/"))
     val med = normalize(readAll("file/newsgroup/med/"))
 
-    val trainCars = vectorize(cars).map((_, ->(1.0, -1.0)))
-    val trainMed = vectorize(med).map((_, ->(-1.0, 1.0)))
+    val trainCars = vectorize(cars).map((_, ->(1.0, 0.0)))
+    val trainMed = vectorize(med).map((_, ->(0.0, 1.0)))
 
     val allTrain = trainCars ++ trainMed
 
     println("No. of samples: " + allTrain.size)
 
-    val net = Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError(),
-      Settings[Double](iterations = 5000, learningRate = { case _ => 1E-5 }))
+    val net = Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Sigmoid) :: Softmax(),
+      Settings[Double](iterations = 15000, learningRate = { case _ => 1E-4 }))
 
     net.train(allTrain.map(_._1.denseVec), allTrain.map(_._2))
 
@@ -89,7 +89,7 @@ object TextClassification {
 
     val net = {
       implicit val breeder = File.readWeights[Double](netFile)
-      Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError())
+      Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Sigmoid) :: Softmax())
     }
 
     val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))
@@ -121,52 +121,50 @@ object TextClassification {
 
 
 
+                 _   __                      ________
+                / | / /__  __  ___________  / ____/ /___ _      __
+               /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+              / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+             /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+                                                                1.5.7
 
 
-                   _   __                      ________
-                  / | / /__  __  ___________  / ____/ /___ _      __
-                 /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
-                / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
-               /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
-                                                                  1.5.6
+                Network : neuroflow.nets.cpu.DenseNetwork
 
+                Weights : 2.480 (≈ 0,0189209 MB)
+              Precision : Double
 
-                  Network : neuroflow.nets.cpu.DenseNetwork
+                   Loss : neuroflow.core.Softmax
+                 Update : neuroflow.core.Vanilla
 
-                  Weights : 2.480 (≈ 0,0189209 MB)
-                Precision : Double
-
-                     Loss : neuroflow.core.SquaredMeanError
-                   Update : neuroflow.core.Vanilla
-
-                   Layout : 20 Vector
-                            40 Dense (φ)
-                            40 Dense (φ)
-                            2 Dense (φ)
+                 Layout : 20 Vector
+                          40 Dense (φ)
+                          40 Dense (φ)
+                          2 Dense (σ)
 
 
 
 
 
 
-                     O     O
-                     O     O
-               O     O     O
-               O     O     O
-               O     O     O     O
-               O     O     O     O
-               O     O     O
-               O     O     O
-                     O     O
-                     O     O
+                   O     O
+                   O     O
+             O     O     O
+             O     O     O
+             O     O     O     O
+             O     O     O     O
+             O     O     O
+             O     O     O
+                   O     O
+                   O     O
 
 
 
-      Mär 08, 2018 7:50:13 PM com.github.fommil.jni.JniLoader liberalLoad
-      INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader7820695951486855128netlib-native_system-osx-x86_64.jnilib
-      Correctly classified cars: 95.95959595959596 % !
-      Correctly classified med: 97.0 % !
-      Free classified as: cars
+    Mär 08, 2018 8:55:20 PM com.github.fommil.jni.JniLoader liberalLoad
+    INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader2727974297877248970netlib-native_system-osx-x86_64.jnilib
+    Correctly classified cars: 98.98989898989899 % !
+    Correctly classified med: 97.0 % !
+    Free classified as: cars
 
 
 
