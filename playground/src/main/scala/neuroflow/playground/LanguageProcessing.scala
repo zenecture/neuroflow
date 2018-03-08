@@ -8,7 +8,7 @@ import neuroflow.application.processor.Util._
 import neuroflow.core.Activator._
 import neuroflow.core._
 import neuroflow.dsl._
-import neuroflow.nets.cpu.LBFGSNetwork._
+import neuroflow.nets.cpu.DenseNetwork._
 
 /**
   * @author bogdanski
@@ -75,7 +75,7 @@ object LanguageProcessing {
     println("No. of samples: " + allTrain.size)
 
     val net = Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError(),
-      Settings[Double](iterations = 500, specifics = Some(Map("m" -> 7))))
+      Settings[Double](iterations = 5000, learningRate = { case _ => 1E-5 }))
 
     net.train(allTrain.map(_._1.denseVec), allTrain.map(_._2))
 
@@ -89,7 +89,7 @@ object LanguageProcessing {
 
     val net = {
       implicit val breeder = File.readWeights[Double](netFile)
-      Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError(), Settings[Double]())
+      Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError())
     }
 
     val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))
@@ -115,3 +115,59 @@ object LanguageProcessing {
   }
 
 }
+
+/*
+
+
+
+
+
+
+                   _   __                      ________
+                  / | / /__  __  ___________  / ____/ /___ _      __
+                 /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+                / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+               /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+                                                                  1.5.6
+
+
+                  Network : neuroflow.nets.cpu.DenseNetwork
+
+                  Weights : 2.480 (≈ 0,0189209 MB)
+                Precision : Double
+
+                     Loss : neuroflow.core.SquaredMeanError
+                   Update : neuroflow.core.Vanilla
+
+                   Layout : 20 Vector
+                            40 Dense (φ)
+                            40 Dense (φ)
+                            2 Dense (φ)
+
+
+
+
+
+
+                     O     O
+                     O     O
+               O     O     O
+               O     O     O
+               O     O     O     O
+               O     O     O     O
+               O     O     O
+               O     O     O
+                     O     O
+                     O     O
+
+
+
+      Mär 08, 2018 7:50:13 PM com.github.fommil.jni.JniLoader liberalLoad
+      INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader7820695951486855128netlib-native_system-osx-x86_64.jnilib
+      Correctly classified cars: 95.95959595959596 % !
+      Correctly classified med: 97.0 % !
+      Free classified as: cars
+
+
+
+ */

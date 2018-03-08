@@ -33,7 +33,7 @@ object DigitRecognition {
 
   def apply = {
 
-    val config = (0 to 2).map(_ -> (0.01, 0.01)) :+ 3 -> (0.1, 0.1)
+    val config = (1 to 3).map(_ -> (0.01, 0.01)) :+ 4 -> (0.1, 0.1)
     implicit val breeder = neuroflow.core.WeightBreeder[Float].normal(config.toMap)
 
     val sets = ('a' to 'h') map (c => digitSet2Vec(s"img/digits/$c/"))

@@ -30,8 +30,8 @@ object XOR {
 
     implicit val breeder = neuroflow.core.WeightBreeder[Double].normal {
       Map ( // normal config per weight layer
-        0 -> (0.0, 1.0),
-        1 -> (0.0, 0.1)
+        1 -> (0.0, 1.0),
+        2 -> (0.0, 0.1)
       )
     }
 
