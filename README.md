@@ -177,7 +177,7 @@ One example is sending the loss to a real-time TV dashboard.
 ### Useful JVM args
 
 ````bash
--Dorg.slf4j.simpleLogger.defaultLogLevel=info # or: debug
+-Dorg.slf4j.simpleLogger.defaultLogLevel=debug # for GPU mem infos
 -Xmx24G # example to increase heap size
 ````
 
