@@ -15,7 +15,7 @@ import neuroflow.nets.cpu.DenseNetwork._
   * @since 20.06.16
   */
 
-object LanguageProcessing {
+object TextClassification {
 
 
   /*
