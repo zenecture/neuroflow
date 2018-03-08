@@ -4,7 +4,6 @@ import breeze.linalg._
 import breeze.stats._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
-import neuroflow.core.WeightBreeder.BuildsWeightsFor
 import neuroflow.core._
 import neuroflow.dsl.{Focus, Layer}
 

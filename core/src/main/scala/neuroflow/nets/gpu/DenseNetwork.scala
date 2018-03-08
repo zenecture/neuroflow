@@ -6,7 +6,6 @@ import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.Activator._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
-import neuroflow.core.WeightBreeder.BuildsWeightsFor
 import neuroflow.core._
 import neuroflow.cuda._
 import neuroflow.dsl.{Focus, Layer}

@@ -39,35 +39,35 @@ object WeightBreeder {
     /**
       * Weights drawn from normal distribution with parameters `μ` and `σ`.
       */
-    def normal[N <: Network[V, _, _]](μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.normal(μ, σ)
+    def normal[N <: Network[V, _, _]](μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.normal(μ, σ)
 
     /**
       * Weights drawn from normal distribution with parameters,
-      * specified individually for each layer index using `config`,
-      * which maps from layer index to `μ` and `σ`.
+      * specified individually for each weight layer using `config`,
+      * which maps from index to `μ` and `σ`.
       */
-    def normal[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.normal(config)
+    def normal[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.normal(config)
 
     /**
       * Weights drawn from random distribution in range `r`.
       */
-    def random[N <: Network[V, _, _]](r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.random(r)
+    def random[N <: Network[V, _, _]](r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.random(r)
 
     /**
       * Weights drawn from random distribution,
-      * specified individually for each layer index using `config`,
-      * which maps from layer index to range `r`.
+      * specified individually for each weight layer using `config`,
+      * which maps from index to range `r`.
       */
-    def random[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.random(config)
+    def random[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.random(config)
 
     /**
       * Weights are all equal to `seed`.
       */
-    def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.static(seed)
+    def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.static(seed)
 
   }
 
-  trait BuildsWeightsFor[V, N <: Network[V, _, _]] {
+  trait BuildWeightsFor[V, N <: Network[V, _, _]] {
     def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
     def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
     def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
@@ -75,7 +75,7 @@ object WeightBreeder {
     def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
   }
 
-  trait FFN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.FFN[V]] {
+  trait FFN[V] extends BaseOps[V] with BuildWeightsFor[V, neuroflow.core.FFN[V]] {
 
     def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, normalSeed(μ, σ))
@@ -99,7 +99,7 @@ object WeightBreeder {
 
   }
 
-  trait CNN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.CNN[V]] {
+  trait CNN[V] extends BaseOps[V] with BuildWeightsFor[V, neuroflow.core.CNN[V]] {
 
     def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, normalSeed(μ, σ))
@@ -123,7 +123,7 @@ object WeightBreeder {
 
   }
 
-  trait RNN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.RNN[V]] {
+  trait RNN[V] extends BaseOps[V] with BuildWeightsFor[V, neuroflow.core.RNN[V]] {
 
     def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = {
