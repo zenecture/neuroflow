@@ -69,7 +69,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val L = a :: b :: Dense(out, f) :: SquaredMeanError()
 
-    val rand = weights.convoluted(extractor(L)._1, weights.normalSeed(0.1, 0.01))
+    val rand = weights.traverseAndBuild(extractor(L)._1, weights.normalSeed(0.1, 0.01))
 
     implicit val wp = new WeightBreeder[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
