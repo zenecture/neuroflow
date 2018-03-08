@@ -17,17 +17,17 @@ import scala.reflect.ClassTag
   */
 
 /**
-  * A [[WeightProvider]] connects the neurons of a [[Layer]] through the weights, or synapses.
+  * A [[WeightBreeder]] produces a weight matrix for each [[Layer]].
   */
 @implicitNotFound(
-  "No `WeightProvider` in scope for type ${V}. Add your own or use a " +
-    "predefined provider: implicit val wp = neuroflow.core.WeightProvider[${V}]")
-trait WeightProvider[V] extends (Seq[Layer] => Weights[V])
+  "No `WeightBreeder` in scope for type ${V}. Add your own or use a " +
+    "predefined breeder: implicit val wp = neuroflow.core.WeightBreeder[${V}]")
+trait WeightBreeder[V] extends (Seq[Layer] => Weights[V])
 
-object WeightProvider {
+object WeightBreeder {
 
   /**
-    * Constructs a `WeightProvider` with `breeder` in scope.
+    * Constructs `Breeder` in scope.
     */
   def apply[V](implicit breeder: Breeder[V]): Breeder[V] = breeder
 
@@ -39,61 +39,61 @@ object WeightProvider {
     /**
       * Weights drawn from normal distribution with parameters `μ` and `σ`.
       */
-    def normal[N <: Network[V, _, _]](μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.normal(μ, σ)
+    def normal[N <: Network[V, _, _]](μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.normal(μ, σ)
 
     /**
       * Weights drawn from normal distribution with parameters,
       * specified individually for each layer index using `config`,
       * which maps from layer index to `μ` and `σ`.
       */
-    def normal[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.normal(config)
+    def normal[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.normal(config)
 
     /**
       * Weights drawn from random distribution in range `r`.
       */
-    def random[N <: Network[V, _, _]](r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.random(r)
+    def random[N <: Network[V, _, _]](r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.random(r)
 
     /**
       * Weights drawn from random distribution,
       * specified individually for each layer index using `config`,
       * which maps from layer index to range `r`.
       */
-    def random[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.random(config)
+    def random[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.random(config)
 
     /**
       * Weights are all equal to `seed`.
       */
-    def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightProvider[V] = hwf.static(seed)
+    def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], hwf: BuildsWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = hwf.static(seed)
 
   }
 
   trait BuildsWeightsFor[V, N <: Network[V, _, _]] {
-    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
-    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
-    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
-    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
-    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V]
+    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
+    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
+    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V]
   }
 
   trait FFN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.FFN[V]] {
 
-    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, normalSeed(μ, σ))
     }
 
-    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, config.mapValues { case (μ, σ) => normalSeed(μ, σ) } )
     }
 
-    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, randomSeed(r))
     }
 
-    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, config.mapValues { r => randomSeed(r) } )
     }
 
-    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = fullyConnected(layers, () => seed)
     }
 
@@ -101,23 +101,23 @@ object WeightProvider {
 
   trait CNN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.CNN[V]] {
 
-    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, normalSeed(μ, σ))
     }
 
-    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, config.mapValues { case (μ, σ) => normalSeed(μ, σ) } )
     }
 
-    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, randomSeed(r))
     }
 
-    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, config.mapValues { r => randomSeed(r) } )
     }
 
-    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = convoluted(layers, () => seed)
     }
 
@@ -125,7 +125,7 @@ object WeightProvider {
 
   trait RNN[V] extends BaseOps[V] with BuildsWeightsFor[V, neuroflow.core.RNN[V]] {
 
-    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightProvider[V] = new WeightProvider[V] {
+    def random(r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = {
         val fc = fullyConnected(layers, layers.indices.map((_, randomSeed(r))).toMap)
         fc ++ recurrentEnrichment(layers, fc, layers.indices.map((_, randomSeed(r))).toMap)
@@ -133,10 +133,10 @@ object WeightProvider {
     }
 
     // TODO.
-    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
-    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
-    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
-    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightProvider[V] = ???
+    def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightBreeder[V] = ???
+    def normal(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightBreeder[V] = ???
+    def random(config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightBreeder[V] = ???
+    def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: CanProduce[Double, V]): WeightBreeder[V] = ???
 
   }
 

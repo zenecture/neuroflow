@@ -32,12 +32,12 @@ import scala.concurrent.{Await, Future}
 object DenseNetwork {
 
   implicit object double extends Constructor[Double, DenseNetwork] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetwork = {
-      DenseNetwork(ls, loss, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): DenseNetwork = {
+      DenseNetwork(ls, loss, settings, breeder(ls))
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightProvider.FFN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.FFN[Double]
 
 }
 

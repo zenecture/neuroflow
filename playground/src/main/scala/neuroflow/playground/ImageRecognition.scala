@@ -64,14 +64,14 @@ object ImageRecognition {
 
     val b = 0.001
 
-    implicit val wp = neuroflow.core.WeightProvider[Float].normal(Map(
+    implicit val breeder = neuroflow.core.WeightBreeder[Float].normal(Map(
       0 -> (b, 0.1), 1 -> (b, 0.1), 2 -> (b, 0.1),
       3 -> (b, 0.1), 4 -> (b, 0.1), 5 -> (b, 0.1),
       6 -> (0.0001, 0.0001),
       7 -> (0.01, 0.01)
     ))
 
-//    implicit val wp = IO.File.readWeights[Float](wps + "-iter-19000.nf")
+//    implicit val breeder = IO.File.readWeights[Float](wps + "-iter-19000.nf")
 
     val net = Network(
       layout = L,

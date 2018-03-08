@@ -24,20 +24,20 @@ import scala.collection.mutable.ArrayBuffer
 object ConvNetwork {
 
   implicit object double extends Constructor[Double, ConvNetworkDouble] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): ConvNetworkDouble = {
-      ConvNetworkDouble(ls, loss, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): ConvNetworkDouble = {
+      ConvNetworkDouble(ls, loss, settings, breeder(ls))
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightProvider.CNN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.CNN[Double]
 
   implicit object single extends Constructor[Float, ConvNetworkSingle] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): ConvNetworkSingle = {
-      ConvNetworkSingle(ls, loss, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): ConvNetworkSingle = {
+      ConvNetworkSingle(ls, loss, settings, breeder(ls))
     }
   }
 
-  implicit object weights_single extends neuroflow.core.WeightProvider.CNN[Float]
+  implicit object weights_single extends neuroflow.core.WeightBreeder.CNN[Float]
 
 }
 

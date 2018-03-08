@@ -14,8 +14,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.5",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.5"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.6",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.6"
 )
 ```
 
@@ -39,7 +39,7 @@ import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 
-implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
+implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
@@ -49,7 +49,7 @@ val net = Network(
 ```
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
-The weights are initialized randomly in range (-1, 1) by `WeightProvider`. We have predefined activators and 
+The weights are initialized randomly in range (-1, 1) by `WeightBreeder`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
 A full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
@@ -91,7 +91,7 @@ and learning rate producing a new learning rate. Training terminates after `iter
 satisfies `precision`. 
 
 Another important aspect of the net is its numerical type. For example, on the GPU, you might want to work with `Float` instead of `Double`.
-The numerical type is set by explicitly annotating it on both the `WeightProvider` and `Settings` instances.
+The numerical type is set by explicitly annotating it on both the `WeightBreeder` and `Settings` instances.
 
 Have a look at the `Settings` class for the complete list of options.
 
@@ -231,13 +231,13 @@ We can save and load nets with `neuroflow.application.plugin.IO`. The weight mat
 import neuroflow.application.plugin.IO._
 
 val file = "/path/to/net.nf"
-implicit val weightProvider = File.readWeights[Double](file)
+implicit val breeder = File.readWeights[Double](file)
 val net = Network(layout, settings)
 File.writeWeights(net.weights, file)
 val json = Json.writeWeights(net.weights)
 ```
 
-The implicit `WeightProvider[Double]` to construct `net` comes from `File.readWeights`.
+The implicit `WeightBreeder[Double]` to construct `net` comes from `File.readWeights`.
 To save the weights back to `file`, we use `File.writeWeights`. To write into a database, 
 we can use `Json.writeWeights` to retrieve a raw JSON string and fire a SQL query with it.
 
@@ -250,7 +250,7 @@ Settings(
 ```
 
 It is good practice to use the `Waypoint[V]` option for nets with long training times. The training process can be seen as an 
-infinite sampling wheel, and with a waypoint, we can harvest weights now and then to compute intermediate results. Another reason 
-to use it is when the process (or cloud instance, hardware, etc) crashes, periodically saved weights allow us to continue training 
-from a recent point. Here, every `nth = 3` step, the waypoint function is executed, receiving as input iteration count and a 
-snapshot of the weights, which is written to file using `File.writeWeights`.
+infinite sampling wheel, and with waypoints we can harvest weights now and then to compute intermediate results. Another reason 
+to use it is when something crashes, periodically saved weights allow us to continue training from a recent point. Here, every 
+`nth = 3` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights, which is 
+written to file using `File.writeWeights`.

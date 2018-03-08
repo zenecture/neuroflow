@@ -9,7 +9,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import neuroflow.common.{CanProduce, Logs, ~>}
 import neuroflow.core.Network.Weights
-import neuroflow.core.{Network, WeightProvider}
+import neuroflow.core.{Network, WeightBreeder}
 import neuroflow.dsl.Layer
 
 import scala.collection.immutable.Stream
@@ -28,9 +28,9 @@ object IO extends Logs {
   object Json {
 
     /**
-      * Deserializes weights from `json` to construct a `WeightProvider`.
+      * Deserializes weights from `json` to construct a `WeightBreeder`.
       */
-    def readWeights[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = new WeightProvider[V] {
+    def readWeights[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(ls: Seq[Layer]): Network.Weights[V] = cp(json)
     }
 
@@ -45,9 +45,9 @@ object IO extends Logs {
   object File {
 
     /**
-      * Deserializes weights encoded as JSON from `file` to construct a `WeightProvider`.
+      * Deserializes weights encoded as JSON from `file` to construct a `WeightBreeder`.
       */
-    def readWeights[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightProvider[V] = ~> (Source.fromFile(file).mkString) map Json.readWeights[V]
+    def readWeights[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = ~> (Source.fromFile(file).mkString) map Json.readWeights[V]
 
     /**
       * Serializes `weights` of a network to `file` using JSON.

@@ -35,12 +35,12 @@ import scala.collection._
 object LSTMNetwork {
 
   implicit object double extends Constructor[Double, LSTMNetworkDouble] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): LSTMNetworkDouble = {
-      LSTMNetworkDouble(ls, SquaredMeanError(), settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): LSTMNetworkDouble = {
+      LSTMNetworkDouble(ls, SquaredMeanError(), settings, breeder(ls))
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightProvider.RNN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.RNN[Double]
 
 }
 

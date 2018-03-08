@@ -6,7 +6,7 @@ import jcuda.jcublas.{JCublas2, cublasHandle}
 import neuroflow.core.Activator._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
-import neuroflow.core.WeightProvider.BuildsWeightsFor
+import neuroflow.core.WeightBreeder.BuildsWeightsFor
 import neuroflow.core._
 import neuroflow.cuda._
 import neuroflow.dsl.{Focus, Layer}
@@ -29,20 +29,20 @@ import scala.collection.Seq
 object DenseNetwork {
   
   implicit object double extends Constructor[Double, DenseNetworkDouble] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit weightProvider: WeightProvider[Double]): DenseNetworkDouble = {
-      DenseNetworkDouble(ls, loss, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): DenseNetworkDouble = {
+      DenseNetworkDouble(ls, loss, settings, breeder(ls))
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightProvider.FFN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.FFN[Double]
 
   implicit object single extends Constructor[Float, DenseNetworkSingle] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit weightProvider: WeightProvider[Float]): DenseNetworkSingle = {
-      DenseNetworkSingle(ls, loss, settings, weightProvider(ls))
+    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): DenseNetworkSingle = {
+      DenseNetworkSingle(ls, loss, settings, breeder(ls))
     }
   }
 
-  implicit object weights_single extends neuroflow.core.WeightProvider.FFN[Float]
+  implicit object weights_single extends neuroflow.core.WeightBreeder.FFN[Float]
   
 }
 

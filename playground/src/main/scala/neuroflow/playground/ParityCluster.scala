@@ -30,7 +30,7 @@ object ParityCluster {
 
   def apply = {
 
-    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
+    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
 
     val classes = (0 until dimension) map (i => (i, Random.nextInt(2))) map {
       case (i, k) if i % 2 == 0 && k % 2 == 0 => ("xw", ζ[Double](dimension).toScalaVector.updated(i, 1.0) ++ scala.Vector(1.0))

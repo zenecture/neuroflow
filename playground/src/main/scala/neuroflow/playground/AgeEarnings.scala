@@ -36,7 +36,7 @@ object AgeEarnings {
       iterations = 200000)
 
     import neuroflow.nets.gpu.DenseNetwork._
-    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
+    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
 
     val network = Network(Vector(1) :: Dense(20, Sigmoid) :: Dense(1, Sigmoid) :: SquaredMeanError(), sets)
 

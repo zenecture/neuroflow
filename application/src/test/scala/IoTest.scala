@@ -27,7 +27,7 @@ class IoTest extends Specification {
   val layers = Vector(2) :: Dense(3, Sigmoid) :: Dense(2, Sigmoid) :: SquaredMeanError()
 
   val measure: FFN[Double] = {
-    implicit val wp = neuroflow.core.WeightProvider[Double].static(0.0)
+    implicit val wp = neuroflow.core.WeightBreeder[Double].static(0.0)
     Network(layers)
   }
 

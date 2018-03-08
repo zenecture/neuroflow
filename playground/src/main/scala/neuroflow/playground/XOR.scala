@@ -26,9 +26,9 @@ object XOR {
 
      */
 
-    import neuroflow.nets.gpu.DenseNetwork._
+    import neuroflow.nets.cpu.DenseNetwork._
 
-    implicit val wp = neuroflow.core.WeightProvider[Double].normal {
+    implicit val breeder = neuroflow.core.WeightBreeder[Double].normal {
       Map ( // normal config per weight layer
         0 -> (0.0, 1.0),
         1 -> (0.0, 0.1)

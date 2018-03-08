@@ -25,7 +25,7 @@ object Network extends Lexicon {
                                      (implicit
                                       startsWith: L StartsWith In,
                                       endsWith: L EndsWith Out,
-                                      weightProvider: WeightProvider[V],
+                                      weightBreeder: WeightBreeder[V],
                                       constructor: Constructor[V, N],
                                       extractor: Extractor[L, Layer, V]): N = {
     val (layers, loss) = extractor(layout)
@@ -84,7 +84,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 /** A minimal constructor for a [[Network]]. */
 @implicitNotFound("No `Constructor` in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
 trait Constructor[V, +N <: Network[_, _, _]] {
-  def apply(ls: Seq[Layer], loss: LossFunction[V], settings: Settings[V])(implicit weightProvider: WeightProvider[V]): N
+  def apply(ls: Seq[Layer], loss: LossFunction[V], settings: Settings[V])(implicit weightBreeder: WeightBreeder[V]): N
 }
 
 

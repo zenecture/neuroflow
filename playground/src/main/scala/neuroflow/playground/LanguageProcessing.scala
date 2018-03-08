@@ -62,7 +62,7 @@ object LanguageProcessing {
 
   def apply = {
 
-    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
+    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
 
     val cars = normalize(readAll("file/newsgroup/cars/"))
     val med = normalize(readAll("file/newsgroup/med/"))
@@ -88,7 +88,7 @@ object LanguageProcessing {
   def test = {
 
     val net = {
-      implicit val wp = File.readWeights[Double](netFile)
+      implicit val breeder = File.readWeights[Double](netFile)
       Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Tanh) :: SquaredMeanError(), Settings[Double]())
     }
 

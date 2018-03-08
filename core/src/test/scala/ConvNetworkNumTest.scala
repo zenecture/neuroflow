@@ -52,7 +52,7 @@ class ConvNetworkNumTest  extends Specification {
 
   def check[Net <: CNN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
-    implicit object weights extends neuroflow.core.WeightProvider.CNN[Double]
+    implicit object weights extends neuroflow.core.WeightBreeder.CNN[Double]
 
     import neuroflow.dsl.Extractor.extractor
 
@@ -71,7 +71,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val rand = weights.convoluted(extractor(L)._1, weights.normalSeed(0.1, 0.01))
 
-    implicit val wp = new WeightProvider[Double] {
+    implicit val wp = new WeightBreeder[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
     }
 

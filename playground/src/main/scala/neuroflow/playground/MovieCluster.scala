@@ -49,7 +49,7 @@ object MovieCluster {
   def apply = {
 
     import neuroflow.application.plugin.Extensions.VectorOps
-    implicit val wp = neuroflow.core.WeightProvider[Double].random(-1, 1)
+    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
 
     val topByUser = observations.take(observationLimit).filter(_.rating == 5).groupBy(_.user).map {
       case (user, ratings) =>
@@ -72,7 +72,7 @@ object MovieCluster {
   def find = {
 
     val net = {
-      implicit val wp = IO.File.readWeights[Double](netFile)
+      implicit val breeder = IO.File.readWeights[Double](netFile)
       Network(layout, Settings[Double]())
     }
 
