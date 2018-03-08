@@ -8,12 +8,17 @@ import neuroflow.dsl.Convolution
 import scala.reflect.ClassTag
 
 /**
+  * Collection of common operators expressed as [[UFunc]].
+  * The CPU implementations are found here, the GPU implicits
+  * are found in the [[neuroflow.cuda.CuMatrix]] area.
+  *
   * @author bogdanski
   * @since 07.03.18
   */
 
+
 /**
-  * Subtracts maximum with respect to row.
+  * Subtracts row maximum from row elements.
   * Example given:
   *   |1 2 1|    |-1 0 -1|
   *   |2 2 2| -> | 0 0  0|
@@ -61,6 +66,9 @@ object subRowMax extends UFunc {
 
 
 
+/**
+  * Convolutes [[neuroflow.common.Tensor3D]] linearized in `in`, producing a new one.
+  */
 object convolute extends UFunc {
 
   implicit object convoluteImplDouble extends convolute.Impl3[DenseMatrix[Double], Convolution[Double], Int, DenseMatrix[Double]] {
@@ -104,7 +112,7 @@ object convolute extends UFunc {
               val a = (xs * SX) + fX
               val b = (y * SY) + fY
               if (a >= PX && a < (PX + IX) &&
-                b >= PY && b < (PY + IY)) {
+                  b >= PY && b < (PY + IY)) {
                 val aNp = a - PX
                 val bNp = b - PY
                 val p = in(z, (xb * IX * IY) + aNp * IY + bNp)
@@ -132,6 +140,9 @@ object convolute extends UFunc {
 
 
 
+/**
+  * Backprops convolution of a [[neuroflow.common.Tensor3D]] linearized in `in`.
+  */
 object convolute_backprop extends UFunc {
 
   implicit object convoluteBpImplDouble extends convolute_backprop.Impl3[DenseMatrix[Double], Convolution[Double], Int, DenseMatrix[Double]] {
@@ -175,7 +186,7 @@ object convolute_backprop extends UFunc {
               val a = (xs * SX) + fX
               val b = (y * SY) + fY
               if (a >= PX && a < (PX + IX) &&
-                b >= PY && b < (PY + IY)) {
+                  b >= PY && b < (PY + IY)) {
                 val aNp = a - PX
                 val bNp = b - PY
                 val d = in(z, (xb * X * Y) + xs * Y + y)
@@ -203,6 +214,17 @@ object convolute_backprop extends UFunc {
 
 
 
+/**
+  * Reshapes matrix `in` by transposing the batch.
+  * Examples given:
+  *   |1 2 3|    |1 1 1|
+  *   |1 2 3| -> |2 2 2|
+  *   |1 2 3|    |3 3 3|
+  *
+  *   |1 1 2 2|    |1 1 1 1 1 1|
+  *   |1 1 2 2| -> |2 2 2 2 2 2|
+  *   |1 1 2 2|
+  */
 object reshape_batch extends UFunc {
 
   implicit object reshapeBatchImplDouble extends reshape_batch.Impl3[DenseMatrix[Double], (Int, Int, Int), Int, DenseMatrix[Double]] {
@@ -243,7 +265,17 @@ object reshape_batch extends UFunc {
 }
 
 
-
+/**
+  * Reshapes matrix `in` by transposing the batch.
+  * Examples given:
+  *   |1 2 3|    |1 1 1|
+  *   |1 2 3| <- |2 2 2|
+  *   |1 2 3|    |3 3 3|
+  *
+  *   |1 1 2 2|    |1 1 1 1 1 1|
+  *   |1 1 2 2| <- |2 2 2 2 2 2|
+  *   |1 1 2 2|
+  */
 object reshape_batch_backprop extends UFunc {
 
   implicit object reshapeBatchBpImplDouble extends reshape_batch_backprop.Impl3[DenseMatrix[Double], (Int, Int, Int), Int, DenseMatrix[Double]] {
