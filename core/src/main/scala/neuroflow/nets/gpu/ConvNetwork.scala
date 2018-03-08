@@ -185,21 +185,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
   }
 
 
-  private def convolute(in: CuMatrix[Double], l: Convolution[_], batchSize: Int): CuMatrix[Double] =
-    CuMatrix.ConvOps.convolute(in, l.dimIn._1, l.dimIn._2, l.dimOut._1, l.dimOut._2, l.dimIn._3,
-      batchSize, l.field._1, l.field._2, l.stride._1, l.stride._2, l.padding._1, l.padding._2)
-
-  private def convolute_bp(in: CuMatrix[Double], l: Convolution[_], batchSize: Int): CuMatrix[Double] =
-    CuMatrix.ConvOps.convolute_bp(in, l.dimIn._1, l.dimIn._2, l.dimOut._1, l.dimOut._2, l.dimOut._3,
-      batchSize, l.field._1, l.field._2, l.stride._1, l.stride._2, l.padding._1, l.padding._2)
-
-  private def reshape_batch(in: CuMatrix[Double], dim: (Int, Int, Int), batchSize: Int): CuMatrix[Double] =
-    CuMatrix.ConvOps.reshape_batch(in, dim._1, dim._2, dim._3, batchSize)
-
-  private def reshape_batch_bp(in: CuMatrix[Double], dim: (Int, Int, Int), batchSize: Int): CuMatrix[Double] =
-    CuMatrix.ConvOps.reshape_batch_bp(in, dim._1, dim._2, dim._3, batchSize)
-
-
   /**
     * Computes gradient for weights with respect to given batch,
     * adapts their value using gradient descent and returns the loss matrix.
@@ -264,7 +249,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       } else if (i == _lastC) {
         val l = _convLayers(i)
         val d1 = ds(i + 1) * _cuWeights(i + 1).t
-        val d2 = reshape_batch_bp(d1, l.dimOut, batchSize)
+        val d2 = reshape_batch_backprop(d1, l.dimOut, batchSize)
         val d = d2 *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
@@ -273,7 +258,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       } else {
         val l = _convLayers(i + 1)
         val ww = reshape_batch(_cuWeights(i + 1), (l.field._1, l.field._2, l.filters), l.dimIn._3)
-        val dc = convolute_bp(ds(i + 1), l, batchSize)
+        val dc = convolute_backprop(ds(i + 1), l, batchSize)
         val d = ww * dc *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
@@ -407,7 +392,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
     case (_, _: Convolution[_])   => true
     case _                        => false
   }.toMap.mapValues {
-    case c: Convolution[_]        => c
+    case c: Convolution[_] => c.asInstanceOf[Convolution[Float]]
   }
 
   private val _outputDim = _allLayers.last.neurons
@@ -507,21 +492,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
   }
 
 
-  private def convolute(in: CuMatrix[Float], l: Convolution[_], batchSize: Int): CuMatrix[Float] =
-    CuMatrix.ConvOps.convolute(in, l.dimIn._1, l.dimIn._2, l.dimOut._1, l.dimOut._2, l.dimIn._3,
-      batchSize, l.field._1, l.field._2, l.stride._1, l.stride._2, l.padding._1, l.padding._2)
-
-  private def convolute_bp(in: CuMatrix[Float], l: Convolution[_], batchSize: Int): CuMatrix[Float] =
-    CuMatrix.ConvOps.convolute_bp(in, l.dimIn._1, l.dimIn._2, l.dimOut._1, l.dimOut._2, l.dimOut._3,
-      batchSize, l.field._1, l.field._2, l.stride._1, l.stride._2, l.padding._1, l.padding._2)
-
-  private def reshape_batch(in: CuMatrix[Float], dim: (Int, Int, Int), batchSize: Int): CuMatrix[Float] =
-    CuMatrix.ConvOps.reshape_batch(in, dim._1, dim._2, dim._3, batchSize)
-
-  private def reshape_batch_bp(in: CuMatrix[Float], dim: (Int, Int, Int), batchSize: Int): CuMatrix[Float] =
-    CuMatrix.ConvOps.reshape_batch_bp(in, dim._1, dim._2, dim._3, batchSize)
-
-
   /**
     * Computes gradient for weights with respect to given batch,
     * adapts their value using gradient descent and returns the loss matrix.
@@ -590,7 +560,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
       } else if (i == _lastC) {
         val l = _convLayers(i)
         val d1 = ds(i + 1) * _cuWeights(i + 1).t
-        val d2 = reshape_batch_bp(d1, l.dimOut, batchSize)
+        val d2 = reshape_batch_backprop(d1, l.dimOut, batchSize)
         val d = d2 *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
@@ -601,7 +571,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
       } else {
         val l = _convLayers(i + 1)
         val ww = reshape_batch(_cuWeights(i + 1), (l.field._1, l.field._2, l.filters), l.dimIn._3)
-        val dc = convolute_bp(ds(i + 1), l, batchSize)
+        val dc = convolute_backprop(ds(i + 1), l, batchSize)
         val d = ww * dc *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw

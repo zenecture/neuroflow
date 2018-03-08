@@ -11,3 +11,7 @@ nvcc $NVCC_OPTS -D TYPE=float  --ptx cuda/vector_kernels.cu -o cuda/vector_kerne
 
 nvcc $NVCC_OPTS -D TYPE=float  --ptx cuda/matrix_convops.cu -o cuda/matrix_convops_float.ptx
 nvcc $NVCC_OPTS -D TYPE=double --ptx cuda/matrix_convops.cu -o cuda/matrix_convops_double.ptx
+
+nvcc $NVCC_OPTS -D TYPE=float  --ptx cuda/matrix_misc.cu -o cuda/matrix_misc_float.ptx
+nvcc $NVCC_OPTS -D TYPE=double --ptx cuda/matrix_misc.cu -o cuda/matrix_misc_double.ptx
+

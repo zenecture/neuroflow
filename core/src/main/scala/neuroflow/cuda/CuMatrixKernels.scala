@@ -8,11 +8,16 @@ import java.util.concurrent.ConcurrentHashMap
 
 import breeze.linalg.{BroadcastedColumns, BroadcastedRows}
 import neuroflow.common.Logs
+import neuroflow.core._
+import neuroflow.dsl.Convolution
 
 /**
   * @author dlwh
+  * @author bogdanski
   **/
 trait CuMatrixKernels extends Logs { this: CuMatrix.type =>
+
+  /* Default UFuncs */
   class KernelBroker[T: ClassTag](typeName: String) {
 
     private val module: CuModule = {
@@ -245,6 +250,163 @@ trait CuMatrixKernels extends Logs { this: CuMatrix.type =>
       }
     }
   }
+
+  /* ConvOps */
+  class ConvOpsKernelBroker[V: ClassTag](typeName: String) {
+
+    private val module: CuModule = {
+      debug(s"Loading module: matrix_convops_$typeName.ptx")
+      CuModule(getClass.getResourceAsStream(s"/cuda/matrix_convops_$typeName.ptx"))
+    }
+
+    private val kernel_convolute = module.getKernel14[Pointer, Pointer, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int](s"convolute_$typeName")
+    private val kernel_convolute_bp = module.getKernel14[Pointer, Pointer, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int](s"convolute_bp_$typeName")
+    private val kernel_reshape_batch = module.getKernel6[Pointer, Pointer, Int, Int, Int, Int](s"reshape_batch_$typeName")
+    private val kernel_reshape_batch_bp = module.getKernel6[Pointer, Pointer, Int, Int, Int, Int](s"reshape_batch_bp_$typeName")
+
+
+    def convoluteImpl(implicit context: CuContext = CuContext.ensureContext): convolute.Impl3[CuMatrix[V], Convolution[V], Int, CuMatrix[V]] = {
+
+      new convolute.Impl3[CuMatrix[V], Convolution[V], Int, CuMatrix[V]] {
+        def apply(in: CuMatrix[V], l: Convolution[V], bs: Int): CuMatrix[V] = {
+
+          val (ix, iy, x, y, z, fx, fy, sx, sy, px, py) =
+            (l.dimIn._1, l.dimIn._2, l.dimOut._1, l.dimOut._2,
+              l.dimIn._3, l.field._1, l.field._2, l.stride._1,
+              l.stride._2, l.padding._1, l.padding._2)
+
+          val xb = x * bs
+
+          val out = CuMatrix.zeros[V](fx * fy * z, xb * y)
+
+          val threads = (4, 4, 4)
+
+          val blocks = (
+            math.ceil(xb.toDouble / threads._1.toDouble).toInt,
+            math.ceil(y.toDouble / threads._2.toDouble).toInt,
+            math.ceil(z.toDouble / threads._3.toDouble).toInt
+          )
+
+          kernel_convolute(blocks, threads)(in.offsetPointer, out.offsetPointer, ix, iy, x, y, z, bs, fx, fy, sx, sy, px, py)
+
+          out
+
+        }
+      }
+
+    }
+
+
+
+    def convoluteBpImpl(implicit context: CuContext = CuContext.ensureContext): convolute_backprop.Impl3[CuMatrix[V], Convolution[V], Int, CuMatrix[V]] = {
+
+      new convolute_backprop.Impl3[CuMatrix[V], Convolution[V], Int, CuMatrix[V]] {
+        def apply(in: CuMatrix[V], l: Convolution[V], bs: Int): CuMatrix[V] = {
+
+          val (ix, iy, x, y, z, fx, fy, sx, sy, px, py) =
+            (l.dimIn._1, l.dimIn._2, l.dimOut._1, l.dimOut._2,
+              l.dimOut._3, l.field._1, l.field._2, l.stride._1,
+              l.stride._2, l.padding._1, l.padding._2)
+
+          val xb = x * bs
+
+          val out = CuMatrix.zeros[V](fx * fy * z, ix * iy * bs)
+
+          val threads = (4, 4, 4)
+
+          val blocks = (
+            math.ceil(xb.toDouble / threads._1.toDouble).toInt,
+            math.ceil(y.toDouble / threads._2.toDouble).toInt,
+            math.ceil(z.toDouble / threads._3.toDouble).toInt
+          )
+
+          kernel_convolute_bp(blocks, threads)(in.offsetPointer, out.offsetPointer, ix, iy, x, y, z, bs, fx, fy, sx, sy, px, py)
+
+          out
+
+        }
+      }
+
+    }
+
+
+
+    def reshapeBatchImpl(implicit context: CuContext = CuContext.ensureContext): reshape_batch.Impl3[CuMatrix[V], (Int, Int, Int), Int, CuMatrix[V]] = {
+
+      new reshape_batch.Impl3[CuMatrix[V], (Int, Int, Int), Int, CuMatrix[V]] {
+        def apply(in: CuMatrix[V], dim: (Int, Int, Int), bs: Int): CuMatrix[V] = {
+          val (x, y, z) = dim
+          val dimOut = (x * y * z, bs)
+          val out = CuMatrix.zeros[V](dimOut._2, dimOut._1)
+
+          val threads = (4, 4, 1)
+
+          val blocks = (
+            math.ceil(dimOut._1.toDouble / threads._1.toDouble).toInt,
+            math.ceil(dimOut._2.toDouble / threads._2.toDouble).toInt,
+            1
+          )
+
+          kernel_reshape_batch(blocks, threads)(in.offsetPointer, out.offsetPointer, x, y, z, bs)
+
+          out
+        }
+      }
+
+    }
+
+
+    def reshapeBatchBpImpl(implicit context: CuContext = CuContext.ensureContext): reshape_batch_backprop.Impl3[CuMatrix[V], (Int, Int, Int), Int, CuMatrix[V]] = {
+
+      new reshape_batch_backprop.Impl3[CuMatrix[V], (Int, Int, Int), Int, CuMatrix[V]] {
+        def apply(in: CuMatrix[V], dim: (Int, Int, Int), bs: Int): CuMatrix[V] = {
+          val (x, y, z) = dim
+          val out = CuMatrix.zeros[V](z, x * y * bs)
+          val threads = (4, 4, 1)
+
+          val blocks = (
+            math.ceil((x * y * z).toDouble / threads._1.toDouble).toInt,
+            math.ceil(bs.toDouble / threads._2.toDouble).toInt,
+            1
+          )
+
+          kernel_reshape_batch_bp(blocks, threads)(in.offsetPointer, out.offsetPointer, x, y, z, bs)
+
+          out
+        }
+      }
+
+    }
+
+  }
+
+  /* Misc */
+  class MiscKernelBroker[V: ClassTag](typeName: String) {
+
+    private val module: CuModule = {
+      debug(s"Loading module: matrix_misc_$typeName.ptx")
+      CuModule(getClass.getResourceAsStream(s"/cuda/matrix_misc_$typeName.ptx"))
+    }
+
+    private val kernel_subrowmax = module.getKernel4[Pointer, Pointer, Int, Int](s"subrowmax_$typeName")
+
+    def subrowmax(implicit context: CuContext = CuContext.ensureContext): subRowMax.Impl[CuMatrix[V], CuMatrix[V]] = {
+
+      new subRowMax.Impl[CuMatrix[V], CuMatrix[V]] {
+        def apply(in: CuMatrix[V]): CuMatrix[V] = {
+          val out = CuMatrix.zeros[V](in.rows, in.cols)
+          val threads = (4, 1, 1)
+          val blocks = (math.ceil(in.rows.toDouble / threads._1.toDouble).toInt, 1, 1)
+          kernel_subrowmax(blocks, threads)(in.offsetPointer, out.offsetPointer, in.rows, in.cols)
+          out
+        }
+      }
+
+    }
+
+  }
+
+
 
 }
 

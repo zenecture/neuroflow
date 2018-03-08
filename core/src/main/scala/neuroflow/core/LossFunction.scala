@@ -16,6 +16,7 @@ import scala.reflect.ClassTag
   * @since 02.10.17
   */
 
+
 /**
   * A loss function gets target `y`, prediction `x`, computes loss and gradient,
   * which will be backpropped into the raw output layer of a net.
@@ -25,7 +26,7 @@ trait LossFunction[V] extends Layout {
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[DenseMatrix[V], V],
+            _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]],
             _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
             _sum: sum.Impl[DenseMatrix[V], V],
             _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
@@ -45,7 +46,7 @@ trait LossFunction[V] extends Layout {
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
             handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[CuMatrix[V], V],
+            _srm: subRowMax.Impl[CuMatrix[V], CuMatrix[V]],
             _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
             _sum: sum.Impl[CuMatrix[V], V],
             _log: log.Impl[CuMatrix[V], CuMatrix[V]],
@@ -68,6 +69,8 @@ trait LossFunction[V] extends Layout {
 
 }
 
+
+
 /**
   *
   *   L = Σ1/2(y - x)²
@@ -82,7 +85,7 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[DenseMatrix[V], V],
+            _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]],
             _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
             _sum: sum.Impl[DenseMatrix[V], V],
             _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
@@ -114,7 +117,7 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
             handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[CuMatrix[V], V],
+            _srm: subRowMax.Impl[CuMatrix[V], CuMatrix[V]],
             _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
             _sum: sum.Impl[CuMatrix[V], V],
             _log: log.Impl[CuMatrix[V], CuMatrix[V]],
@@ -153,6 +156,8 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
 
 }
 
+
+
 /**
   *
   *   L = -Σ(y * log(e^x / Σe^X))
@@ -171,7 +176,7 @@ case class Softmax[V]() extends LossFunction[V] {
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[DenseMatrix[V], V],
+            _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]],
             _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
             _sum: sum.Impl[DenseMatrix[V], V],
             _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
@@ -199,7 +204,7 @@ case class Softmax[V]() extends LossFunction[V] {
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
             handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
-            _max: max.Impl[CuMatrix[V], V],
+            _srm: subRowMax.Impl[CuMatrix[V], CuMatrix[V]],
             _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
             _sum: sum.Impl[CuMatrix[V], V],
             _log: log.Impl[CuMatrix[V], CuMatrix[V]],
@@ -233,6 +238,7 @@ case class Softmax[V]() extends LossFunction[V] {
 }
 
 
+
 /**
   * Computes e^x / Σe^X for given matrix `x` by row.
   */
@@ -240,12 +246,12 @@ object SoftmaxImpl {
 
   def apply[V: ClassTag : Zero : Semiring](x: DenseMatrix[V])
               (implicit
-               _max: max.Impl[DenseMatrix[V], V],
+               _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]],
                _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
                _sum: sum.Impl[DenseMatrix[V], V],
                _sub: OpSub.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
                _div: OpDiv.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] = {
-    val r1 = x - _max(x)
+    val r1 = _srm(x)
     val r2 = _exp(r1)
     val id = DenseMatrix.ones[V](x.cols, x.cols)
     val sm = r2 * id
@@ -256,13 +262,13 @@ object SoftmaxImpl {
   def apply[V: ClassTag : Zero : Semiring](x: CuMatrix[V])
               (implicit
                _cs: OpSet.InPlaceImpl2[CuMatrix[V],V],
-               _max: max.Impl[CuMatrix[V], V],
+               _srm: subRowMax.Impl[CuMatrix[V], CuMatrix[V]],
                _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
                _mat: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
                _sum: sum.Impl[CuMatrix[V], V],
                _sub: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
                _div: OpDiv.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]]): CuMatrix[V] = {
-    val r1 = x - _max(x)
+    val r1 = _srm(x)
     val r2 = _exp(r1)
     val id = CuMatrix.ones[V](x.cols, x.cols)
     val sm = r2 * id
@@ -275,3 +281,4 @@ object SoftmaxImpl {
   }
 
 }
+

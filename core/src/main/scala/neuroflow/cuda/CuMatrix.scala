@@ -678,12 +678,14 @@ trait CuMatrixSliceOps { this: CuMatrix.type =>
 
 }
 
-trait CuMatrixFuns extends CuMatrixKernels with CuMatrixConvOps { this: CuMatrix.type =>
+trait CuMatrixFuns extends CuMatrixKernels { this: CuMatrix.type =>
 
   implicit val kernelsFloat  = new KernelBroker[Float]("float")
   implicit val kernelsDouble = new KernelBroker[Double]("double")
   implicit val convKernelsFloat  = new ConvOpsKernelBroker[Float]("float")
   implicit val convKernelsDouble = new ConvOpsKernelBroker[Double]("double")
+  implicit val miscKernelsFloat = new MiscKernelBroker[Float]("float")
+  implicit val miscKernelsDouble = new MiscKernelBroker[Double]("double")
 
   object Activators {
 
@@ -698,23 +700,12 @@ trait CuMatrixFuns extends CuMatrixKernels with CuMatrixConvOps { this: CuMatrix
 
   }
 
-  object ConvOps {
+  implicit def convoluteImpl[T](implicit broker: ConvOpsKernelBroker[T]) = broker.convoluteImpl
+  implicit def convoluteBpImpl[T](implicit broker: ConvOpsKernelBroker[T]) = broker.convoluteBpImpl
+  implicit def reshapeBatchImpl[T](implicit broker: ConvOpsKernelBroker[T]) = broker.reshapeBatchImpl
+  implicit def reshapeBatchBpImpl[T](implicit broker: ConvOpsKernelBroker[T]) = broker.reshapeBatchBpImpl
 
-    def convolute[T](in: CuMatrix[T], IX: Int, IY: Int, X: Int, Y: Int, Z: Int, BS: Int,
-                     FX: Int, FY: Int, SX: Int, SY: Int, PX: Int, PY: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.convolute(in, IX, IY, X, Y, Z, BS, FX, FY, SX, SY, PX, PY)
-
-    def convolute_bp[T](in: CuMatrix[T], IX: Int, IY: Int, X: Int, Y: Int, Z: Int, BS: Int,
-                        FX: Int, FY: Int, SX: Int, SY: Int, PX: Int, PY: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.convolute_bp(in, IX, IY, X, Y, Z, BS, FX, FY, SX, SY, PX, PY)
-
-    def reshape_batch[T](in: CuMatrix[T], X: Int, Y: Int, Z: Int, BS: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.reshape_batch(in, X, Y, Z, BS)
-
-    def reshape_batch_bp[T](in: CuMatrix[T], X: Int, Y: Int, Z: Int, BS: Int)(implicit broker: ConvOpsKernelBroker[T]): CuMatrix[T] =
-      broker.reshape_batch_bp(in, X, Y, Z, BS)
-
-  }
+  implicit def subRowMaxImpl[T](implicit broker: MiscKernelBroker[T]) = broker.subrowmax
 
   implicit def acosImpl[T](implicit broker: KernelBroker[T]) =  broker.implFor[acos.type]("acos")
   implicit def asinImpl[T](implicit broker: KernelBroker[T]) =  broker.implFor[asin.type]("asin")

@@ -158,173 +158,6 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
   }
 
-  private def convolute(in: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
-
-    val IX = l.dimIn._1
-    val IY = l.dimIn._2
-
-    val X = l.dimOut._1
-    val Y = l.dimOut._2
-    val Z = l.dimIn._3
-
-    val XB = X * batchSize
-
-    val FX = l.field._1
-    val FY = l.field._2
-    val SX = l.stride._1
-    val SY = l.stride._2
-    val PX = l.padding._1
-    val PY = l.padding._2
-
-    val out = DenseMatrix.zeros[Double](FX * FY * Z, XB * Y)
-
-    var (x, y, z) = (0, 0, 0)
-
-    while (x < XB) {
-      while (y < Y) {
-        while (z < Z) {
-          var (fX, fY) = (0, 0)
-          while (fX < FX) {
-            while (fY < FY) {
-              val xs = x % X
-              val xb = x / X
-              val a = (xs * SX) + fX
-              val b = (y * SY) + fY
-              if (a >= PX && a < (PX + IX) &&
-                  b >= PY && b < (PY + IY)) {
-                val aNp = a - PX
-                val bNp = b - PY
-                val p = in(z, (xb * IX * IY) + aNp * IY + bNp)
-                out.update((z * FX * FY) + fX * FY + fY, (xb * X * Y) + xs * Y + y, p)
-              }
-              fY += 1
-            }
-            fY = 0
-            fX += 1
-          }
-          z += 1
-        }
-        z = 0
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
-
-  private def convolute_bp(in: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
-
-    val IX = l.dimIn._1
-    val IY = l.dimIn._2
-
-    val X = l.dimOut._1
-    val Y = l.dimOut._2
-    val Z = l.dimOut._3
-
-    val XB = X * batchSize
-
-    val FX = l.field._1
-    val FY = l.field._2
-    val SX = l.stride._1
-    val SY = l.stride._2
-    val PX = l.padding._1
-    val PY = l.padding._2
-
-    val out = DenseMatrix.zeros[Double](FX * FY * Z, IX * IY * batchSize)
-
-    var (x, y, z) = (0, 0, 0)
-
-    while (x < XB) {
-      while (y < Y) {
-        while (z < Z) {
-          var (fX, fY) = (0, 0)
-          while (fX < FX) {
-            while (fY < FY) {
-              val xs = x % X
-              val xb = x / X
-              val a = (xs * SX) + fX
-              val b = (y * SY) + fY
-              if (a >= PX && a < (PX + IX) &&
-                  b >= PY && b < (PY + IY)) {
-                val aNp = a - PX
-                val bNp = b - PY
-                val d = in(z, (xb * X * Y) + xs * Y + y)
-                out.update((z * FX * FY) + fX * FY + fY, (xb * IX * IY) + aNp * IY + bNp, d)
-              }
-              fY += 1
-            }
-            fY = 0
-            fX += 1
-          }
-          z += 1
-        }
-        z = 0
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
-
-  private def reshape_batch(in: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
-
-    val X = dim._1
-    val Y = dim._2
-    val Z = dim._3
-
-    val out = DenseMatrix.zeros[Double](batchSize, X * Y * Z)
-
-    var (x, y) = (0, 0)
-
-    while (x < X * Y * Z) {
-      while (y < batchSize) {
-        val a = x % (X * Y)
-        val b = x / (X * Y)
-        val c = y * (X * Y)
-        val p = in(b, c + a)
-        out.update(y, x, p)
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
-
-  private def reshape_batch_bp(in: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
-
-    val X = dim._1
-    val Y = dim._2
-    val Z = dim._3
-
-    val out = DenseMatrix.zeros[Double](Z, X * Y * batchSize)
-
-    var (x, y) = (0, 0)
-
-    while (x < X * Y * Z) {
-      while (y < batchSize) {
-        val a = x % (X * Y)
-        val b = x / (X * Y)
-        val c = y * (X * Y)
-        val p = in(y, x)
-        out.update(b, c + a, p)
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
 
   /**
     * Computes gradient for weights with respect to given batch,
@@ -382,7 +215,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       } else if (i == _lastC) {
         val l = _convLayers(i)
         val d1 = ds(i + 1) * weights(i + 1).t
-        val d2 = reshape_batch_bp(d1, l.dimOut, batchSize)
+        val d2 = reshape_batch_backprop(d1, l.dimOut, batchSize)
         val d = d2 *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
@@ -391,7 +224,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       } else {
         val l = _convLayers(i + 1)
         val ww = reshape_batch(weights(i + 1), (l.field._1, l.field._2, l.filters), l.dimIn._3)
-        val dc = convolute_bp(ds(i + 1), l, batchSize)
+        val dc = convolute_backprop(ds(i + 1), l, batchSize)
         val d = ww * dc *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
@@ -580,173 +413,6 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
 
   }
 
-  private def convolute(in: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
-
-    val IX = l.dimIn._1
-    val IY = l.dimIn._2
-
-    val X = l.dimOut._1
-    val Y = l.dimOut._2
-    val Z = l.dimIn._3
-
-    val XB = X * batchSize
-
-    val FX = l.field._1
-    val FY = l.field._2
-    val SX = l.stride._1
-    val SY = l.stride._2
-    val PX = l.padding._1
-    val PY = l.padding._2
-
-    val out = DenseMatrix.zeros[Float](FX * FY * Z, XB * Y)
-
-    var (x, y, z) = (0, 0, 0)
-
-    while (x < XB) {
-      while (y < Y) {
-        while (z < Z) {
-          var (fX, fY) = (0, 0)
-          while (fX < FX) {
-            while (fY < FY) {
-              val xs = x % X
-              val xb = x / X
-              val a = (xs * SX) + fX
-              val b = (y * SY) + fY
-              if (a >= PX && a < (PX + IX) &&
-                  b >= PY && b < (PY + IY)) {
-                val aNp = a - PX
-                val bNp = b - PY
-                val p = in(z, (xb * IX * IY) + aNp * IY + bNp)
-                out.update((z * FX * FY) + fX * FY + fY, (xb * X * Y) + xs * Y + y, p)
-              }
-              fY += 1
-            }
-            fY = 0
-            fX += 1
-          }
-          z += 1
-        }
-        z = 0
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
-
-  private def convolute_bp(in: Matrix, l: Convolution[_], batchSize: Int): Matrix = {
-
-    val IX = l.dimIn._1
-    val IY = l.dimIn._2
-
-    val X = l.dimOut._1
-    val Y = l.dimOut._2
-    val Z = l.dimOut._3
-
-    val XB = X * batchSize
-
-    val FX = l.field._1
-    val FY = l.field._2
-    val SX = l.stride._1
-    val SY = l.stride._2
-    val PX = l.padding._1
-    val PY = l.padding._2
-
-    val out = DenseMatrix.zeros[Float](FX * FY * Z, IX * IY * batchSize)
-
-    var (x, y, z) = (0, 0, 0)
-
-    while (x < XB) {
-      while (y < Y) {
-        while (z < Z) {
-          var (fX, fY) = (0, 0)
-          while (fX < FX) {
-            while (fY < FY) {
-              val xs = x % X
-              val xb = x / X
-              val a = (xs * SX) + fX
-              val b = (y * SY) + fY
-              if (a >= PX && a < (PX + IX) &&
-                  b >= PY && b < (PY + IY)) {
-                val aNp = a - PX
-                val bNp = b - PY
-                val d = in(z, (xb * X * Y) + xs * Y + y)
-                out.update((z * FX * FY) + fX * FY + fY, (xb * IX * IY) + aNp * IY + bNp, d)
-              }
-              fY += 1
-            }
-            fY = 0
-            fX += 1
-          }
-          z += 1
-        }
-        z = 0
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
-
-  private def reshape_batch(in: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
-
-    val X = dim._1
-    val Y = dim._2
-    val Z = dim._3
-
-    val out = DenseMatrix.zeros[Float](batchSize, X * Y * Z)
-
-    var (x, y) = (0, 0)
-
-    while (x < X * Y * Z) {
-      while (y < batchSize) {
-        val a = x % (X * Y)
-        val b = x / (X * Y)
-        val c = y * (X * Y)
-        val p = in(b, c + a)
-        out.update(y, x, p)
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
-
-  private def reshape_batch_bp(in: Matrix, dim: (Int, Int, Int), batchSize: Int): Matrix = {
-
-    val X = dim._1
-    val Y = dim._2
-    val Z = dim._3
-
-    val out = DenseMatrix.zeros[Float](Z, X * Y * batchSize)
-
-    var (x, y) = (0, 0)
-
-    while (x < X * Y * Z) {
-      while (y < batchSize) {
-        val a = x % (X * Y)
-        val b = x / (X * Y)
-        val c = y * (X * Y)
-        val p = in(y, x)
-        out.update(b, c + a, p)
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    out
-
-  }
 
   /**
     * Computes gradient for weights with respect to given batch,
@@ -804,7 +470,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
       } else if (i == _lastC) {
         val l = _convLayers(i)
         val d1 = ds(i + 1) * weights(i + 1).t
-        val d2 = reshape_batch_bp(d1, l.dimOut, batchSize)
+        val d2 = reshape_batch_backprop(d1, l.dimOut, batchSize)
         val d = d2 *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
@@ -813,7 +479,7 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
       } else {
         val l = _convLayers(i + 1)
         val ww = reshape_batch(weights(i + 1), (l.field._1, l.field._2, l.filters), l.dimIn._3)
-        val dc = convolute_bp(ds(i + 1), l, batchSize)
+        val dc = convolute_backprop(ds(i + 1), l, batchSize)
         val d = ww * dc *:* fb(i)
         val dw = d * fc(i).t
         dws += i -> dw
