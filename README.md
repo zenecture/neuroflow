@@ -145,6 +145,9 @@ The training progress is printed on console so we can track it.
 One line is printed per iteration, `Iteration a.b` where `a` is the iteration count, `b` is the batch and `Avg. Loss` is the mean of the summed batch loss `Vector`.
 The batch count `b` loops, depending on the batch size, whereas the iteration count `a` progresses linearly until training is finished. 
 
+<img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/wheel-3.png" width=500 height=242 />
+
+<small><em>Rolling over all samples with mini-batches (M:N).</em></small>
 
 To visualize the loss function, we can iteratively append the `Avg. Loss` to a `file` with `LossFuncOutput`.
 
