@@ -77,7 +77,8 @@ object subRowMax extends UFunc {
 
 
 /**
-  * Convolutes [[neuroflow.common.Tensor3D]] linearized in `in`, producing a new one.
+  * Convolutes [[neuroflow.common.Tensor3D]], operating on its
+  * linearized projection matrix `in`.
   */
 object convolute extends UFunc {
 
@@ -151,7 +152,8 @@ object convolute extends UFunc {
 
 
 /**
-  * Backprops convolution of a [[neuroflow.common.Tensor3D]] linearized in `in`.
+  * De-Convolutes [[neuroflow.common.Tensor3D]], operating on its
+  * linearized projection matrix `in`.
   */
 object convolute_backprop extends UFunc {
 
@@ -276,7 +278,7 @@ object reshape_batch extends UFunc {
 
 
 /**
-  * Reshapes matrix `in` by transposing the batch.
+  * Reshapes matrix `in` by de-transposing the batch.
   * Examples given:
   *   |1 2 3|    |1 1 1|
   *   |1 2 3| <- |2 2 2|
