@@ -74,6 +74,7 @@ object WeightBreeder {
 
 
   trait BuildWeightsFor[V, N <: Network[V, _, _]] extends BaseOps[V] {
+
     def normal(μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, normalSeed(μ, σ))
     }
@@ -93,6 +94,7 @@ object WeightBreeder {
     def static(seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, () => seed)
     }
+
   }
 
 
