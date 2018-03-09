@@ -57,7 +57,7 @@ class DenseNetworkNumTest extends Specification {
 
     val rand = weights.traverseAndBuild(extractor(L)._1, weights.normalSeed(1.0, 0.1))
 
-    implicit val wp = new WeightBreeder[Double] {
+    implicit val breeder = new WeightBreeder[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
     }
 
