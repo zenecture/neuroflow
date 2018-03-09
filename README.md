@@ -231,13 +231,13 @@ We can save and load nets with `neuroflow.application.plugin.IO`. The weight mat
 import neuroflow.application.plugin.IO._
 
 val file = "/path/to/net.nf"
-implicit val breeder = File.readWeights[Double](file)
+implicit val breeder = File.weightBreeder[Double](file)
 val net = Network(layout, settings)
 File.writeWeights(net.weights, file)
 val json = Json.writeWeights(net.weights)
 ```
 
-The implicit `WeightBreeder[Double]` to construct `net` comes from `File.readWeights`.
+The implicit `breeder` to construct `net` comes from `File.weightBreeder`.
 To save the weights back to `file`, we use `File.writeWeights`. To write into a database, 
 we can use `Json.writeWeights` to retrieve a raw JSON string and fire a SQL query with it.
 

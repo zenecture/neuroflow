@@ -30,7 +30,7 @@ object IO extends Logs {
     /**
       * Deserializes weights from `json` to construct a `WeightBreeder`.
       */
-    def readWeights[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = new WeightBreeder[V] {
+    def weightBreeder[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(ls: Seq[Layer]): Network.Weights[V] = cp(json)
     }
 
@@ -47,7 +47,7 @@ object IO extends Logs {
     /**
       * Deserializes weights encoded as JSON from `file` to construct a `WeightBreeder`.
       */
-    def readWeights[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = ~> (Source.fromFile(file).mkString) map Json.readWeights[V]
+    def weightBreeder[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = ~> (Source.fromFile(file).mkString) map Json.weightBreeder[V]
 
     /**
       * Serializes `weights` of a network to `file` using JSON.

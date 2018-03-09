@@ -88,7 +88,7 @@ object TextClassification {
   def test = {
 
     val net = {
-      implicit val breeder = File.readWeights[Double](netFile)
+      implicit val breeder = File.weightBreeder[Double](netFile)
       Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Sigmoid) :: Softmax())
     }
 

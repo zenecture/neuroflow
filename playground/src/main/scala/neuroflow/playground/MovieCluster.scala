@@ -72,7 +72,7 @@ object MovieCluster {
   def find = {
 
     val net = {
-      implicit val breeder = IO.File.readWeights[Double](netFile)
+      implicit val breeder = IO.File.weightBreeder[Double](netFile)
       Network(layout, Settings[Double]())
     }
 
