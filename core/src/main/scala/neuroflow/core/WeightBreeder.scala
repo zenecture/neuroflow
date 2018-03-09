@@ -44,7 +44,7 @@ object WeightBreeder {
     def normal[N <: Network[V, _, _]](μ: Double, σ: Double)(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.normal(μ, σ)
 
     /**
-      * Weights drawn from normal distribution with parameters,
+      * Weights drawn from normal distribution with parameters
       * specified individually for each layer using `config`, which maps
       * from index to `μ` and `σ`. The index is zero-based, e. g:
       *   Layout = 0 :: 1 :: 2 :: Loss
@@ -57,9 +57,9 @@ object WeightBreeder {
     def random[N <: Network[V, _, _]](r: (Double, Double))(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.random(r)
 
     /**
-      * Weights drawn from random distribution,
+      * Weights drawn from random distribution with range
       * specified individually for each layer using `config`, which maps
-      * from index to range `r`. The index is zero-based, e. g:
+      * from index to range. The index is zero-based, e. g:
       *   Layout = 0 :: 1 :: 2 :: Loss
       */
     def random[N <: Network[V, _, _]](config: Map[Int, (Double, Double)])(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.random(config)
