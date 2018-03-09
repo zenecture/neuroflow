@@ -29,16 +29,21 @@ object subRowMax extends UFunc {
   implicit object subRowMaxImplDouble extends subRowMax.Impl[DenseMatrix[Double], DenseMatrix[Double]] {
     def apply(in: DenseMatrix[Double]): DenseMatrix[Double] = {
       val out = in.copy
-      (0 until in.rows).foreach { r =>
+      var (r, c) = (0, 0)
+      while (r < in.rows) {
         var max = in(r, 0)
-        (0 until in.cols).foreach { c =>
+        while (c < in.cols) {
           val t = in(r, c)
           if (t > max) max = t
+          c += 1
         }
-        (0 until in.cols).foreach { c =>
+        c = 0
+        while (c < in.cols) {
           val t = in(r, c)
           out.update(r, c, t - max)
+          c += 1
         }
+        r += 1
       }
       out
     }
@@ -47,16 +52,21 @@ object subRowMax extends UFunc {
   implicit object subRowMaxImplFloat extends subRowMax.Impl[DenseMatrix[Float], DenseMatrix[Float]] {
     def apply(in: DenseMatrix[Float]): DenseMatrix[Float] = {
       val out = in.copy
-      (0 until in.rows).foreach { r =>
+      var (r, c) = (0, 0)
+      while (r < in.rows) {
         var max = in(r, 0)
-        (0 until in.cols).foreach { c =>
+        while (c < in.cols) {
           val t = in(r, c)
           if (t > max) max = t
+          c += 1
         }
-        (0 until in.cols).foreach { c =>
+        c = 0
+        while (c < in.cols) {
           val t = in(r, c)
           out.update(r, c, t - max)
+          c += 1
         }
+        r += 1
       }
       out
     }
