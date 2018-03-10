@@ -182,7 +182,7 @@ object ImageRecognition {
            |Weights| > 0 = 572125, |Weights| < 0 = 569507
 
          Then, the net overfits on the train set in the 94.0 % area, while
-         the recognition rate on test set plateaus around 70.0 % percent:
+         the recognition rate on test set plateaus around 70.0 %:
 
            train: Recognition rate = 94.26 %, Error rate = 5.74 %!
            test: Recognition rate = 69.04 %, Error rate = 30.96 %!
