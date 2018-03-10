@@ -180,7 +180,7 @@ object ImageRecognition {
            train ++ test: Recognition rate = 83.13 %, Error rate = 16.87 %!
            |Weights| > 0 = 572125, |Weights| < 0 = 569507
 
-         Then, the net overfits on the train set in the 94 % area, while
+         Then, the net fits on the train set in the 94 % area, while
          the recognition rate plateaus around 70 % on the test set:
 
            train: Recognition rate = 94.26 %, Error rate = 5.74 %!
