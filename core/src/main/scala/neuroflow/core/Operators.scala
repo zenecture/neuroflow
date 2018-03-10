@@ -117,7 +117,9 @@ object convolute extends UFunc {
                 val aNp = a - PX
                 val bNp = b - PY
                 val p = in(z, (xb * IX * IY) + aNp * IY + bNp)
-                out.update((z * FX * FY) + fX * FY + fY, (xb * X * Y) + xs * Y + y, p)
+                out.update((z * FX * FY) + fX * FY + fY,
+                           (xb * X * Y) + xs * Y + y,
+                            p)
               }
               fY += 1
             }
@@ -192,7 +194,9 @@ object convolute_backprop extends UFunc {
                 val aNp = a - PX
                 val bNp = b - PY
                 val d = in(z, (xb * X * Y) + xs * Y + y)
-                out.update((z * FX * FY) + fX * FY + fY, (xb * IX * IY) + aNp * IY + bNp, d)
+                out.update((z * FX * FY) + fX * FY + fY,
+                           (xb * IX * IY) + aNp * IY + bNp,
+                            d)
               }
               fY += 1
             }
