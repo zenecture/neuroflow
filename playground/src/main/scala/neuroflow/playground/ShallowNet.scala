@@ -18,10 +18,9 @@ object ShallowNet {
 
       The closed form solution is (-w1, +w2) or (+w1, -w2) where w1 = w2.
 
-        Proof:    w1*0.3 + (-w2*0.3) = 0.3w - 0.3w = 0
-                     =>  Sigmoid(0)  = 0.5 = y.
-
-      The goal is to find weights close to this exact shape.
+        Proof:   + w1*0.3 - w2*0.3 = 0.3w - 0.3w = 0
+                 - w1*0.3 + w2*0.3 = 0.3w - 0.3w = 0
+                                 =>  Sigmoid(0)  = 0.5 = y.
 
   */
 
@@ -40,7 +39,7 @@ object ShallowNet {
     net.train(Seq(->(0.3, 0.3)), Seq(->(0.5)))
 
     println("Output: " + net.evaluate(->(0.3, 0.3)))
-    println("Parameters must roughly be of shape: -a, +a or +a, -a")
+    println("Parameters must be of shape: -a, +a or +a, -a")
     println("Network was: " + net)
 
   }
