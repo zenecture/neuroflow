@@ -20,8 +20,8 @@ import scala.reflect.ClassTag
   * A [[WeightBreeder]] produces a weight matrix for each [[Layer]].
   */
 @implicitNotFound(
-  "No `WeightBreeder` in scope for type ${V}. Add your own or use a " +
-    "predefined breeder: implicit val wp = neuroflow.core.WeightBreeder[${V}]")
+  "\nNo `WeightBreeder` in scope for type ${V}. Example to add a random " +
+    "breeder:\nimplicit val breeder = neuroflow.core.WeightBreeder[${V}].random(0, 1)")
 trait WeightBreeder[V] extends (Seq[Layer] => Weights[V])
 
 object WeightBreeder {
