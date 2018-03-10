@@ -171,7 +171,7 @@ object ImageRecognition {
 
 
          The CIFAR set has 50000 (+10000 test) images á 32*32*3 pixels (rgb) from 10 classes.
-         All images are raw PNGs, without any pre-processing applied.
+         All image tensors are loaded from raw PNGs, no pre-processing (contrast enhancing et al) is applied.
 
          After 2-3h on a nVidia Tesla P100 GPU, the model gives these results:
 
@@ -187,7 +187,6 @@ object ImageRecognition {
            test: Recognition rate = 69.04 %, Error rate = 30.96 %!
            train ++ test: Recognition rate = 90.05 %, Error rate = 9.95 %!
            |Weights| > 0 = 572845, |Weights| < 0 = 568787
-
 
 
  */
