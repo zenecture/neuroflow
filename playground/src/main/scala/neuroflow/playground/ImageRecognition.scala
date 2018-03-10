@@ -2,7 +2,6 @@ package neuroflow.playground
 
 import breeze.linalg.{DenseVector, max}
 import neuroflow.application.plugin.Extensions._
-import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
@@ -70,7 +69,7 @@ object ImageRecognition {
       9 -> (0.01, 0.01)
     ))
 
-//    implicit val breeder = IO.File.weightBreeder[Float](wps + "-iter-1000.nf")
+//    implicit val breeder = neuroflow.application.plugin.IO.File.weightBreeder[Float](wps + "-iter-1000.nf")
 
     val net = Network(
       layout = L,
@@ -84,7 +83,7 @@ object ImageRecognition {
         iterations      = Int.MaxValue,
         precision       = 1E-2,
         batchSize       = Some(250),
-        gcThreshold     = Some(1024 * 1024 * 1024L /* = 1G */),
+        gcThreshold     = Some(1024 * 1024 * 1024L /* 1G */),
         lossFuncOutput  = Some(LossFuncOutput(Some(lfo))),
         waypoint        = Some(Waypoint(nth = 1000, (iter, ws) => File.writeWeights(ws, wps + s"-iter-$iter.nf")))
       )
