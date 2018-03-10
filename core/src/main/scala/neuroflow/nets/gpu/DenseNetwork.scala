@@ -16,8 +16,8 @@ import scala.collection.Seq
 
 /**
   *
-  * This is a feed-forward neural network with fully connected layers running on CUDA.
-  * It uses gradient descent to optimize the specified loss function.
+  * Feed-forward neural network with fully connected layers, running on CUDA.
+  * It uses gradient descent to optimize the loss function.
   *
   * @author bogdanski
   * @since 15.01.16
