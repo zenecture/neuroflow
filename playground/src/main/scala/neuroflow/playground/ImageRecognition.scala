@@ -11,7 +11,7 @@ import neuroflow.core.Activator._
 import neuroflow.dsl.Convolution.IntTupler
 import neuroflow.core._
 import neuroflow.dsl._
-import neuroflow.nets.cpu.ConvNetwork._
+import neuroflow.nets.gpu.ConvNetwork._
 
 /**
   * @author bogdanski
