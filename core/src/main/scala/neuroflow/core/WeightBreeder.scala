@@ -69,6 +69,13 @@ object WeightBreeder {
       */
     def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.static(seed)
 
+    /**
+      * Weights are the same for each layer, specified individually using `config`,
+      * which maps from index to seed. The index is zero-based, e. g:
+      *   Layout = 0 :: 1 :: 2 :: Loss
+      */
+    def static[N <: Network[V, _, _]](config: Map[Int, V])(implicit ct: ClassTag[V], zero: Zero[V], bwf: BuildWeightsFor[V, N], cp: Double CanProduce V): WeightBreeder[V] = bwf.static(config)
+
   }
 
 
@@ -95,6 +102,10 @@ object WeightBreeder {
       def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, () => seed)
     }
 
+    def static(config: Map[Int, V])(implicit ct: ClassTag[V], zero: Zero[V], cp: Double CanProduce V): WeightBreeder[V] = new WeightBreeder[V] {
+      def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, config.mapValues(seed => () => seed))
+    }
+
   }
 
 
@@ -113,6 +124,8 @@ object WeightBreeder {
       def build(l: Layer, idx: Int): Option[DenseMatrix[V]] = l match {
 
         case v: Vector         =>
+          if (seed.isDefinedAt(idx))
+            warn(s"A plain Vector layer does not have weights. Ignoring config index: $idx.")
           None
 
         case c: Convolution[_] =>

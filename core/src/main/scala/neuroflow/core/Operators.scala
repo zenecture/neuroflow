@@ -27,49 +27,39 @@ import scala.reflect.ClassTag
 object subRowMax extends UFunc {
 
   implicit object subRowMaxImplDouble extends subRowMax.Impl[DenseMatrix[Double], DenseMatrix[Double]] {
-    def apply(in: DenseMatrix[Double]): DenseMatrix[Double] = {
-      val out = in.copy
-      var (r, c) = (0, 0)
-      while (r < in.rows) {
-        var max = in(r, 0)
-        while (c < in.cols) {
-          val t = in(r, c)
-          if (t > max) max = t
-          c += 1
-        }
-        c = 0
-        while (c < in.cols) {
-          val t = in(r, c)
-          out.update(r, c, t - max)
-          c += 1
-        }
-        r += 1
-      }
-      out
-    }
+    def apply(in: DenseMatrix[Double]): DenseMatrix[Double] = gapply(in)
   }
 
   implicit object subRowMaxImplFloat extends subRowMax.Impl[DenseMatrix[Float], DenseMatrix[Float]] {
-    def apply(in: DenseMatrix[Float]): DenseMatrix[Float] = {
-      val out = in.copy
-      var (r, c) = (0, 0)
-      while (r < in.rows) {
-        var max = in(r, 0)
-        while (c < in.cols) {
-          val t = in(r, c)
-          if (t > max) max = t
-          c += 1
-        }
-        c = 0
-        while (c < in.cols) {
-          val t = in(r, c)
-          out.update(r, c, t - max)
-          c += 1
-        }
-        r += 1
+    def apply(in: DenseMatrix[Float]): DenseMatrix[Float] = gapply(in)
+  }
+
+  private def gapply[V: Numeric](in: DenseMatrix[V]): DenseMatrix[V] = {
+
+    import Numeric.Implicits._
+    import Ordering.Implicits._
+
+    val out = in.copy
+
+    var (r, c) = (0, 0)
+    while (r < in.rows) {
+      var max = in(r, 0)
+      while (c < in.cols) {
+        val t = in(r, c)
+        if (t > max) max = t
+        c += 1
       }
-      out
+      c = 0
+      while (c < in.cols) {
+        val t = in(r, c)
+        out.update(r, c, t - max)
+        c += 1
+      }
+      r += 1
     }
+
+    out
+
   }
 
 }
