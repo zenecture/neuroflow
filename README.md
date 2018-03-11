@@ -14,8 +14,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.5.9",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.5.9"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.6.0",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.6.0"
 )
 ```
 
@@ -61,7 +61,7 @@ val (e, f) = (Linear, ReLU)
 
 val L =
       Vector   (11)           ::
-    Ω(Dense    ( 3, e))       ::
+      Dense    ( 3, e)        ::
       Dense   (180, f)        ::
       Dense   (360, f)        ::
       Dense   (420, f)        ::
@@ -198,7 +198,32 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 ### Focus a Layer
 
-TODO.
+We can put a focus on a layer to use it as the actual model output.
+
+```scala
+import neuroflow.dsl.Implicits._
+
+val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: Loss()
+val net = Network(layout = L, settings)
+
+net.train(xs, ys)
+```
+
+For instance, here we have a simple AutoEncoder, and we are interested
+in the 5-dimensional coordinates from the second bottleneck layer.
+
+```scala
+val focused = net Ω L.tail.head // focus on 2nd layer
+val result = focused(->(0.1, 0.2, ..., 0.23))
+println(result.length) // 5
+```
+
+The focus `Ω` gives a function, and we can give it a 23-dimensional vector 
+and get a 5-dimensional vector back.
+
+Another scenario where a focus is useful is when weights are initialized for a model, 
+i. e. the activations of the layers can be watched and adjusted.
+
 
 # Using GPU
 
