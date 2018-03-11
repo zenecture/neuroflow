@@ -210,8 +210,7 @@ ae.train(xs, ys)
 ```
 
 For instance, here we have a simple AutoEncoder, it learns the identity, and we are interested
-in the 5-dimensional coordinates from the second bottleneck layer. In general, we train under 
-some loss func, and when done we evaluate the model at a different layer to give answers.
+in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
 
 ```scala
 val focused = ae Ω L.tail.head // focus on 2nd layer
@@ -220,8 +219,9 @@ println(result.length) // 5-dimensional
 ```
 
 The focus `Ω` on a specific layer gives a function, which can be applied just like the net it stems from.
+The type signature of the function is derived from the focused layers algebraic type.
 
-Another scenario where a focus is useful is when weights are initialized to train a model, 
+Another scenario where focusing is useful is when weights are initialized to train a model, 
 i. e. the activations of the layers can be watched and adjusted to find good values.
 
 
