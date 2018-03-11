@@ -10,7 +10,7 @@ import neuroflow.common.~>
 import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
-import neuroflow.dsl.Generic._
+import neuroflow.dsl.Implicits._
 import neuroflow.nets.cpu.DenseNetwork._
 
 import scala.io.Source

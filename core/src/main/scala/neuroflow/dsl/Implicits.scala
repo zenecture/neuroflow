@@ -11,7 +11,7 @@ import scala.reflect.ClassTag
   * @author bogdanski
   * @since 11.03.18
   */
-object Generic {
+object Implicits {
   
   implicit object doubleVector extends ((DenseMatrix[Double], Vector[Double]) CanProduce DenseVector[Double]) {
     def apply(a: (DenseMatrix[Double], Vector[Double])): DenseVector[Double] = a._1.toDenseVector
