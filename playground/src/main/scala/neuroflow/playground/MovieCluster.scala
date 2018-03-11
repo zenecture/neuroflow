@@ -10,9 +10,10 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Util._
 import neuroflow.application.processor.{Normalizer, Util}
 import neuroflow.common.~>
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
+import neuroflow.dsl.Generic._
 import neuroflow.nets.cpu.DenseNetwork._
 
 import scala.io.{Source, StdIn}
@@ -44,7 +45,7 @@ object MovieCluster {
   val observations: List[Rating] = Source.fromFile(getResourceFile("file/ml-100k/u.data"))
     .getLines.map(_.split("\t")).map(r => Rating(r(0).toInt, r(1).toInt, r(2).toInt)).toList
 
-  val layout = Vector(movies.size) :: Focus(Dense(3, Linear)) :: Dense(movies.size, Sigmoid) :: SquaredMeanError()
+  val layout = Vector(movies.size) :: Dense(3, Linear) :: Dense(movies.size, Sigmoid) :: SquaredMeanError()
 
   def apply = {
 
@@ -76,7 +77,7 @@ object MovieCluster {
       Network(layout, Settings[Double]())
     }
 
-    val res = movies.map(m => m.copy(vec = net(m.vec.denseVec).scalaVec))
+    val res = movies.map(m => m.copy(vec = net.focus(layout.tail.head).apply(m.vec.denseVec).scalaVec))
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>

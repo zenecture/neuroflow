@@ -1,5 +1,5 @@
 import neuroflow.application.plugin.IO._
-import neuroflow.core.Activator.Sigmoid
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
 import org.specs2.Specification

@@ -34,7 +34,7 @@ Neural Nets bring joy into your project, a journey full of experiments.
 Let's construct the fully connected feed-forward net (FFN) depicted above.
 
 ```scala
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
@@ -195,6 +195,10 @@ val result = net(x)
 ```
 
 The resulting vector has dimension = 1, as specified for the XOR-example.
+
+### Focus a Layer
+
+TODO.
 
 # Using GPU
 

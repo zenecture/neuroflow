@@ -2,7 +2,7 @@ package neuroflow.nets
 
 import org.scalatest.FunSuite
 
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 
 /**
   * @author bogdanski
@@ -19,7 +19,7 @@ class ActivatorPerformanceTest extends FunSuite {
 
   test("Benchmark Activator Funcs") {
 
-    val funcs = Seq(Linear, Square, Sigmoid, Tanh, CustomSigmoid(1, 1, 1), ReLU, LeakyReLU(0.01), SoftPlus)
+    val funcs = Seq(Linear, Square, Sigmoid, Tanh, ReLU, LeakyReLU(0.01), SoftPlus)
     val bench = funcs.map { f =>
       (f, withTimer(f(1.0)), withTimer(f.derivative(1.0)))
     }

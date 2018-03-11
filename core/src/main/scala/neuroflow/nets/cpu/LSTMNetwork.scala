@@ -5,7 +5,8 @@ import java.lang.System.identityHashCode
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import neuroflow.common.~>
+import neuroflow.common.{CanProduce, ~>}
+import neuroflow.core
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
 import neuroflow.core._
@@ -48,6 +49,9 @@ object LSTMNetwork {
 private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                      identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
+
+
+  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(core.Network.Matrix[Double], L), l.algebraicType]): core.Network.Vectors[Double] => l.algebraicType = ???
 
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
@@ -188,6 +192,7 @@ private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: Los
     */
   @tailrec private def flow(in: Matrix, lastOuts: Matrices, newOuts: Matrices,
                    cursor: Int = 0, target: Int = layers.size - 1): (Matrix, Matrices) = {
+    val σ = Sigmoid[Double]
     val c = cursor - 1
     val (processed, newOut) = layers(cursor) match {
       case h: HasActivator[Double] if cursor < target =>
@@ -197,9 +202,9 @@ private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: Los
         val (wsNetIn, wsGateIn, wsGateOut, wsForget) = (getWs(3), getWs(4), getWs(5), getWs(6))
         val (in1, in2, in3, in4) = (in * weights(c), in * wsNetGateIn, in * wsNetGateOut, in * wsNetForget)
         val netIn = (in1 + (yOut * wsNetIn)).map(h.activator)
-        val gateIn = (in2 + (yOut * wsGateIn)).map(Sigmoid)
-        val gateOut = (in3 + (yOut * wsGateOut)).map(Sigmoid)
-        val forget = (in4 + (yOut * wsForget)).map(Sigmoid)
+        val gateIn = (in2 + (yOut * wsGateIn)).map(σ)
+        val gateOut = (in3 + (yOut * wsGateOut)).map(σ)
+        val forget = (in4 + (yOut * wsForget)).map(σ)
         val state = (netIn *:* gateIn) + (forget *:* memoryCells(c))
         val netOut = state.map(h.activator) *:* gateOut
         state.foreachPair { case ((row, col), i) => memoryCells(c).update(row, col, i) }

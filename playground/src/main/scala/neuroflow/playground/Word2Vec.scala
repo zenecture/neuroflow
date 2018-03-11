@@ -10,9 +10,10 @@ import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Normalizer.ScaledVectorSpace
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
+import neuroflow.dsl.Generic._
 import neuroflow.nets.cpu.DenseNetwork._
 
 import scala.io.{Source, StdIn}
@@ -70,11 +71,14 @@ object Word2Vec {
 
     val dim = xsys.head._2.length
 
+    val L =
+      Vector(dim)                 ::
+      Dense(20, Linear)           ::
+      Dense(dim, Sigmoid)         ::  SquaredMeanError()
+
     val net =
       Network(
-        Vector(dim)                 ::
-        Focus(Dense(20, Linear))    ::
-        Dense(dim, Sigmoid)         ::  SquaredMeanError(),
+        layout = L,
         Settings[Double](
           learningRate    = { case (_, _) => 1E-4 },
           updateRule      = Momentum(0.9),
@@ -88,7 +92,7 @@ object Word2Vec {
     net.train(xsys.map(_._2), xsys.map(_._3))
 
     val resRaw = vecs.map {
-      case (w, v) => w -> net(v)
+      case (w, v) => w -> net.focus(L.tail.head).apply(v)
     }.toSeq
 
     val res = resRaw.map(_._1).zip(ScaledVectorSpace(resRaw.map(_._2)))

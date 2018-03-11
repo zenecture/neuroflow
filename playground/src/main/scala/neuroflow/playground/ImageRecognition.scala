@@ -6,7 +6,7 @@ import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Float._
 import neuroflow.dsl.Convolution.IntTupler
 import neuroflow.core._
 import neuroflow.dsl._

@@ -123,7 +123,7 @@ object WeightBreeder {
 
       def build(l: Layer, idx: Int): Option[DenseMatrix[V]] = l match {
 
-        case v: Vector         =>
+        case v: Vector[_]      =>
           if (seed.isDefinedAt(idx))
             warn(s"A plain Vector layer does not have weights. Ignoring config index: $idx.")
           None
@@ -139,9 +139,6 @@ object WeightBreeder {
           val product = neuronsLeft * neuronsRight
           val w = DenseMatrix.create[V](neuronsLeft, neuronsRight, Array.fill(product)(seed(idx)()))
           Some(w)
-
-        case f: Focus[_]       =>
-          build(f.inner, idx)
 
         case x =>
           warn(s"Unknown layer type in weight breeding stage: $x.")

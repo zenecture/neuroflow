@@ -1,7 +1,7 @@
 package neuroflow.nets
 
 import breeze.linalg.DenseVector
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core.Network.Weights
 import neuroflow.core._
 import neuroflow.dsl._

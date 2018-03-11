@@ -1,5 +1,6 @@
 package neuroflow.dsl
 
+import breeze.linalg.DenseVector
 import neuroflow.core.{Activator, HasActivator, Tensor3D}
 
 /**
@@ -10,43 +11,40 @@ import neuroflow.core.{Activator, HasActivator, Tensor3D}
 
 /** Base-label for all layers. */
 sealed trait Layer extends Serializable {
+  type algebraicType
   val neurons: Int
   val symbol: String
 }
 
+
+
 sealed trait In
 sealed trait Out
+
 
 
 /**
   * Input for a dense net, where `dimension` is
   * the number of `neurons` of this layer.
   */
-case class Vector(dimension: Int) extends Layer with In {
+case class Vector[V](dimension: Int) extends Layer with In {
+  type algebraicType = DenseVector[V]
   val symbol: String = "Vector"
   val neurons: Int = dimension
 }
+
+
 
 /**
   * A dense layer is fully connected, with `neurons` in this layer.
   * The `activator` function gets applied on the output element wise.
   */
 case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
+  type algebraicType = DenseVector[V]
   val symbol: String = "Dense"
 }
 
-/**
-  * A focus layer is used if the desired model output is not
-  * the [[Out]] layer, but the `inner` one. (AutoEncoders, PCA, ...)
-  */
-case class Focus[V](inner: Layer with HasActivator[V]) extends Layer {
-  val symbol: String = s"Focus(${inner.symbol}(${inner.activator.symbol}))"
-  val neurons: Int = inner.neurons
-}
 
-object Ω { // Alias syntax for Focus
-  def apply[V](inner: Layer with HasActivator[V]): Focus[V] = Focus(inner)
-}
 
 /**
   *
@@ -67,6 +65,8 @@ case class Convolution[V](dimIn      :  (Int, Int, Int),
                           stride     :  (Int, Int),
                           filters    :   Int,
                           activator  :   Activator[V]) extends Layer with HasActivator[V] with In {
+
+  type algebraicType = Tensor3D[V]
 
   val symbol: String = "Convolution"
 
@@ -96,6 +96,8 @@ case class Convolution[V](dimIn      :  (Int, Int, Int),
 
 }
 
+
+
 object Convolution {
 
   implicit class IntTupler(i: Int) {
@@ -104,3 +106,5 @@ object Convolution {
   }
 
 }
+
+

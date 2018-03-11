@@ -7,9 +7,10 @@ import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
+import neuroflow.dsl.Generic._
 import neuroflow.nets.cpu.DenseNetwork._
 
 import scala.io.Source
@@ -60,20 +61,23 @@ object PokeMonCluster {
 
     implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
 
+    val L =
+      Vector(dim)                 ::
+      Dense(3, Linear)            ::
+      Dense(dim / 2, ReLU)        ::
+      Dense(dim, ReLU)            ::  SquaredMeanError()
+
     val net =
       Network(
-        Vector(dim)                 ::
-        Focus(Dense(3, Linear))     ::
-        Dense(dim / 2, ReLU)        ::
-        Dense(dim, ReLU)            ::  SquaredMeanError(),
+        layout = L,
         Settings[Double](iterations = 5000, prettyPrint = true, learningRate = { case (_, _) => 1E-5 })
       )
 
-    val  xz = xs.map(_._2)
+    val xz = xs.map(_._2)
 
     net.train(xz, xz)
 
-    val cluster = xs.map(t => net(t._2) -> t._1)
+    val cluster = xs.map(t => net.focus(L.tail.head).apply(t._2) -> t._1)
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>

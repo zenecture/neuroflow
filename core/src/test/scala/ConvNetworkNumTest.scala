@@ -8,7 +8,7 @@ import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.storage.Zero
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core.Network.Weights
 import neuroflow.core.{Tensor3D, _}
 import neuroflow.dsl._

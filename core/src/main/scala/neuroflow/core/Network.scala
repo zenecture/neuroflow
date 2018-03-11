@@ -76,6 +76,14 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
     */
   def evaluate(in: In): Out = apply(in)
 
+  /**
+    * A focus (Ω) is used if the desired model output is not the [[neuroflow.dsl.Out]] layer, but
+    * the `layer` in between. (AutoEncoders, PCA, ...) The net is computed for the focused layer,
+    * returning a result, reshaped from the underworlds raw matrix to the layers `algebraicType`.
+    */
+  def focus[L <: Layer](l: L)(implicit cp: (Matrix[V], L) CanProduce l.algebraicType): In => l.algebraicType
+  def Ω[L <: Layer](l: L)(implicit cp: (Matrix[V], L) CanProduce l.algebraicType): In => l.algebraicType = focus(l)
+
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
 }

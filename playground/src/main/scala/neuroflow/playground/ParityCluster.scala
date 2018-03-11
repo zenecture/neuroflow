@@ -7,9 +7,10 @@ import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Util._
 import neuroflow.application.processor.Util
 import neuroflow.common.~>
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
+import neuroflow.dsl.Generic._
 import neuroflow.nets.cpu.DenseNetwork._
 
 import scala.util.Random
@@ -64,16 +65,19 @@ object ParityCluster {
       }
     }
 
+    val L =
+      Vector(dimension + 1)           ::
+      Dense(3, Linear)                ::
+      Dense(dimension + 1, Sigmoid)   ::  SquaredMeanError()
+
     val net = Network(
-        Vector(dimension + 1)           ::
-        Focus(Dense(3, Linear))         ::
-        Dense(dimension + 1, Sigmoid)   :: SquaredMeanError(),
-        Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })
-      )
+      layout = L,
+      Settings[Double](iterations = 20, learningRate = { case (_, _) => 1E-4 })
+    )
 
     net.train(xsys.map(_._1.denseVec), xsys.map(_._2.denseVec))
 
-    val res = classes.map(c => net(c._2.denseVec) -> c._1)
+    val res = classes.map(c => net.focus(L.tail.head).apply(c._2.denseVec) -> c._1)
 
     val outputFile = ~>(new File(clusterOutput)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>

@@ -76,8 +76,8 @@ object convolute extends UFunc {
     def apply(in: DenseMatrix[Double], l: Convolution[Double], batchSize: Int): DenseMatrix[Double] = gapply(in, l, batchSize)
   }
 
-  implicit object convoluteImplFloat extends convolute.Impl3[DenseMatrix[Float], Convolution[Double], Int, DenseMatrix[Float]] {
-    def apply(in: DenseMatrix[Float], l: Convolution[Double], batchSize: Int): DenseMatrix[Float] = gapply(in, l, batchSize)
+  implicit object convoluteImplFloat extends convolute.Impl3[DenseMatrix[Float], Convolution[Float], Int, DenseMatrix[Float]] {
+    def apply(in: DenseMatrix[Float], l: Convolution[Float], batchSize: Int): DenseMatrix[Float] = gapply(in, l, batchSize)
   }
 
   private def gapply[V: ClassTag : Zero](in: DenseMatrix[V], l: Convolution[_], batchSize: Int): DenseMatrix[V] = {
@@ -152,8 +152,8 @@ object convolute_backprop extends UFunc {
     def apply(in: DenseMatrix[Double], l: Convolution[Double], batchSize: Int): DenseMatrix[Double] = gapply(in, l, batchSize)
   }
 
-  implicit object convoluteBpImplFloat extends convolute_backprop.Impl3[DenseMatrix[Float], Convolution[Double], Int, DenseMatrix[Float]] {
-    def apply(in: DenseMatrix[Float], l: Convolution[Double], batchSize: Int): DenseMatrix[Float] = gapply(in, l, batchSize)
+  implicit object convoluteBpImplFloat extends convolute_backprop.Impl3[DenseMatrix[Float], Convolution[Float], Int, DenseMatrix[Float]] {
+    def apply(in: DenseMatrix[Float], l: Convolution[Float], batchSize: Int): DenseMatrix[Float] = gapply(in, l, batchSize)
   }
 
   private def gapply[V: ClassTag : Zero](in: DenseMatrix[V], l: Convolution[_], batchSize: Int): DenseMatrix[V] = {

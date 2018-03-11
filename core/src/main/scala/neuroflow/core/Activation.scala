@@ -1,9 +1,9 @@
 package neuroflow.core
 
-import java.lang.Math.{exp, log, pow, tanh}
-
 import breeze.generic._
 import breeze.linalg.max
+import breeze.math.Semiring
+import breeze.numerics.{exp, log, pow, tanh}
 
 
 /**
@@ -38,56 +38,112 @@ trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializab
   */
 object Activator {
 
-  object ReLU extends Activator[Double] {
-    val symbol = "R"
-    def apply(x: Double): Double = max(0.0, x)
-    def derivative(x: Double): Double = if (x > 0.0) 1.0 else 0.0
+  import Ordering.Implicits._
+  import Fractional.Implicits._
+
+  sealed trait ReLU[V] extends Activator[V]
+  object ReLU {
+    def apply[V : Fractional](implicit _max: max.Impl2[V, V, V], ring: Semiring[V]): ReLU[V] = new ReLU[V] {
+      val `0` = ring.zero
+      val `1` = ring.one
+      def apply(x: V): V = _max(`0`, x)
+      def derivative(x: V): V = if (x > `0`) `1` else `0`
+      val symbol: String = "ReLU"
+    }
   }
 
+
+  sealed trait LeakyReLU[V] extends Activator[V]
   object LeakyReLU {
-    def apply(f: Double) = new Activator[Double] {
-      val symbol = s"R<$f>"
-      def apply(x: Double): Double = max(0.0, x)
-      def derivative(x: Double): Double = if (x > 0.0) 1.0 else f * x
+    def apply[V : Fractional](f: V)(implicit _max: max.Impl2[V, V, V], ring: Semiring[V]): LeakyReLU[V] = new LeakyReLU[V] {
+      val `0` = ring.zero
+      val `1` = ring.one
+      def apply(x: V): V = _max(`0`, x)
+      def derivative(x: V): V = if (x > `0`) `1` else f * x
+      val symbol: String = s"ReLU<$f>"
     }
   }
 
-  object SoftPlus extends Activator[Double] {
-    val symbol = "Σ"
-    def apply(x: Double): Double = log(1 + exp(x))
-    def derivative(x: Double): Double = exp(x) / (exp(x) + 1)
-  }
-
-  object Sigmoid extends Activator[Double] {
-    val symbol = "σ"
-    def apply(x: Double): Double = 1 / (1 + exp(-x))
-    def derivative(x: Double): Double = exp(x) / pow(exp(x) + 1, 2)
-  }
-
-  object CustomSigmoid {
-    def apply(f: Double, g: Double, b: Double) = new Activator[Double] {
-      val symbol = s"σ<$f, $g, $b>"
-      def apply(x: Double): Double = (f / (1 + exp(-x * g))) - b
-      def derivative(x: Double): Double = f * exp(x) / pow(exp(x) + 1, 2)
+  sealed trait SoftPlus[V] extends Activator[V]
+  object SoftPlus {
+    def apply[V : Fractional](implicit _log: log.Impl[V, V], _exp: exp.Impl[V, V], ring: Semiring[V]): SoftPlus[V] = new SoftPlus[V] {
+      val `1` = ring.one
+      def apply(x: V): V = _log(`1` + _exp(x))
+      def derivative(x: V): V = _exp(x) / (_exp(x) + `1`)
+      val symbol: String = "SoftPlus"
     }
   }
 
-  object Tanh extends Activator[Double] {
-    val symbol = "φ"
-    def apply(x: Double): Double = tanh(x)
-    def derivative(x: Double): Double = 1 - pow(tanh(x), 2)
+  sealed trait Sigmoid[V] extends Activator[V]
+  object Sigmoid {
+    def apply[V : Fractional](implicit _exp: exp.Impl[V, V], ring: Semiring[V], _pow: pow.Impl2[V, V, V]): Sigmoid[V] = new Sigmoid[V] {
+      val `1` = ring.one
+      val `2` = ring.one + ring.one
+      def apply(x: V): V = `1` / (`1` + _exp(-x))
+      def derivative(x: V): V = _exp(x) / pow(_exp(x) + `1`, `2`)
+      val symbol = "σ"
+    }
   }
 
-  object Linear extends Activator[Double] {
-    val symbol = "x"
-    def apply(x: Double): Double = x
-    def derivative(x: Double): Double = 1
+  sealed trait Tanh[V] extends Activator[V]
+  object Tanh {
+    def apply[V : Fractional](implicit _tanh: tanh.Impl[V, V], ring: Semiring[V], p: pow.Impl2[V, V, V]): Tanh[V] = new Tanh[V] {
+      val `1` = ring.one
+      val `2` = ring.one + ring.one
+      def apply(x: V): V = _tanh(x)
+      def derivative(x: V): V = `1` - pow(_tanh(x), `2`)
+      val symbol = "φ"
+    }
   }
 
-  object Square extends Activator[Double] {
-    val symbol = "x²"
-    def apply(x: Double): Double = x * x
-    def derivative(x: Double): Double = 2 * x
+  sealed trait Linear[V] extends Activator[V]
+  object Linear {
+    def apply[V : Fractional](implicit ring: Semiring[V]): Linear[V] = new Linear[V] {
+      val `1` = ring.one
+      def apply(x: V): V = x
+      def derivative(x: V): V = `1`
+      val symbol = "x"
+    }
+  }
+
+  sealed trait Square[V] extends Activator[V]
+  object Square {
+    def apply[V : Fractional](implicit ring: Semiring[V]): Square[V] = new Square[V] {
+      val `2` = ring.one + ring.one
+      def apply(x: V): V = x * x
+      def derivative(x: V): V = `2` * x
+      val symbol = "x²"
+    }
   }
 
 }
+
+
+
+object Activators {
+
+  /* Short Cuts for Syntax */
+
+  object Double {
+    val ReLU = Activator.ReLU[Double]
+    def LeakyReLU(f: Double) = Activator.LeakyReLU[Double](f)
+    val SoftPlus = Activator.SoftPlus[Double]
+    val Sigmoid = Activator.Sigmoid[Double]
+    val Tanh = Activator.Tanh[Double]
+    val Linear = Activator.Linear[Double]
+    val Square = Activator.Square[Double]
+  }
+
+  object Float {
+    val ReLU = Activator.ReLU[Float]
+    def LeakyReLU(f: Float) = Activator.LeakyReLU[Float](f)
+    val SoftPlus = Activator.SoftPlus[Float]
+    val Sigmoid = Activator.Sigmoid[Float]
+    val Tanh = Activator.Tanh[Float]
+    val Linear = Activator.Linear[Float]
+    val Square = Activator.Square[Float]
+  }
+
+}
+
+

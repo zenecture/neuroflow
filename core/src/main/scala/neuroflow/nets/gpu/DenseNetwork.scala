@@ -3,12 +3,13 @@ package neuroflow.nets.gpu
 import breeze.linalg._
 import breeze.stats._
 import jcuda.jcublas.{JCublas2, cublasHandle}
+import neuroflow.common.CanProduce
 import neuroflow.core.Activator._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
 import neuroflow.cuda._
-import neuroflow.dsl.{Focus, Layer}
+import neuroflow.dsl.Layer
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -60,26 +61,22 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
   type Vectors  = Seq[DenseVector[Double]]
   type Matrices = Seq[DenseMatrix[Double]]
 
-  private val _layers = layers.map {
-    case Focus(inner) => inner
-    case layer: Layer => layer
-  }.toArray
-
-  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
+  private val _layers = layers.toArray
 
   private val _activators     = _layers.tail.map {
     case h: HasActivator[_] => h.activator match {
-      case ReLU    => CuMatrix.Activators.relu[Double]    -> CuMatrix.Activators.relu_derivative[Double]
-      case Linear  => CuMatrix.Activators.linear[Double]  -> CuMatrix.Activators.linear_derivative[Double]
-      case Sigmoid => CuMatrix.Activators.sigmoid[Double] -> CuMatrix.Activators.sigmoid_derivative[Double]
-      case Tanh    => CuMatrix.Activators.tanh[Double]    -> CuMatrix.Activators.tanh_derivative[Double]
-      case x       => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
+      case x: ReLU[_]    => CuMatrix.Activators.relu[Double]    -> CuMatrix.Activators.relu_derivative[Double]
+      case x: Linear[_]  => CuMatrix.Activators.linear[Double]  -> CuMatrix.Activators.linear_derivative[Double]
+      case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Double] -> CuMatrix.Activators.sigmoid_derivative[Double]
+      case x: Tanh[_]    => CuMatrix.Activators.tanh[Double]    -> CuMatrix.Activators.tanh_derivative[Double]
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
     }
   }
 
   private val _outputDim      = _layers.last.neurons
-  private val _lastWlayerIdx  = weights.size - 1
+  private val _lastLayerIdx   = weights.size - 1
   private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
+
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -94,24 +91,29 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     }
   }
 
+
   /**
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
-    val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    _focusLayer.map { cl =>
-      val i = layers.indexOf(cl) - 1
-      val r = flow(input, i)
-      r
-    }.getOrElse {
-      val r = flow(input, _lastWlayerIdx)
-      lossFunction match {
-        case _: SquaredMeanError[_] => r
-        case _: Softmax[_]          => SoftmaxImpl(r)
-        case _                      => r
-      }
-    }.toDenseVector
+    sink(x.toDenseMatrix, _lastLayerIdx).toDenseVector
   }
+
+
+  /**
+    * `apply` under a focused layer.
+    */
+  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
+    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+      case Some((_, i)) => i
+      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+    }
+    (in: Vector) => {
+      if (idx > 0) cp(sink(in.toDenseMatrix, idx - 1), l)
+      else cp(in.toDenseMatrix, l)
+    }
+  }
+
 
   /**
     * Trains this net with input `xs` against output `ys`.
@@ -134,6 +136,39 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
+
+  private def sink(x: Matrix, target: Int): Matrix = {
+    val r1 = flow(x, target)
+    val r2 = lossFunction match {
+      case _: SquaredMeanError[_] => r1
+      case _: Softmax[_]          => SoftmaxImpl(r1)
+      case _                      => r1
+    }
+    r2
+  }
+
+
+  /**
+    * Computes the network recursively.
+    */
+  private def flow(in: Matrix, outLayer: Int): Matrix = {
+    val _in = CuMatrix.fromDense(in)
+    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
+    @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
+      val p = in * _cuWeights(i)
+      val a = _activators(i)._1(p)
+      p.release()
+      fa += i -> a
+      if (i < outLayer) forward(a, i + 1)
+    }
+    forward(_in, 0)
+    val o = fa(outLayer).toDense
+    _in.release()
+    fa.values.foreach(_.release())
+    o
+  }
+
+
   /**
     * The training loop.
     */
@@ -155,25 +190,6 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     }
   }
 
-  /**
-    * Computes the network recursively.
-    */
-  private def flow(in: Matrix, outLayer: Int): Matrix = {
-    val _in = CuMatrix.fromDense(in)
-    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
-    @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
-      val p = in * _cuWeights(i)
-      val a = _activators(i)._1(p)
-      p.release()
-      fa += i -> a
-      if (i < outLayer) forward(a, i + 1)
-    }
-    forward(_in, 0)
-    val o = fa(outLayer).toDense
-    _in.release()
-    fa.values.foreach(_.release())
-    o
-  }
 
   /**
     * Copies batch to GPU, then computes gradient for all weights,
@@ -200,11 +216,11 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
       p.release()
       fa += i -> a
       fb += i -> b
-      if (i < _lastWlayerIdx) forward(a, i + 1)
+      if (i < _lastLayerIdx) forward(a, i + 1)
     }
 
     @tailrec def derive(i: Int): Unit = {
-      if (i == 0 && _lastWlayerIdx == 0) {
+      if (i == 0 && _lastLayerIdx == 0) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = x.t * d
@@ -213,7 +229,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
         d.release()
         err.release()
         grad.release()
-      } else if (i == _lastWlayerIdx) {
+      } else if (i == _lastLayerIdx) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = fa(i - 1).t * d
@@ -223,7 +239,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
         err.release()
         grad.release()
         derive(i - 1)
-      } else if (i < _lastWlayerIdx && i > 0) {
+      } else if (i < _lastLayerIdx && i > 0) {
         val d1 = ds(i + 1) * _cuWeights(i + 1).t
         val d2 = d1 *:* fb(i)
         val dw = fa(i - 1).t * d2
@@ -241,13 +257,13 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     }
 
     forward(x, 0)
-    derive(_lastWlayerIdx)
+    derive(_lastLayerIdx)
 
     ds.values.foreach(_.release())
     fa.values.foreach(_.release())
     fb.values.foreach(_.release())
 
-    (0 to _lastWlayerIdx).foreach(i => updateRule(_cuWeights(i), dws(i), stepSize, i))
+    (0 to _lastLayerIdx).foreach(i => updateRule(_cuWeights(i), dws(i), stepSize, i))
 
     x.release()
     y.release()
@@ -273,7 +289,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     val _rule: Debuggable[Double] = settings.updateRule.asInstanceOf[Debuggable[Double]]
 
     def lossFunc(): Matrix = {
-      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val loss = lossFunction(ys, flow(xs, _lastLayerIdx))._1
       val reduced = (loss.t * DenseMatrix.ones[Double](loss.rows, 1)).t
       reduced
     }
@@ -348,26 +364,21 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
   type Vectors  = Seq[DenseVector[Float]]
   type Matrices = Seq[DenseMatrix[Float]]
 
-  private val _layers = layers.map {
-    case Focus(inner) => inner
-    case layer: Layer => layer
-  }.toArray
-
-  private val _focusLayer     = layers.collectFirst { case c: Focus[_] => c }
+  private val _layers = layers.toArray
 
   private val _activators     = _layers.tail.map {
     case h: HasActivator[_] => h.activator match {
-      case ReLU    => CuMatrix.Activators.relu[Float]    -> CuMatrix.Activators.relu_derivative[Float]
-      case Linear  => CuMatrix.Activators.linear[Float]  -> CuMatrix.Activators.linear_derivative[Float]
-      case Sigmoid => CuMatrix.Activators.sigmoid[Float] -> CuMatrix.Activators.sigmoid_derivative[Float]
-      case Tanh    => CuMatrix.Activators.tanh[Float]    -> CuMatrix.Activators.tanh_derivative[Float]
-      case x       => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
+      case x: ReLU[_]    => CuMatrix.Activators.relu[Float]    -> CuMatrix.Activators.relu_derivative[Float]
+      case x: Linear[_]  => CuMatrix.Activators.linear[Float]  -> CuMatrix.Activators.linear_derivative[Float]
+      case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Float] -> CuMatrix.Activators.sigmoid_derivative[Float]
+      case x: Tanh[_]    => CuMatrix.Activators.tanh[Float]    -> CuMatrix.Activators.tanh_derivative[Float]
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
     }
   }
 
-  private val _outputDim      = _layers.last.neurons
-  private val _lastWlayerIdx  = weights.size - 1
-  private val _cuWeights      = weights.map(m => CuMatrix.fromDense(m))
+  private val _outputDim     = _layers.last.neurons
+  private val _lastLayerIdx  = weights.size - 1
+  private val _cuWeights     = weights.map(m => CuMatrix.fromDense(m))
 
   /**
     * Checks if the [[Settings]] are properly defined.
@@ -382,24 +393,29 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     }
   }
 
+
   /**
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
-    val input = DenseMatrix.create[Float](1, x.size, x.toArray)
-    _focusLayer.map { cl =>
-      val i = layers.indexOf(cl) - 1
-      val r = flow(input, i)
-      r
-    }.getOrElse {
-      val r = flow(input, _lastWlayerIdx)
-      lossFunction match {
-        case _: SquaredMeanError[_] => r
-        case _: Softmax[_]          => SoftmaxImpl(r)
-        case _                      => r
-      }
-    }.toDenseVector
+    sink(x.toDenseMatrix, _lastLayerIdx).toDenseVector
   }
+
+
+  /**
+    * `apply` under a focused layer.
+    */
+  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
+    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+      case Some((_, i)) => i
+      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+    }
+    (in: Vector) => {
+      if (idx > 0) cp(sink(in.toDenseMatrix, idx - 1), l)
+      else cp(in.toDenseMatrix, l)
+    }
+  }
+
 
   /**
     * Trains this net with input `xs` against output `ys`.
@@ -422,6 +438,39 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
+
+  private def sink(x: Matrix, target: Int): Matrix = {
+    val r1 = flow(x, target)
+    val r2 = lossFunction match {
+      case _: SquaredMeanError[_] => r1
+      case _: Softmax[_]          => SoftmaxImpl(r1)
+      case _                      => r1
+    }
+    r2
+  }
+
+
+  /**
+    * Computes the network recursively.
+    */
+  private def flow(in: Matrix, outLayer: Int): Matrix = {
+    val _in = CuMatrix.fromDense(in)
+    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
+    @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
+      val p = in * _cuWeights(i)
+      val a = _activators(i)._1(p)
+      p.release()
+      fa += i -> a
+      if (i < outLayer) forward(a, i + 1)
+    }
+    forward(_in, 0)
+    val o = fa(outLayer).toDense
+    _in.release()
+    fa.values.foreach(_.release())
+    o
+  }
+
+
   /**
     * The training loop.
     */
@@ -443,25 +492,6 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     }
   }
 
-  /**
-    * Computes the network recursively.
-    */
-  private def flow(in: Matrix, outLayer: Int): Matrix = {
-    val _in = CuMatrix.fromDense(in)
-    val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
-    @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
-      val p = in * _cuWeights(i)
-      val a = _activators(i)._1(p)
-      p.release()
-      fa += i -> a
-      if (i < outLayer) forward(a, i + 1)
-    }
-    forward(_in, 0)
-    val o = fa(outLayer).toDense
-    _in.release()
-    fa.values.foreach(_.release())
-    o
-  }
 
   /**
     * Copies batch to GPU, then computes gradient for all weights,
@@ -488,11 +518,11 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
       p.release()
       fa += i -> a
       fb += i -> b
-      if (i < _lastWlayerIdx) forward(a, i + 1)
+      if (i < _lastLayerIdx) forward(a, i + 1)
     }
 
     @tailrec def derive(i: Int): Unit = {
-      if (i == 0 && _lastWlayerIdx == 0) {
+      if (i == 0 && _lastLayerIdx == 0) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = x.t * d
@@ -501,7 +531,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
         d.release()
         err.release()
         grad.release()
-      } else if (i == _lastWlayerIdx) {
+      } else if (i == _lastLayerIdx) {
         val (err, grad) = lossFunction(y, fa(i))
         val d = grad *:* fb(i)
         val dw = fa(i - 1).t * d
@@ -511,7 +541,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
         err.release()
         grad.release()
         derive(i - 1)
-      } else if (i < _lastWlayerIdx && i > 0) {
+      } else if (i < _lastLayerIdx && i > 0) {
         val d1 = ds(i + 1) * _cuWeights(i + 1).t
         val d2 = d1 *:* fb(i)
         val dw = fa(i - 1).t * d2
@@ -529,13 +559,13 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     }
 
     forward(x, 0)
-    derive(_lastWlayerIdx)
+    derive(_lastLayerIdx)
 
     ds.values.foreach(_.release())
     fa.values.foreach(_.release())
     fb.values.foreach(_.release())
 
-    (0 to _lastWlayerIdx).foreach(i => updateRule(_cuWeights(i), dws(i), stepSize, i))
+    (0 to _lastLayerIdx).foreach(i => updateRule(_cuWeights(i), dws(i), stepSize, i))
 
     x.release()
     y.release()
@@ -561,7 +591,7 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     val _rule: Debuggable[Float] = settings.updateRule.asInstanceOf[Debuggable[Float]]
 
     def lossFunc(): Matrix = {
-      val loss = lossFunction(ys, flow(xs, _lastWlayerIdx))._1
+      val loss = lossFunction(ys, flow(xs, _lastLayerIdx))._1
       val reduced = (loss.t * DenseMatrix.ones[Float](loss.rows, 1)).t
       reduced
     }

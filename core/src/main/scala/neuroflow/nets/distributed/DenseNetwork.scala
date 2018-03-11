@@ -5,10 +5,12 @@ import akka.pattern.ask
 import akka.util.Timeout
 import breeze.linalg._
 import breeze.stats._
+import neuroflow.common.CanProduce
+import neuroflow.core
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.dsl.{Focus, Layer}
+import neuroflow.dsl.Layer
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -46,17 +48,14 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunc
                                       identifier: String = "neuroflow.nets.distributed.DenseNetwork", numericPrecision: String = "Double")
   extends DistFFN[Double] with WaypointLogic[Double] {
 
+  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(core.Network.Matrix[Double], L), l.algebraicType]): core.Network.Vector[Double] => l.algebraicType = ???
+
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
   type Vectors  = Seq[DenseVector[Double]]
   type Matrices = Seq[DenseMatrix[Double]]
 
-  private val _layers = layers.map {
-    case Focus(inner) => inner
-    case layer: Layer => layer
-  }.toArray
-
-  private val _clusterLayer   = layers.collectFirst { case c: Focus[_] => c }
+  private val _layers = layers.toArray
 
   private val _lastWlayerIdx  = weights.size - 1
   private def _weightsWi      = weights.map(_.data.zipWithIndex.grouped(settings.transport.messageGroupSize)).zipWithIndex
@@ -103,11 +102,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunc
     */
   def apply(x: Vector): Vector = {
     val input = DenseMatrix.create[Double](1, x.size, x.toArray)
-    _clusterLayer.map { cl =>
-      flow(input, layers.indexOf(cl) - 1).toDenseVector
-    }.getOrElse {
-      flow(input, _lastWlayerIdx).toDenseVector
-    }
+    flow(input, _lastWlayerIdx).toDenseVector
   }
 
   /**

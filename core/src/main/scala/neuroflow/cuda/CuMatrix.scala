@@ -689,14 +689,14 @@ trait CuMatrixFuns extends CuMatrixKernels { this: CuMatrix.type =>
 
   object Activators {
 
-    def relu[T](implicit broker: KernelBroker[T])               =  broker.implFor[ReLU.type]("relu_a")
-    def relu_derivative[T](implicit broker: KernelBroker[T])    =  broker.implFor[ReLU.type]("relu_d")
-    def linear[T](implicit broker: KernelBroker[T])             =  broker.implFor[Linear.type]("linear_a")
-    def linear_derivative[T](implicit broker: KernelBroker[T])  =  broker.implFor[Linear.type]("linear_d")
-    def tanh[T](implicit broker: KernelBroker[T])               =  broker.implFor[Tanh.type]("tanh_a")
-    def tanh_derivative[T](implicit broker: KernelBroker[T])    =  broker.implFor[Tanh.type]("tanh_d")
-    def sigmoid[T](implicit broker: KernelBroker[T])            =  broker.implFor[Sigmoid.type]("sigmoid_a")
-    def sigmoid_derivative[T](implicit broker: KernelBroker[T]) =  broker.implFor[Sigmoid.type]("sigmoid_d")
+    def relu[T](implicit broker: KernelBroker[T])               =  broker.implFor[ReLU[T]]("relu_a")
+    def relu_derivative[T](implicit broker: KernelBroker[T])    =  broker.implFor[ReLU[T]]("relu_d")
+    def linear[T](implicit broker: KernelBroker[T])             =  broker.implFor[Linear[T]]("linear_a")
+    def linear_derivative[T](implicit broker: KernelBroker[T])  =  broker.implFor[Linear[T]]("linear_d")
+    def tanh[T](implicit broker: KernelBroker[T])               =  broker.implFor[Tanh[T]]("tanh_a")
+    def tanh_derivative[T](implicit broker: KernelBroker[T])    =  broker.implFor[Tanh[T]]("tanh_d")
+    def sigmoid[T](implicit broker: KernelBroker[T])            =  broker.implFor[Sigmoid[T]]("sigmoid_a")
+    def sigmoid_derivative[T](implicit broker: KernelBroker[T]) =  broker.implFor[Sigmoid[T]]("sigmoid_d")
 
   }
 

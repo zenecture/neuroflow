@@ -1,7 +1,7 @@
 package neuroflow.playground
 
 import neuroflow.application.plugin.Notation._
-import neuroflow.core.Activator._
+import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
 
