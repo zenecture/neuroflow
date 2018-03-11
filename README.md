@@ -196,9 +196,9 @@ val result = net(x)
 
 The resulting vector has dimension = 1, as specified for the XOR-example.
 
-### Focus a Layer
+### Focusing
 
-We can put a focus on a layer to use it as the actual model output.
+We can put focus on a layer to use it as the actual model output.
 
 ```scala
 import neuroflow.dsl.Implicits._
@@ -221,8 +221,8 @@ println(result.length) // 5
 The focus `Ω` gives a function, and we can give it a 23-dimensional vector 
 and get a 5-dimensional vector back.
 
-Another scenario where a focus is useful is when weights are initialized for a model, 
-i. e. the activations of the layers can be watched and adjusted.
+Another scenario where a focus is useful is when weights are initialized before training a model, 
+i. e. the activations of the layers can be watched and adjusted to find good values.
 
 
 # Using GPU
