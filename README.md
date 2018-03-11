@@ -180,7 +180,7 @@ One example is sending the loss to a real-time TV dashboard.
 ### Useful JVM args
 
 ````bash
--Dorg.slf4j.simpleLogger.defaultLogLevel=debug # for GPU mem infos
+-Dorg.slf4j.simpleLogger.defaultLogLevel=debug # for misc runtime sys infos and gpu memory
 -Xmx24G # example to increase heap size
 ````
 
@@ -213,9 +213,9 @@ For instance, here we have a simple AutoEncoder, it learns the identity, and we 
 in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
 
 ```scala
-val focused = ae Ω L.tail.head // focus on 2nd layer
+val focused = ae Ω Dense(5, Linear)
 val result = focused(->(0.1, 0.2, ..., 0.23))
-println(result.length) // 5-dimensional
+println(result) // DenseVector(0.2, 0.7, 0.1, 0.8, 0.2)
 ```
 
 The focus `Ω` on a specific layer gives a function, which can be applied just like the net it stems from.
