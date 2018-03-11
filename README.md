@@ -198,7 +198,7 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 ### Focusing
 
-We can put focus on a layer to use it as the actual model output.
+We can put focus on a layer and use it as the actual model output.
 
 ```scala
 import neuroflow.dsl.Implicits._
@@ -214,14 +214,15 @@ in the 5-dimensional coordinates from the second bottleneck layer. In general, w
 some loss func, and when done we evaluate the model at a different layer to give answers.
 
 ```scala
-val focused = net Ω L.tail.head // focus on 2nd layer
+val focused = ae Ω L.tail.head // focus on 2nd layer
 val result = focused(->(0.1, 0.2, ..., 0.23))
-println(result.length) // 5
+println(result.length) // 5-dimensional
 ```
 
-The focus `Ω` gives a function, and we can give it a 23-dimensional vector and get a 5-dimensional vector back.
-Another scenario where a focus is useful is when weights are initialized before training a model, i. e. the activations 
-of the layers can be watched and adjusted to find good values.
+The focus `Ω` on a specific layer gives a function, which can be applied just like the net it stems from.
+
+Another scenario where a focus is useful is when weights are initialized to train a model, 
+i. e. the activations of the layers can be watched and adjusted to find good values.
 
 
 # Using GPU
