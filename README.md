@@ -219,10 +219,9 @@ println(result.length) // 5-dimensional
 ```
 
 The focus `Ω` on a specific layer gives a function, which can be applied just like the net it stems from.
-The type signature of the function is derived from the focused layers algebraic type.
-
-Another scenario where focusing is useful is when weights are initialized to train a model, 
-i. e. the activations of the layers can be watched and adjusted to find good values.
+The type signature of the function is derived from the first and the focused layers algebraic types. Another 
+scenario where focusing is useful is when weights are initialized to train a model, i. e. the activations of 
+the layers can be watched and adjusted to find good values.
 
 
 # Using GPU
