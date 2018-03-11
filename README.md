@@ -103,7 +103,7 @@ It is linearly not separable, so we can check whether the net can capture this n
 
 To learn, we need to know what it means to be wrong. The `SquaredMeanError` loss function is defined as follows:
 
-    L(X, Y, W) = Σ1/2(Y - net(X, W))²
+    SquaredMeanError(X, Y, W) = Σ1/2(Y - net(X, W))²
 
 Where `W` are the weights, `Y` is the target and `net(X, W)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form. The XOR-adder is a regression challenge, so the `SquaredMeanError` is the choice. 
