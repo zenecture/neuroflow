@@ -5,7 +5,7 @@ import neuroflow.application.plugin.Extensions._
 import neuroflow.application.plugin.IO._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
-import neuroflow.common.{Tensor3D, ~>}
+import neuroflow.common.~>
 import neuroflow.core.Activator._
 import neuroflow.dsl.Convolution.IntTupler
 import neuroflow.core._

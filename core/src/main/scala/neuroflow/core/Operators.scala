@@ -67,7 +67,7 @@ object subRowMax extends UFunc {
 
 
 /**
-  * Convolutes [[neuroflow.common.Tensor3D]], operating on its
+  * Convolutes [[Tensor3D]], operating on its
   * linearized projection matrix `in`.
   */
 object convolute extends UFunc {
@@ -143,7 +143,7 @@ object convolute extends UFunc {
 
 
 /**
-  * De-Convolutes [[neuroflow.common.Tensor3D]], operating on its
+  * De-Convolutes [[Tensor3D]], operating on its
   * linearized projection matrix `in`.
   */
 object convolute_backprop extends UFunc {

@@ -37,6 +37,7 @@ object CanProduce {
 
 @implicitNotFound("No `TypeSize[${V}]` in scope.")
 trait TypeSize[V] {
+  /** Size of 1 `V` in bytes. **/
   def apply(): Int
 }
 

@@ -8,7 +8,8 @@ import javax.imageio.ImageIO
 
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.storage.Zero
-import neuroflow.common.{Logs, Tensor3D}
+import neuroflow.common.Logs
+import neuroflow.core.Tensor3D
 
 import scala.io.Source
 import scala.reflect.ClassTag

@@ -1,4 +1,4 @@
-package neuroflow.common
+package neuroflow.core
 
 import breeze.linalg.DenseMatrix
 import breeze.storage.Zero

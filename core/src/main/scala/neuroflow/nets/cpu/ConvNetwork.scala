@@ -2,10 +2,9 @@ package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.stats._
-import neuroflow.core
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.dsl.{Convolution, Dense, Focus, Layer}
+import neuroflow.dsl._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -49,10 +48,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]
-  type Tensor   = neuroflow.common.Tensor3D[Double]
+  type Tensor   = Tensor3D[Double]
   type Vectors  = Seq[DenseVector[Double]]
   type Matrices = Seq[DenseMatrix[Double]]
-  type Tensors  = Seq[neuroflow.common.Tensor3D[Double]]
+  type Tensors  = Seq[Tensor3D[Double]]
 
   private val _allLayers = layers.map {
     case f: Focus[Double]         => f.inner
@@ -304,10 +303,10 @@ private[nets] case class ConvNetworkSingle(layers: Seq[Layer], lossFunction: Los
 
   type Vector   = DenseVector[Float]
   type Matrix   = DenseMatrix[Float]
-  type Tensor   = neuroflow.common.Tensor3D[Float]
+  type Tensor   = Tensor3D[Float]
   type Vectors  = Seq[DenseVector[Float]]
   type Matrices = Seq[DenseMatrix[Float]]
-  type Tensors  = Seq[neuroflow.common.Tensor3D[Float]]
+  type Tensors  = Seq[Tensor3D[Float]]
 
   private val _allLayers = layers.map {
     case f: Focus[Double]         => f.inner

@@ -3,7 +3,7 @@ package neuroflow.application.plugin
 import breeze.generic.UFunc
 import breeze.linalg.{DenseMatrix, DenseVector, norm}
 import breeze.linalg.operators.OpMulInner
-import neuroflow.common.{Tensor, Tensor3D}
+import neuroflow.core.Tensor3D
 
 import scala.reflect.ClassTag
 

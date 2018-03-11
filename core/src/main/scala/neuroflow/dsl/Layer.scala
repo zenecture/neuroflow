@@ -1,6 +1,6 @@
 package neuroflow.dsl
 
-import neuroflow.core.{Activator, HasActivator}
+import neuroflow.core.{Activator, HasActivator, Tensor3D}
 
 /**
   * @author bogdanski
@@ -50,7 +50,7 @@ object Ω { // Alias syntax for Focus
 
 /**
   *
-  * Convolutes the input [[neuroflow.common.Tensor3D]], producing a new one, where:
+  * Convolutes the input [[Tensor3D]], producing a new one, where:
   *
   *   `dimIn`      Input tensor dimension. (x, y, z)
   *   `dimOut`     Output tensor dimension. (x, y, z)
