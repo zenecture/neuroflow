@@ -209,7 +209,7 @@ val ae = Network(layout = L, settings)
 ae.train(xs, ys)
 ```
 
-For instance, here we have a simple AutoEncoder, it learns the identity, and we are interested
+For instance, here we have a simple AutoEncoder `ae`, it learns the identity, and we are interested
 in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
 
 ```scala
