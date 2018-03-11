@@ -219,7 +219,7 @@ println(result) // DenseVector(0.2, 0.7, 0.1, 0.8, 0.2)
 ```
 
 The focus `Ω` on a specific layer gives a function, which can be applied just like the net it stems from.
-The type signature of the function is derived from the first and the focused layers algebraic types. Another 
+The type signature of the function is derived from the input and the focused layers algebraic types. Another 
 scenario where focusing is useful is when weights are initialized to train a model, i. e. the activations of 
 the layers can be watched and adjusted to find good values.
 
