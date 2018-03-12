@@ -45,19 +45,13 @@ object XOR {
       iterations = 100000,
       lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
 
-    import neuroflow.dsl.Implicits._
 
     val L = Vector(2) :: Dense(3, fn) :: Dense(1, fn) :: SquaredMeanError()
+    val net = Network(layout = L, settings)
 
-    val net = Network(L, settings)
+    net.train(xs, ys)
 
-    val fed = net.focus(Dense(3, fn))
-    fed(->(1,1))
-
-
-//    net.train(xs, ys)
-
-    val a = fed.apply(->(0.0, 0.0))
+    val a = net.apply(->(0.0, 0.0))
     val b = net.apply(->(0.0, 1.0))
     val c = net.apply(->(1.0, 0.0))
     val d = net.apply(->(1.0, 1.0))
@@ -72,3 +66,4 @@ object XOR {
   }
 
 }
+
