@@ -198,7 +198,7 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 ### Focusing
 
-We can put focus on a layer and use it as the actual model output.
+We can put focus on a layer and use it as the actual model output. For instance, here is a simple AutoEncoder `ae`:
 
 ```scala
 import neuroflow.dsl.Implicits._
@@ -209,8 +209,7 @@ val ae = Network(layout = L, settings)
 ae.train(xs, xs)
 ```
 
-For instance, here we have a simple AutoEncoder `ae`, it learns the identity, and we are interested
-in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
+It learns the input identity, but we are interested in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
 
 ```scala
 val focused = ae Ω Dense(5, Linear)
