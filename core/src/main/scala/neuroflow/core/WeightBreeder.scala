@@ -27,7 +27,7 @@ trait WeightBreeder[V] extends (Seq[Layer] => Weights[V])
 object WeightBreeder {
 
   /**
-    * Constructs `Breeder` in scope.
+    * Constructs `breeder` in scope.
     */
   def apply[V](implicit breeder: Breeder[V]): Breeder[V] = breeder
 
