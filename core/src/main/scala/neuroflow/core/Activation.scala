@@ -34,7 +34,9 @@ trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializab
 }
 
 /**
-  * Activator functions.
+  * Collection of pre-defined activators expressed as [[UFunc]].
+  * The CPU implementations are found here, the GPU implicits
+  * are found in the [[neuroflow.cuda.CuMatrix]] area.
   */
 object Activator {
 
