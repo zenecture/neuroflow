@@ -23,12 +23,12 @@ object Image extends Logs {
 
   /**
     * Loads image from `file` or `path` and returns flattened [[DenseVector]]
-    * holding all color channels, where pixel values are normalized to be <= 1.0.
+    * where pixel values are normalized to be <= 1.0.
     */
 
-  def extractRgb(path: String): DenseVector[Double] = extractRgb(new File(path))
+  def loadRgbVector(path: String): DenseVector[Double] = loadRgbVector(new File(path))
 
-  def extractRgb(file: File): DenseVector[Double] = {
+  def loadRgbVector(file: File): DenseVector[Double] = {
     val img = ImageIO.read(file)
     val res =
       (0 until img.getHeight).flatMap { h =>
@@ -46,13 +46,13 @@ object Image extends Logs {
     * All pixel colors are scaled from [0, 255] to [0.0, 1.0].
     */
 
-  def extractRgb3d(url: URL): RgbTensor[Double] = extractRgb3d(ImageIO.read(url))
+  def loadRgbTensor(url: URL): RgbTensor[Double] = loadRgbTensor(ImageIO.read(url))
 
-  def extractRgb3d(path: String): RgbTensor[Double] = extractRgb3d(new File(path))
+  def loadRgbTensor(path: String): RgbTensor[Double] = loadRgbTensor(new File(path))
 
-  def extractRgb3d(file: File): RgbTensor[Double] = extractRgb3d(ImageIO.read(file))
+  def loadRgbTensor(file: File): RgbTensor[Double] = loadRgbTensor(ImageIO.read(file))
 
-  def extractRgb3d(img: BufferedImage): RgbTensor[Double] = {
+  def loadRgbTensor(img: BufferedImage): RgbTensor[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
     val tensor = new RgbTensor[Double](w, h, out)
@@ -73,8 +73,6 @@ object Image extends Logs {
   /**
     * Represents a RGB image, accessible by (x, y, z) coordinates.
     * Where x, y are width, height and z is the color channel.
-    * The `projection` linearizes the image into a full row
-    * per color channel using column major.
     */
   class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
 
@@ -96,12 +94,12 @@ object Image extends Logs {
 
 
   /**
-    * Loads portable gray map as flat vector
+    * Loads portable gray map as flattened [[DenseVector]].
     */
 
-  def extractPgm(path: String): DenseVector[Double] = extractPgm(new File(path))
+  def loadPgm(path: String): DenseVector[Double] = loadPgm(new File(path))
 
-  def extractPgm(file: File): DenseVector[Double] = {
+  def loadPgm(file: File): DenseVector[Double] = {
     val raw = Source.fromFile(file).getLines.drop(2).toArray // P2, width, height
     val max = raw.head.toDouble
     val img = raw.tail.flatMap(_.split(" ")).map(_.toDouble / max)
@@ -110,13 +108,12 @@ object Image extends Logs {
 
 
   /**
-    * Loads image from `file` or `path` and returns flattened sequence of pixels,
-    * activated based on `selector` result
+    * Loads image from `file` or `path` and returns flattened [[DenseVector]],
+    * where pixels are white or black, depending on the `selector`.
     */
+  def loadBinary(path: String, selector: Int => Boolean): DenseVector[Double] = loadBinary(new File(path), selector)
 
-  def extractBinary(path: String, selector: Int => Boolean): DenseVector[Double] = extractBinary(new File(path), selector)
-
-  def extractBinary(file: File, selector: Int => Boolean): DenseVector[Double] = {
+  def loadBinary(file: File, selector: Int => Boolean): DenseVector[Double] = {
     val img = ImageIO.read(file)
     val res =
       (0 until img.getHeight).flatMap { h =>

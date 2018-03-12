@@ -28,7 +28,7 @@ class ImageTest extends Specification {
 
   def img2Tensor = {
     val img = ImageIO.read(image)
-    val tensor = Image.extractRgb3d(image)
+    val tensor = Image.loadRgbTensor(image)
     if (img.getWidth * img.getHeight == tensor.matrix.cols && tensor.matrix.rows == 3) success else failure
   }
 

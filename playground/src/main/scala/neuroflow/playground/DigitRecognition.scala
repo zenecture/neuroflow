@@ -28,7 +28,7 @@ object DigitRecognition {
 
   def digitSet2Vec(path: String): Seq[DenseVector[Double]] = {
     val selector: Int => Boolean = _ < 255
-    (0 to 9) map (i => extractBinary(getResourceFile(path + s"$i.png"), selector))
+    (0 to 9) map (i => loadBinary(getResourceFile(path + s"$i.png"), selector))
   }
 
   def apply = {
