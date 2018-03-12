@@ -88,7 +88,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
     val idx = layers.zipWithIndex.find(t => t._1 == l) match {
-      case Some((_, i)) => i
+      case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
       case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Vector) => {
@@ -323,7 +323,7 @@ private[nets] case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: Los
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
     val idx = layers.zipWithIndex.find(t => t._1 == l) match {
-      case Some((_, i)) => i
+      case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
       case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Vector) => {
