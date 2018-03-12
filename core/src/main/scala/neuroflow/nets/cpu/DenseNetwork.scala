@@ -76,12 +76,14 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     }
   }
 
+
   /**
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
     sink(x.toDenseMatrix, _lastLayerIdx).toDenseVector
   }
+
 
   /**
     * `apply` under a focused layer.
@@ -114,6 +116,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     }
     run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
+
 
   /**
     * The training loop.
@@ -161,6 +164,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     forward(in, 0)
     fa(outLayer)
   }
+
 
   /**
     * Computes gradient for weights with respect to given batch,
@@ -223,6 +227,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     lossReduced
 
   }
+
 
   /** For debugging, approximates the gradients using `settings.approximation`. */
   private def adaptWeightsApprox(xs: Matrix, ys: Matrix, stepSize: Double): Matrix = {
