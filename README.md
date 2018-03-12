@@ -206,7 +206,7 @@ import neuroflow.dsl.Implicits._
 val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: Loss()
 val ae = Network(layout = L, settings)
 
-ae.train(xs, ys)
+ae.train(xs, xs)
 ```
 
 For instance, here we have a simple AutoEncoder `ae`, it learns the identity, and we are interested
