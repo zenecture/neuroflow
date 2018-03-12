@@ -12,6 +12,8 @@ import scala.reflect.ClassTag
   * @since 11.03.18
   */
 object Implicits {
+
+  // These CanProduces are for focusing
   
   implicit object doubleVector extends ((DenseMatrix[Double], Vector[Double]) CanProduce DenseVector[Double]) {
     def apply(a: (DenseMatrix[Double], Vector[Double])): DenseVector[Double] = a._1.toDenseVector
