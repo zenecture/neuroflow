@@ -9,11 +9,23 @@ import neuroflow.core.{Activator, HasActivator, Tensor3D}
   */
 
 
-/** Base-label for all layers. */
 sealed trait Layer extends Serializable {
+
+  /**
+    * Algebraic representation
+    */
   type algebraicType
+
+  /**
+    * Overall output relevance
+    */
   val neurons: Int
+
+  /**
+    * Unique layer symbol
+    */
   val symbol: String
+
 }
 
 
