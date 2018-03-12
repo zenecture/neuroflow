@@ -12,7 +12,8 @@ import breeze.numerics.{exp, log, pow, tanh}
   */
 
 /**
-  * Label for neurons in the network performing a function on their synapses.
+  * A label for a [[neuroflow.dsl.Layer]] with an `activator`
+  * which gets applied on its output cells.
   */
 trait HasActivator[N] {
   val activator: Activator[N]
