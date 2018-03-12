@@ -60,14 +60,14 @@ a little deeper net, with some rates and rules defined, could look like this:
 val (e, f) = (Linear, ReLU)
 
 val L =
-      Vector   (11)           ::
-      Dense    ( 3, e)        ::
-      Dense   (180, f)        ::
-      Dense   (360, f)        ::
-      Dense   (420, f)        ::
-      Dense   (314, f)        ::
-      Dense   (271, f)        :: 
-      Dense    (23, f)        ::   Softmax()
+      Vector   (11)         ::
+      Dense    ( 3, e)      ::
+      Dense   (180, f)      ::
+      Dense   (360, f)      ::
+      Dense   (420, f)      ::
+      Dense   (314, f)      ::
+      Dense   (271, f)      :: 
+      Dense    (23, f)      ::    Softmax()
 
 val deeperNet = Network(
   layout = L, 
