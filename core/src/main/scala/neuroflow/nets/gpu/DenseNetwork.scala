@@ -139,11 +139,12 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target)
-    val r2 = lossFunction match {
-      case _: SquaredMeanError[_] => r1
-      case _: Softmax[_]          => SoftmaxImpl(r1)
-      case _                      => r1
-    }
+    val r2 =
+      if (target == _lastLayerIdx) lossFunction match {
+        case _: SquaredMeanError[_] => r1
+        case _: Softmax[_]          => SoftmaxImpl(r1)
+        case _                      => r1
+      } else                           r1
     r2
   }
 
@@ -441,11 +442,12 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target)
-    val r2 = lossFunction match {
-      case _: SquaredMeanError[_] => r1
-      case _: Softmax[_]          => SoftmaxImpl(r1)
-      case _                      => r1
-    }
+    val r2 =
+      if (target == _lastLayerIdx) lossFunction match {
+        case _: SquaredMeanError[_] => r1
+        case _: Softmax[_]          => SoftmaxImpl(r1)
+        case _                      => r1
+      } else                           r1
     r2
   }
 
