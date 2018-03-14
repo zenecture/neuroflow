@@ -7,7 +7,7 @@ package neuroflow.playground
 
 object App extends App {
 
-  println("Run example (1-18): ")
+  println("Run example (1-19): ")
 
   scala.io.StdIn.readInt() match {
 
@@ -29,6 +29,7 @@ object App extends App {
     case 16 => DistributedTraining.coordinator
     case 17 => DistributedTraining.executors
     case 18 => Word2Vec.apply
+    case 19 => ConvViz.apply
 
     case  _ => sys.exit()
 

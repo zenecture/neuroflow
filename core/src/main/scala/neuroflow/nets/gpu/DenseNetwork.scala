@@ -104,9 +104,15 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
-    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+    val lwi = layers.zipWithIndex
+    val idx = lwi.find(_._1 eq l).orElse {
+      val p = lwi.filter(_._1 == l)
+      if (p.size > 1) warn(s"Focus layer $l is ambiguous. Taking first. " +
+        "Alternatively, use a direct object reference to the desired layer.")
+      p.headOption
+    } match {
       case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
-      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+      case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Vector) => {
       if (idx > 0) cp(sink(in.toDenseMatrix, idx - 1), l)
@@ -407,9 +413,15 @@ private[nets] case class DenseNetworkSingle(layers: Seq[Layer], lossFunction: Lo
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
-    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+    val lwi = layers.zipWithIndex
+    val idx = lwi.find(_._1 eq l).orElse {
+      val p = lwi.filter(_._1 == l)
+      if (p.size > 1) warn(s"Focus layer $l is ambiguous. Taking first. " +
+        "Alternatively, use a direct object reference to the desired layer.")
+      p.headOption
+    } match {
       case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
-      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+      case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Vector) => {
       if (idx > 0) cp(sink(in.toDenseMatrix, idx - 1), l)

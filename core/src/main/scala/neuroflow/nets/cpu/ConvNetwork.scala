@@ -88,9 +88,15 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
-    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+    val lwi = layers.zipWithIndex
+    val idx = lwi.find(_._1 eq l).orElse {
+      val p = lwi.filter(_._1 == l)
+      if (p.size > 1) warn(s"Focus layer $l is ambiguous. Taking first. " +
+        "Alternatively, use a direct object reference to the desired layer.")
+      p.headOption
+    } match {
       case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
-      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+      case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Tensor) => {
       cp(sink(in.matrix, idx), l)
@@ -131,12 +137,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
   private def flow(in: Matrix, target: Int, batchSize: Int): Matrix = {
 
     val _fa = ArrayBuffer.empty[Matrix]
+    val _fr = ArrayBuffer.empty[Matrix]
 
     @tailrec def conv(_in: Matrix, i: Int): Unit = {
       val l = _convLayers(i)
       val p = weights(i) * convolute(_in, l, batchSize)
       val a = p.map(_activators(i))
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
+      _fr += a
       if (i < _lastC) conv(a, i + 1)
     }
 
@@ -145,13 +153,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       val p = _in * weights(i)
       val a = p.map(_activators(i))
       _fa += a
+      _fr += a
       if (i < _lastL) fully(a, i + 1)
     }
 
     conv(in, 0)
     fully(_fa(_lastC), _lastC + 1)
 
-    _fa(target)
+    _fr(target)
 
   }
 
@@ -363,9 +372,15 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
-    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+    val lwi = layers.zipWithIndex
+    val idx = lwi.find(_._1 eq l).orElse {
+      val p = lwi.filter(_._1 == l)
+      if (p.size > 1) warn(s"Focus layer $l is ambiguous. Taking first. " +
+        "Alternatively, use a direct object reference to the desired layer.")
+      p.headOption
+    } match {
       case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
-      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+      case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Tensor) => {
       cp(sink(in.matrix, idx), l)
@@ -406,12 +421,14 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
   private def flow(in: Matrix, target: Int, batchSize: Int): Matrix = {
 
     val _fa = ArrayBuffer.empty[Matrix]
+    val _fr = ArrayBuffer.empty[Matrix]
 
     @tailrec def conv(_in: Matrix, i: Int): Unit = {
       val l = _convLayers(i)
       val p = weights(i) * convolute(_in, l, batchSize)
       val a = p.map(_activators(i))
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
+      _fr += a
       if (i < _lastC) conv(a, i + 1)
     }
 
@@ -420,13 +437,14 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
       val p = _in * weights(i)
       val a = p.map(_activators(i))
       _fa += a
+      _fr += a
       if (i < _lastL) fully(a, i + 1)
     }
 
     conv(in, 0)
     fully(_fa(_lastC), _lastC + 1)
 
-    _fa(target)
+    _fr(target)
 
   }
 

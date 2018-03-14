@@ -69,25 +69,69 @@ object Image extends Logs {
     tensor
   }
 
+  sealed trait ImageFormat
+  object PNG extends ImageFormat
+  object JPG extends ImageFormat
 
   /**
-    * Represents a RGB image, accessible by (x, y, z) coordinates.
-    * Where x, y are width, height and z is the color channel.
+    * Writes `img` to `filePath`.
     */
-  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
+  def writeImage(img: BufferedImage, filePath: String, imageFormat: ImageFormat): Unit = {
+    val outputfile = new File(filePath)
+    imageFormat match {
+      case PNG =>
+        ImageIO.write(img, "png", outputfile)
+      case JPG =>
+        ImageIO.write(img, "jpg", outputfile)
+    }
+  }
 
-    val stride: Int = height
 
-    def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = {
-      val newMat = matrix.copy
-      val (row, col) = projection(x._1, x._2, x._3)
-      newMat.update(row, col, f(apply(x)))
-      new RgbTensor(width, height, newMat)
+  /**
+    * Loads image from [[RgbTensor]] `t`.
+    * All pixel colors are scaled from [0.0, 1.0] to [0, 255].
+    */
+  def imageFromRgbTensor(t: RgbTensor[Double]): BufferedImage = {
+
+    val img = new BufferedImage(t.X, t.Y, BufferedImage.TYPE_INT_RGB)
+
+    (0 until t.X).foreach { x =>
+      (0 until t.Y).foreach { y =>
+        val r = (t(x, y, 0) * 255.0).toInt
+        val g = (t(x, y, 1) * 255.0).toInt
+        val b = (t(x, y, 2) * 255.0).toInt
+        var rgb = r
+        rgb = (rgb << 8) + g
+        rgb = (rgb << 8) + b
+        img.setRGB(x, y, rgb)
+      }
     }
 
-    def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = {
-      val mapped = matrix.data.map(f)
-      new RgbTensor(width, height, DenseMatrix.create(matrix.rows, matrix.cols, mapped))
+    img
+
+  }
+
+
+  /**
+    * Extracts grayscale images from [[Tensor3D]] `t` by z-dimension.
+    * The luminance can be amplified by `boost`.
+    */
+  def imagesFromTensor3D(width: Int, height: Int, t: Tensor3D[Double], boost: Double = 1.0): Seq[BufferedImage] = {
+
+    val max = t.matrix.data.max
+
+    (0 until t.matrix.rows).map { r =>
+      val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+      (0 until width).foreach { x =>
+        (0 until height).foreach { y =>
+          val v = (t(x, y, r) / max * 255.0).toInt
+          var rgb = v
+          rgb = (rgb << 8) + v
+          rgb = (rgb << 8) + v
+          img.setRGB(x, y, rgb)
+        }
+      }
+      img
     }
 
   }
@@ -126,3 +170,33 @@ object Image extends Logs {
   }
 
 }
+
+
+
+/**
+  * Represents a RGB image, accessible by (x, y, z) coordinates.
+  * Where x, y are width, height and z is the color channel.
+  */
+class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
+
+  val X: Int = width
+  val Y: Int = height
+  val Z: Int = 3
+
+  val stride: Int = Y
+
+  def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = {
+    val newMat = matrix.copy
+    val (row, col) = projection(x._1, x._2, x._3)
+    newMat.update(row, col, f(apply(x)))
+    new RgbTensor(width, height, newMat)
+  }
+
+  def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = {
+    val mapped = matrix.data.map(f)
+    new RgbTensor(width, height, DenseMatrix.create(matrix.rows, matrix.cols, mapped))
+  }
+
+}
+
+

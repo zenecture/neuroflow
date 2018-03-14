@@ -108,9 +108,15 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
-    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+    val lwi = layers.zipWithIndex
+    val idx = lwi.find(_._1 eq l).orElse {
+      val p = lwi.filter(_._1 == l)
+      if (p.size > 1) warn(s"Focus layer $l is ambiguous. Taking first. " +
+        "Alternatively, use a direct object reference to the desired layer.")
+      p.headOption
+    } match {
       case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
-      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+      case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Tensor) => {
       cp(sink(in.matrix, idx), l)
@@ -143,11 +149,12 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target, batchSize = 1)
-    val r2 = lossFunction match {
-      case _: SquaredMeanError[_] => r1
-      case _: Softmax[_]          => SoftmaxImpl(r1)
-      case _                      => r1
-    }
+    val r2 =
+      if (target == _lastLayerIdx) lossFunction match {
+        case _: SquaredMeanError[_] => r1
+        case _: Softmax[_]          => SoftmaxImpl(r1)
+        case _                      => r1
+      } else                           r1
     r2
   }
 
@@ -155,12 +162,14 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
   private def flow(in: Matrix, target: Int, batchSize: Int): Matrix = {
 
     val _fa = ArrayBuffer.empty[CuMatrix[Double]]
+    val _fr = ArrayBuffer.empty[CuMatrix[Double]] // raw, unshaped
 
     @tailrec def conv(_in: CuMatrix[Double], i: Int): Unit = {
       val l = _convLayers(i)
       val p = _cuWeights(i) * convolute(_in, l, batchSize)
       val a = _activators(i)._1(p)
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
+      _fr += a
       if (i < _lastC) conv(a, i + 1)
     }
 
@@ -169,14 +178,16 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       val p = _in * _cuWeights(i)
       val a = _activators(i)._1(p)
       _fa += a
+      _fr += a
       if (i < _lastL) fully(a, i + 1)
     }
 
     conv(CuMatrix.fromDense(in), 0)
     fully(_fa(_lastC), _lastC + 1)
 
-    val r = _fa(target).toDense
+    val r = _fr(target).toDense
     _fa.foreach(_.release())
+    _fr.foreach(_.release())
     r
 
   }
@@ -433,9 +444,15 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
-    val idx = layers.zipWithIndex.find(t => t._1 == l) match {
+    val lwi = layers.zipWithIndex
+    val idx = lwi.find(_._1 eq l).orElse {
+      val p = lwi.filter(_._1 == l)
+      if (p.size > 1) warn(s"Focus layer $l is ambiguous. Taking first. " +
+        "Alternatively, use a direct object reference to the desired layer.")
+      p.headOption
+    } match {
       case Some((l, i)) => debug(s"Found focus layer $l at index $i."); i
-      case _            => warn("Focus layer not found. Fallback to last layer."); _lastLayerIdx
+      case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Tensor) => {
       cp(sink(in.matrix, idx), l)
@@ -468,11 +485,12 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target, batchSize = 1)
-    val r2 = lossFunction match {
-      case _: SquaredMeanError[_] => r1
-      case _: Softmax[_]          => SoftmaxImpl(r1)
-      case _                      => r1
-    }
+    val r2 =
+      if (target == _lastLayerIdx) lossFunction match {
+        case _: SquaredMeanError[_] => r1
+        case _: Softmax[_]          => SoftmaxImpl(r1)
+        case _                      => r1
+      } else                           r1
     r2
   }
 
@@ -480,12 +498,14 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
   private def flow(in: Matrix, target: Int, batchSize: Int): Matrix = {
 
     val _fa = ArrayBuffer.empty[CuMatrix[Float]]
+    val _fr = ArrayBuffer.empty[CuMatrix[Float]] // raw, unshaped
 
     @tailrec def conv(_in: CuMatrix[Float], i: Int): Unit = {
       val l = _convLayers(i)
       val p = _cuWeights(i) * convolute(_in, l, batchSize)
       val a = _activators(i)._1(p)
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
+      _fr += a
       if (i < _lastC) conv(a, i + 1)
     }
 
@@ -494,14 +514,16 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
       val p = _in * _cuWeights(i)
       val a = _activators(i)._1(p)
       _fa += a
+      _fr += a
       if (i < _lastL) fully(a, i + 1)
     }
 
     conv(CuMatrix.fromDense(in), 0)
     fully(_fa(_lastC), _lastC + 1)
 
-    val r = _fa(target).toDense
+    val r = _fr(target).toDense
     _fa.foreach(_.release())
+    _fr.foreach(_.release())
     r
 
   }

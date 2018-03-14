@@ -3,6 +3,7 @@ package neuroflow.application.plugin
 import breeze.generic.UFunc
 import breeze.linalg.{DenseMatrix, DenseVector, norm}
 import breeze.linalg.operators.OpMulInner
+import neuroflow.application.processor.RgbTensor
 import neuroflow.core.Tensor3D
 
 import scala.reflect.ClassTag
@@ -80,4 +81,19 @@ object Extensions {
     def double: Tensor3D[Double] = t.mapAll(_.toDouble)
   }
 
+  implicit class Tensor3DDoubleToRgbTensor(t: Tensor3D[Double]) {
+    def rgbTensor: RgbTensor[Double] = {
+      require(t.matrix.rows == 3, s"Tensor `t` must have depth z = 3 (rgb). Actual depth z = ${t.matrix.rows}")
+      new RgbTensor(t.matrix.cols / t.stride, t.stride, t.matrix)
+    }
+  }
+
+  implicit class Tensor3DFloatToRgbTensor(t: Tensor3D[Float]) {
+    def rgbTensor: RgbTensor[Float] = {
+      require(t.matrix.rows == 3, s"Tensor `t` must have depth z = 3 (rgb). Actual depth z = ${t.matrix.rows}")
+      new RgbTensor(t.matrix.cols / t.stride, t.stride, t.matrix)
+    }
+  }
+
 }
+

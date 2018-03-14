@@ -49,3 +49,19 @@ trait Tensor3D[V] extends Tensor[(Int, Int, Int), V] {
 
 }
 
+
+class Tensor3DImpl[V](val matrix: DenseMatrix[V], val stride: Int) extends Tensor3D[V] {
+
+  def mapAll[T: ClassTag : Zero](f: V => T): Tensor3D[T] = {
+    new Tensor3DImpl(matrix.map(f), stride)
+  }
+
+  def mapAt(x: (Int, Int, Int))(f: V => V): Tensor3D[V] = {
+    val newMat = matrix.copy
+    val (row, col) = projection(x._1, x._2, x._3)
+    newMat.update(row, col, f(apply(x)))
+    new Tensor3DImpl(newMat, stride)
+  }
+
+}
+
