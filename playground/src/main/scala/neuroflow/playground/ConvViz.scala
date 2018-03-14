@@ -79,10 +79,10 @@ object ConvViz {
           val i1s = Image.imagesFromTensor3D(c1.dimOut._1, c1.dimOut._2, f1.double, boost = 1.3)
           val i2s = Image.imagesFromTensor3D(c2.dimOut._1, c2.dimOut._2, f2.double, boost = 1.3)
           val i3s = Image.imagesFromTensor3D(c3.dimOut._1, c3.dimOut._2, f3.double, boost = 1.3)
-          i0s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
-          i1s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
-          i2s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
-          i3s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c3-$idx-$id", PNG) }
+          i0s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
+          i1s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
+          i2s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
+          i3s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c3-$idx-$id", PNG) }
       }
     }
 
