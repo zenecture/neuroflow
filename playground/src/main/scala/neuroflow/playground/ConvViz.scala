@@ -21,6 +21,14 @@ import scala.util.Random
 
 object ConvViz {
 
+  /*
+
+      Here we visualize activations of the convolutional layers before and after training.
+      Each filter of a layer generates a gray-scale PNG image, which gives an insight how
+      the net learns to separate the classes.
+
+   */
+
   val path = "/Users/felix/github/unversioned/convviz"
 
   def apply = {
@@ -92,8 +100,6 @@ object ConvViz {
 }
 
 /*
-
-         Here we visualize the activations of the convolutional layers before and after training.
 
 
 
