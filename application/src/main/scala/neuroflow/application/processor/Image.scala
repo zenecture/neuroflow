@@ -124,7 +124,7 @@ object Image extends Logs {
       val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
       (0 until width).foreach { x =>
         (0 until height).foreach { y =>
-          val v = (t(x, y, r) / max * 255.0).toInt
+          val v = (t(x, y, r) / max * 255.0 * boost).toInt
           var rgb = v
           rgb = (rgb << 8) + v
           rgb = (rgb << 8) + v

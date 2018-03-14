@@ -11,6 +11,8 @@ import neuroflow.dsl._
 import neuroflow.dsl.Implicits._
 import neuroflow.nets.gpu.ConvNetwork._
 
+import scala.util.Random
+
 /**
   * @author bogdanski
   * @since 12.03.18
@@ -24,14 +26,14 @@ object ConvViz {
   def apply = {
 
     val glasses = new java.io.File(path + "/glasses").list().map { s =>
-      loadRgbTensor(path + "/glasses/" + s).float -> ->(1.0f, 0.0f)
+      (s"glasses-$s", loadRgbTensor(path + "/glasses/" + s).float, ->(1.0f, 0.0f))
     }.seq
 
     val noglasses = new java.io.File(path + "/noglasses").list().map { s =>
-      loadRgbTensor(path + "/noglasses/" + s).float -> ->(0.0f, 1.0f)
+      (s"noglasses-$s", loadRgbTensor(path + "/noglasses/" + s).float, ->(0.0f, 1.0f))
     }.seq
 
-    val samples = glasses ++ noglasses
+    val samples = Random.shuffle(glasses ++ noglasses)
 
     val f = ReLU
 
@@ -52,23 +54,23 @@ object ConvViz {
       layout = L,
       Settings[Float](
         prettyPrint     =  true,
-        learningRate    =  { case (i, α) => 1E-4 },
+        learningRate    =  { case (i, α) => 1E-3 },
         updateRule      =  Momentum(μ = 0.8f),
         gcThreshold     =  Some(100 * 1024 * 1024L),
-        batchSize       =  Some(5),
-        iterations      =  1000
+        batchSize       =  Some(20),
+        iterations      =  250
       )
     )
 
     writeLayers(stage = "before")
 
-    net.train(samples.map(_._1), samples.map(_._2))
+    net.train(samples.map(_._2), samples.map(_._3))
 
     writeLayers(stage = "after")
 
     def writeLayers(stage: String): Unit = {
       samples.zipWithIndex.foreach {
-        case ((xs, ys), i) =>
+        case ((id, xs, ys), i) =>
           val f0 = (net Ω c0).apply(xs)
           val f1 = (net Ω c1).apply(xs)
           val f2 = (net Ω c2).apply(xs)
@@ -77,10 +79,10 @@ object ConvViz {
           val i1s = Image.imagesFromTensor3D(c1.dimOut._1, c1.dimOut._2, f1.double, boost = 1.3)
           val i2s = Image.imagesFromTensor3D(c2.dimOut._1, c2.dimOut._2, f2.double, boost = 1.3)
           val i3s = Image.imagesFromTensor3D(c3.dimOut._1, c3.dimOut._2, f3.double, boost = 1.3)
-          i0s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/$i-c0-$idx.png", PNG) }
-          i1s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/$i-c1-$idx.png", PNG) }
-          i2s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/$i-c2-$idx.png", PNG) }
-          i3s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/$i-c3-$idx.png", PNG) }
+          i0s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
+          i1s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
+          i2s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
+          i3s.zipWithIndex.foreach {case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c3-$idx-$id", PNG) }
       }
     }
 
