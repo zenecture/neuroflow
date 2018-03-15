@@ -8,7 +8,7 @@ There are three modules:
 
 - core: building blocks for neural networks
 - application: plugins, helpers, functionality related to application
-- playground: examples with resources
+- playground: examples how to use it
 
 To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
