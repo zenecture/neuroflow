@@ -77,8 +77,8 @@ object ConvViz {
     writeLayers(stage = "after")
 
     def writeLayers(stage: String): Unit = {
-      samples.zipWithIndex.foreach {
-        case ((id, xs, ys), i) =>
+      samples.foreach {
+        case (id, xs, ys) =>
           val f0 = (net Ω c0).apply(xs)
           val f1 = (net Ω c1).apply(xs)
           val f2 = (net Ω c2).apply(xs)
