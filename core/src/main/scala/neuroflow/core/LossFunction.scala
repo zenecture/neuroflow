@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
 
 
 /**
-  * A loss function gets target `y`, prediction `x`, computes loss and gradient,
+  * A loss function gets target `y`, prediction `x`, returns loss and gradient,
   * which will be backpropped into the raw output layer of a net.
   */
 trait LossFunction[V] extends Layout {
@@ -106,11 +106,11 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
     val `0.5` = field / (field.one, `2`)
     val pow   = DenseMatrix.zeros[V](y.rows, y.cols)
     pow := `2`
-    val r1 = y - x
-    val r2 = r1 ^:^ pow
-    r2 *= `0.5`
+    val grad = y - x
+    val err = grad ^:^ pow
+    err *= `0.5`
 
-    (r2, -r1)
+    (err, -grad)
 
   }
 
@@ -143,14 +143,14 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
     val pow   = CuMatrix.zeros[V](y.rows, y.cols)
     pow := `2`
     val r1 = y - x
-    val r2 = r1 ^:^ pow
-    r2 *= `0.5`
-    val r3 = -r1
+    val err = r1 ^:^ pow
+    err *= `0.5`
+    val grad = -r1
 
     pow.release()
     r1.release()
 
-    (r2, r3)
+    (err, grad)
 
   }
 
@@ -241,6 +241,7 @@ case class Softmax[V]() extends LossFunction[V] {
 
 /**
   * Computes e^x / Σe^X for given matrix `x` by row.
+  * To not numerically overflow, everything is shifted by row max.
   */
 object SoftmaxImpl {
 
