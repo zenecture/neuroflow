@@ -20,7 +20,6 @@ import scala.reflect.ClassTag
 /**
   * A loss function gets target `y`, prediction `x`, returns loss and gradient,
   * which will be backpropped into the raw output layer of a net.
-  *   [Batch Layout: sample per row]
   */
 trait LossFunction[V] extends Layout {
 
