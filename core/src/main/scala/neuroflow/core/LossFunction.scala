@@ -102,9 +102,9 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
             _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
 
-    val `2`   = field + (field.one, field.one)
+    val `2` = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
-    val pow   = DenseMatrix.zeros[V](y.rows, y.cols)
+    val pow = DenseMatrix.zeros[V](y.rows, y.cols)
     pow := `2`
     val grad = y - x
     val err = grad ^:^ pow
@@ -138,9 +138,9 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
             _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
 
-    val `2`   = field + (field.one, field.one)
+    val `2` = field + (field.one, field.one)
     val `0.5` = field / (field.one, `2`)
-    val pow   = CuMatrix.zeros[V](y.rows, y.cols)
+    val pow = CuMatrix.zeros[V](y.rows, y.cols)
     pow := `2`
     val r1 = y - x
     val err = r1 ^:^ pow
@@ -164,8 +164,8 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
   *
   * Works for 1-of-K classification, where `y` is the target and `x` the prediction. The target is
   * expressed using hot-vector encoding, e. g. (0, 1, 0, 0) where 1 is the true class. The loss is
-  * formulated under a cross-entropy regime. The predicted and softmaxed class scores sum up to one
-  * such that they are interpretable in percent, e. g.
+  * formulated under a cross-entropy regime. The softmaxed class scores sum up to one such that they
+  * are interpretable as percent, e. g.
   *
   *   Target:     (0, 1, 0, 0)
   *   Prediction: (0.2, 0.4, 0.3, 0.1)
@@ -242,7 +242,7 @@ case class Softmax[V]() extends LossFunction[V] {
 
 /**
   * Computes e^x / Σe^X for given matrix `x` by row.
-  * To not numerically overflow, everything is shifted by row max.
+  * To not numerically overflow, rows are subtracted by row max.
   */
 object SoftmaxImpl {
 
