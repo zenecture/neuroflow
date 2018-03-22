@@ -12,8 +12,7 @@ import breeze.numerics.{exp, log, pow, tanh}
   */
 
 /**
-  * A label for a [[neuroflow.dsl.Layer]] with an `activator`
-  * which gets applied on its output cells.
+  * A label for a [[neuroflow.dsl.Layer]] with `activator` to fire the cells.
   */
 trait HasActivator[N] {
   val activator: Activator[N]
@@ -35,9 +34,7 @@ trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializab
 }
 
 /**
-  * Collection of pre-defined activators expressed as [[UFunc]].
-  * The CPU implementations are found here, the GPU implicits
-  * are found in the [[neuroflow.cuda.CuMatrix]] area.
+  * Collection of pre-defined activators.
   */
 object Activator {
 
