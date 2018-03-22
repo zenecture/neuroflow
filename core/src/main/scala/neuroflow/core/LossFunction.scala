@@ -20,6 +20,7 @@ import scala.reflect.ClassTag
 /**
   * A loss function gets target `y`, prediction `x`, returns loss and gradient,
   * which will be backpropped into the raw output layer of a net.
+  *   [Batch Layout: sample per row]
   */
 trait LossFunction[V] extends Layout {
 
@@ -162,13 +163,14 @@ case class SquaredMeanError[V]() extends LossFunction[V] {
   *
   *   L = -Σ(y * log(e^x / Σe^X))
   *
-  * Works for 1-of-K classification, under a cross-entropy regime,
-  * where `y` is the target and `x` the prediction. The target is expressed
-  * using hot-vector encoding, e. g. (0, 1, 0, 0) where 1 is the true class.
-  * The first sum Σ is taken over the full batch and both exponentials
-  * give a convex functional form. The second sum Σ produces scores in
-  * range [0.0, 1.0] such that they sum up to 1 and are interpretable
-  * as percent.
+  * Works for 1-of-K classification, where `y` is the target and `x` the prediction. The target is
+  * expressed using hot-vector encoding, e. g. (0, 1, 0, 0) where 1 is the true class. The loss is
+  * formulated under a cross-entropy regime. The predicted and softmaxed class scores sum up to one
+  * such that they are interpretable in percent, e. g.
+  *
+  *   Target:     (0, 1, 0, 0)
+  *   Prediction: (0.2, 0.4, 0.3, 0.1)
+  *   Loss:       -log(0.4) ≈ 0,916
   *
   */
 case class Softmax[V]() extends LossFunction[V] {
