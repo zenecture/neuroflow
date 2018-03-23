@@ -26,7 +26,7 @@ object TextClassification {
          (Source: qwone.com/%7Ejason/20Newsgroups)
 
        Feel free to read this article for the full story:
-         http://znctr.com/blog/language-processing
+         znctr.com/blog/text-classification
 
    */
 
