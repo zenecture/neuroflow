@@ -112,10 +112,12 @@ case class Convolution[V](dimIn      :  (Int, Int, Int),
 
 object Convolution {
 
-  implicit class IntTupler(i: Int) {
-    def `²`: (Int, Int) = (i, i)
-    def `³`: (Int, Int, Int) = (i, i, i)
-  }
+  /**
+    * Import these for short syntax [[Convolution]] parameterization.
+    */
+
+  implicit def autoTupler(i: Int): (Int, Int) = (i, i)
+  implicit def autoTripler(i: Int): (Int, Int, Int) = (i, i, i)
 
 }
 

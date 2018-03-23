@@ -5,7 +5,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image
 import neuroflow.application.processor.Image._
 import neuroflow.core.Activators.Float._
-import neuroflow.dsl.Convolution.IntTupler
+import neuroflow.dsl.Convolution.autoTupler
 import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.dsl.Implicits._
@@ -45,10 +45,10 @@ object ConvViz {
 
     val f = ReLU
 
-    val c0 = Convolution(dimIn = (400, 400, 3), padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 1, activator = f)
-    val c1 = Convolution(dimIn = c0.dimOut,     padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 1, activator = f)
-    val c2 = Convolution(dimIn = c1.dimOut,     padding = 1`²`, field = 4`²`, stride = 2`²`, filters = 1, activator = f)
-    val c3 = Convolution(dimIn = c2.dimOut,     padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 1, activator = f)
+    val c0 = Convolution(dimIn = (400, 400, 3), padding = 1, field = 3, stride = 1, filters = 1, activator = f)
+    val c1 = Convolution(dimIn = c0.dimOut,     padding = 1, field = 3, stride = 1, filters = 1, activator = f)
+    val c2 = Convolution(dimIn = c1.dimOut,     padding = 1, field = 4, stride = 2, filters = 1, activator = f)
+    val c3 = Convolution(dimIn = c2.dimOut,     padding = 1, field = 3, stride = 1, filters = 1, activator = f)
 
     val L = c0 :: c1 :: c2 :: c3 :: Dense(2, f) :: Softmax()
 

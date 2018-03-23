@@ -7,7 +7,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
 import neuroflow.core.Activators.Float._
-import neuroflow.dsl.Convolution.IntTupler
+import neuroflow.dsl.Convolution.autoTupler
 import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.gpu.ConvNetwork._
@@ -48,15 +48,15 @@ object ImageRecognition {
 
     val f = ReLU
 
-    val c0 = Convolution(dimIn = (32, 32, 3),  padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 128, activator = f)
-    val c1 = Convolution(dimIn = c0.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 128, activator = f)
-    val c2 = Convolution(dimIn = c1.dimOut,    padding = 1`²`, field = 4`²`, stride = 2`²`, filters = 128, activator = f)
-    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 128, activator = f)
-    val c4 = Convolution(dimIn = c3.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 128, activator = f)
-    val c5 = Convolution(dimIn = c4.dimOut,    padding = 1`²`, field = 4`²`, stride = 2`²`, filters = 128, activator = f)
-    val c6 = Convolution(dimIn = c5.dimOut,    padding = 1`²`, field = 3`²`, stride = 1`²`, filters = 128, activator = f)
-    val c7 = Convolution(dimIn = c6.dimOut,    padding = 0`²`, field = 1`²`, stride = 1`²`, filters = 128, activator = f)
-    val c8 = Convolution(dimIn = c7.dimOut,    padding = 0`²`, field = 1`²`, stride = 1`²`, filters =  10, activator = f)
+    val c0 = Convolution(dimIn = (32, 32, 3),  padding = 1, field = 3, stride = 1, filters = 128, activator = f)
+    val c1 = Convolution(dimIn = c0.dimOut,    padding = 1, field = 3, stride = 1, filters = 128, activator = f)
+    val c2 = Convolution(dimIn = c1.dimOut,    padding = 1, field = 4, stride = 2, filters = 128, activator = f)
+    val c3 = Convolution(dimIn = c2.dimOut,    padding = 1, field = 3, stride = 1, filters = 128, activator = f)
+    val c4 = Convolution(dimIn = c3.dimOut,    padding = 1, field = 3, stride = 1, filters = 128, activator = f)
+    val c5 = Convolution(dimIn = c4.dimOut,    padding = 1, field = 4, stride = 2, filters = 128, activator = f)
+    val c6 = Convolution(dimIn = c5.dimOut,    padding = 1, field = 3, stride = 1, filters = 128, activator = f)
+    val c7 = Convolution(dimIn = c6.dimOut,    padding = 0, field = 1, stride = 1, filters = 128, activator = f)
+    val c8 = Convolution(dimIn = c7.dimOut,    padding = 0, field = 1, stride = 1, filters =  10, activator = f)
 
     val L = c0 :: c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: c8 :: Dense(10, f) :: Softmax()
 
