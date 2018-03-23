@@ -29,7 +29,8 @@ object ConvNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.CNN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.CNN_Builder[Double]
+
 
   implicit object single extends Constructor[Float, ConvNetworkFloat] {
     def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): ConvNetworkFloat = {
@@ -37,7 +38,7 @@ object ConvNetwork {
     }
   }
 
-  implicit object weights_float extends neuroflow.core.WeightBreeder.CNN[Float]
+  implicit object weights_float extends neuroflow.core.WeightBreeder.CNN_Builder[Float]
 
 }
 

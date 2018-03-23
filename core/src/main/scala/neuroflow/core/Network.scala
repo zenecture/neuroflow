@@ -17,16 +17,15 @@ object Network extends Lexicon {
 
   /**
     * Constructs a new [[Network]] with the respective [[Constructor]] in scope.
-    * Additionally, it proves that the [[Layout]] graph is a valid composition.
+    * Additionally, it gives `evidence` that the graph `L` is a valid composition.
     */
   def apply[V, L <: Layout, N <: Network[_, _, _]]
                                      (layout: L,
                                       settings: Settings[V] = Settings[V]())
                                      (implicit
-                                      startsWith: L StartsWith In,
-                                      endsWith: L EndsWith Out,
                                       weightBreeder: WeightBreeder[V],
                                       constructor: Constructor[V, N],
+                                      evidence: L IsValidLayoutFor N,
                                       extractor: Extractor[L, Layer, V]): N = {
     val (layers, loss) = extractor(layout)
     constructor(layers, loss, settings)
@@ -89,7 +88,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 
 
 /** A minimal constructor for a [[Network]]. */
-@implicitNotFound("No `Constructor` in scope. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
+@implicitNotFound("No constructor in scope for ${N}. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
 trait Constructor[V, +N <: Network[_, _, _]] {
   def apply(ls: Seq[Layer], loss: LossFunction[V], settings: Settings[V])(implicit weightBreeder: WeightBreeder[V]): N
 }

@@ -10,7 +10,7 @@ import neuroflow.core
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core._
-import neuroflow.dsl.Layer
+import neuroflow.dsl._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -39,7 +39,7 @@ object DenseNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.FFN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.FFN_Builder[Double]
 
 }
 

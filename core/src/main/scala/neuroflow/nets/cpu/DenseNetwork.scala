@@ -5,8 +5,8 @@ import breeze.stats._
 import neuroflow.common.CanProduce
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
-import neuroflow.core._
-import neuroflow.dsl.Layer
+import neuroflow.core.{FFN, _}
+import neuroflow.dsl._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
@@ -31,15 +31,16 @@ object DenseNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.FFN[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.FFN_Builder[Double]
 
-  implicit object single extends Constructor[Float, DenseNetworkFloat] {
+
+  implicit object float extends Constructor[Float, DenseNetworkFloat] {
     def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): DenseNetworkFloat = {
       DenseNetworkFloat(ls, loss, settings, breeder(ls))
     }
   }
 
-  implicit object weights_float extends neuroflow.core.WeightBreeder.FFN[Float]
+  implicit object weights_float extends neuroflow.core.WeightBreeder.FFN_Builder[Float]
 
 }
 

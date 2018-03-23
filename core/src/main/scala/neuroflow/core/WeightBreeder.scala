@@ -160,11 +160,11 @@ object WeightBreeder {
 
 
 
-  trait FFN[V] extends BuildWeightsFor[V, neuroflow.core.FFN[V]]
+  trait FFN_Builder[V] extends BuildWeightsFor[V, neuroflow.core.FFN[V]]
 
-  trait CNN[V] extends BuildWeightsFor[V, neuroflow.core.CNN[V]]
+  trait CNN_Builder[V] extends BuildWeightsFor[V, neuroflow.core.CNN[V]]
 
-  trait RNN[V] extends BuildWeightsFor[V, neuroflow.core.RNN[V]] {
+  trait RNN_Builder[V] extends BuildWeightsFor[V, neuroflow.core.RNN[V]] {
 
     /**
       * Enriches the given `layers` and their `weights` with recurrent LSTM connections.
