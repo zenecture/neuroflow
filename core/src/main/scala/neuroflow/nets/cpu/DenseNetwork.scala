@@ -118,9 +118,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
-      xy.par.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.par.map(_._2).reduce(DenseMatrix.vertcat(_, _))
-    }
+    val xsys = BatchBreeder.breedFFN(xs, ys, batchSize)
     run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
@@ -363,9 +361,7 @@ private[nets] case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: Los
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = xs.map(_.asDenseMatrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { xy =>
-      xy.par.map(_._1).reduce(DenseMatrix.vertcat(_, _)) -> xy.par.map(_._2).reduce(DenseMatrix.vertcat(_, _))
-    }
+    val xsys = BatchBreeder.breedFFN(xs, ys, batchSize)
     run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 

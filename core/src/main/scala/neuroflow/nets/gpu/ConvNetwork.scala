@@ -136,12 +136,10 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = xs.map(_.matrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
-      batch.par.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
-    }
+    val xsys = BatchBreeder.breedCNN(xs, ys, batchSize)
     gcThreshold match {
       case Some(bytes) => GcThreshold.set(bytes)
-      case None        => GcThreshold.set(this, batchSize * 2)
+      case None        =>
     }
     run(xsys, learningRate(1 -> 1.0), batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
@@ -472,12 +470,10 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toFloat / batchSize.toFloat).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = xs.map(_.matrix).zip(ys.map(_.asDenseMatrix)).grouped(batchSize).toSeq.map { batch =>
-      batch.par.reduce((x, y) => DenseMatrix.horzcat(x._1, y._1) -> DenseMatrix.vertcat(x._2, y._2))
-    }
+    val xsys = BatchBreeder.breedCNN(xs, ys, batchSize)
     gcThreshold match {
       case Some(bytes) => GcThreshold.set(bytes)
-      case None        => GcThreshold.set(this, batchSize * 2)
+      case None        =>
     }
     run(xsys, learningRate(1 -> 1.0).toFloat, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
