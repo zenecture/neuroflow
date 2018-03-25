@@ -35,7 +35,7 @@ import scala.collection.{Map, Set}
   */
 case class Settings[V]
                     (verbose           :  Boolean                      =  true,
-                     learningRate      :  LearningRate                 =  { case (i, α) => 1.0 },
+                     learningRate      :  LearningRate                 =  { case (i, α) => α },
                      updateRule        :  Update[V]                    =  Vanilla[V](),
                      precision         :  Double                       =  1E-5,
                      iterations        :  Int                          =  100,
