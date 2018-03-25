@@ -78,7 +78,7 @@ object Activator {
   object Sigmoid {
     def apply[V : Fractional](implicit _exp: exp.Impl[V, V], ring: Semiring[V], _pow: pow.Impl2[V, V, V]): Sigmoid[V] = new Sigmoid[V] {
       val `1` = ring.one
-      val `2` = ring.one + ring.one
+      val `2` = `1` + `1`
       def apply(x: V): V = `1` / (`1` + _exp(-x))
       def derivative(x: V): V = _exp(x) / pow(_exp(x) + `1`, `2`)
       val symbol = "σ"
@@ -89,7 +89,7 @@ object Activator {
   object Tanh {
     def apply[V : Fractional](implicit _tanh: tanh.Impl[V, V], ring: Semiring[V], p: pow.Impl2[V, V, V]): Tanh[V] = new Tanh[V] {
       val `1` = ring.one
-      val `2` = ring.one + ring.one
+      val `2` = `1` + `1`
       def apply(x: V): V = _tanh(x)
       def derivative(x: V): V = `1` - pow(_tanh(x), `2`)
       val symbol = "φ"
