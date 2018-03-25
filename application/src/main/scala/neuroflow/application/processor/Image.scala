@@ -140,7 +140,6 @@ object Image extends Logs {
   /**
     * Loads portable gray map as flattened [[DenseVector]].
     */
-
   def loadPgm(path: String): DenseVector[Double] = loadPgm(new File(path))
 
   def loadPgm(file: File): DenseVector[Double] = {
