@@ -15,7 +15,7 @@ import scala.collection.{Map, Set}
   * Settings of a neural network, where:
   *
   *   `verbose`             Indicates logging behavior on console.
-  *   `learningRate`        A function from current iteration and learning rate, producing a new learning rate.
+  *   `learningRate`        A function from iteration `i` and learning rate `α`, producing a new learning rate.
   *   `updateRule`          Defines the relationship between gradient, weights and learning rate during training.
   *   `precision`           The training will stop if precision is high enough.
   *   `iterations`          The training will stop if maximum iterations is reached.
@@ -35,7 +35,7 @@ import scala.collection.{Map, Set}
   */
 case class Settings[V]
                     (verbose           :  Boolean                      =  true,
-                     learningRate      :  LearningRate                 =  { case (_, _) => 1E-4 },
+                     learningRate      :  LearningRate                 =  { case (i, α) => 1.0 },
                      updateRule        :  Update[V]                    =  Vanilla[V](),
                      precision         :  Double                       =  1E-5,
                      iterations        :  Int                          =  100,
