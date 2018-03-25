@@ -140,6 +140,7 @@ object Image extends Logs {
   /**
     * Loads portable gray map as flattened [[DenseVector]].
     */
+
   def loadPgm(path: String): DenseVector[Double] = loadPgm(new File(path))
 
   def loadPgm(file: File): DenseVector[Double] = {
@@ -154,6 +155,7 @@ object Image extends Logs {
     * Loads image from `file` or `path` and returns flattened [[DenseVector]],
     * where pixels are white or black, depending on the `selector`.
     */
+
   def loadBinary(path: String, selector: Int => Boolean): DenseVector[Double] = loadBinary(new File(path), selector)
 
   def loadBinary(file: File, selector: Int => Boolean): DenseVector[Double] = {
