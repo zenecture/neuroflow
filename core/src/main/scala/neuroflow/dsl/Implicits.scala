@@ -29,11 +29,11 @@ object Implicits {
   }
   
   implicit object doubleConvolution extends ((DenseMatrix[Double], Convolution[Double]) CanProduce Tensor3D[Double]) {
-    def apply(a: (DenseMatrix[Double], Convolution[Double])): Tensor3D[Double] = new Tensor3DImpl[Double](a._1, a._2.dimOut._2)
+    def apply(a: (DenseMatrix[Double], Convolution[Double])): Tensor3D[Double] = new Tensor3DImpl[Double](a._1, X = a._2.dimOut._1, Y = a._2.dimOut._2, Z = a._2.dimOut._3)
   }
 
   implicit object floatConvolution extends ((DenseMatrix[Float], Convolution[Float]) CanProduce Tensor3D[Float]) {
-    def apply(a: (DenseMatrix[Float], Convolution[Float])): Tensor3D[Float] = new Tensor3DImpl[Float](a._1, a._2.dimOut._2)
+    def apply(a: (DenseMatrix[Float], Convolution[Float])): Tensor3D[Float] = new Tensor3DImpl[Float](a._1, X = a._2.dimOut._1, Y = a._2.dimOut._2, Z = a._2.dimOut._3)
   }
 
 }

@@ -148,13 +148,8 @@ object Helper {
     tensor
   }
 
-  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
-
-    val stride: Int = height
-
-    def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = ???
-    def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = ???
-
-  }
+  class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3DImpl[V](matrix, width, height, 3)
 
 }
+
+

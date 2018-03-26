@@ -31,15 +31,15 @@ class ImageTest extends Specification {
 
   def imageToRgbTensor = {
     val img = ImageIO.read(image)
-    val tensor = Image.loadRgbTensor(image)
+    val tensor = Image.loadTensorRGB(image)
     if (img.getWidth * img.getHeight == tensor.matrix.cols && tensor.matrix.rows == 3) success else failure
   }
 
   def rgbTensorToImage = {
 
     val img1 = ImageIO.read(image)
-    val tensor = Image.loadRgbTensor(img1)
-    val img2 = Image.imageFromRgbTensor(tensor)
+    val tensor = Image.loadTensorRGB(img1)
+    val img2 = Image.imageFromTensorRGB(tensor)
 
     Image.writeImage(img2, "/Users/felix/github/unversioned/RgbTensorToImage.jpg", JPG)
 

@@ -34,12 +34,12 @@ object ImageRecognition {
 
     val train = new java.io.File(path + "/train").list().take(limits._1).par.map { s =>
       val c = classes.find(z => s.contains(z)).get
-      loadRgbTensor(path + "/train/" + s).float -> classVecs(c)
+      loadTensorRGB(path + "/train/" + s).float -> classVecs(c)
     }.seq
 
     val test = new java.io.File(path + "/test").list().take(limits._2).par.map { s =>
       val c = classes.find(z => s.contains(z)).get
-      loadRgbTensor(path + "/test/" + s).float -> classVecs(c)
+      loadTensorRGB(path + "/test/" + s).float -> classVecs(c)
     }.seq
 
     classes.foreach { c =>

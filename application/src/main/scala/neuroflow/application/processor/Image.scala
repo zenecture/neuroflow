@@ -4,12 +4,12 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
 import java.net.URL
-import javax.imageio.ImageIO
 
+import javax.imageio.ImageIO
 import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.storage.Zero
 import neuroflow.common.Logs
-import neuroflow.core.Tensor3D
+import neuroflow.core.{Tensor3D, Tensor3DImpl}
 
 import scala.io.Source
 import scala.reflect.ClassTag
@@ -42,20 +42,27 @@ object Image extends Logs {
 
 
   /**
-    * Loads image from `url`, `path` or `file` and returns a [[RgbTensor]].
+    * Represents a RGB image, accessible by (x, y, z) coordinates.
+    * Where x, y are width, height and z is the color channel.
+    */
+  class TensorRGB[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3DImpl[V](matrix, width, height, 3)
+
+
+  /**
+    * Loads image from `url`, `path` or `file` and returns a [[TensorRGB]].
     * All pixel colors are scaled from [0, 255] to [0.0, 1.0].
     */
 
-  def loadRgbTensor(url: URL): RgbTensor[Double] = loadRgbTensor(ImageIO.read(url))
+  def loadTensorRGB(url: URL): TensorRGB[Double] = loadTensorRGB(ImageIO.read(url))
 
-  def loadRgbTensor(path: String): RgbTensor[Double] = loadRgbTensor(new File(path))
+  def loadTensorRGB(path: String): TensorRGB[Double] = loadTensorRGB(new File(path))
 
-  def loadRgbTensor(file: File): RgbTensor[Double] = loadRgbTensor(ImageIO.read(file))
+  def loadTensorRGB(file: File): TensorRGB[Double] = loadTensorRGB(ImageIO.read(file))
 
-  def loadRgbTensor(img: BufferedImage): RgbTensor[Double] = {
+  def loadTensorRGB(img: BufferedImage): TensorRGB[Double] = {
     val (w, h) = (img.getWidth, img.getHeight)
     val out = DenseMatrix.zeros[Double](3, w * h)
-    val tensor = new RgbTensor[Double](w, h, out)
+    val tensor = new TensorRGB[Double](w, h, out)
     (0 until w).foreach { x =>
       (0 until h).foreach { y =>
         val c = new Color(img.getRGB(x, y))
@@ -88,10 +95,10 @@ object Image extends Logs {
 
 
   /**
-    * Loads image from [[RgbTensor]] `t`.
+    * Loads image from [[TensorRGB]] `t`.
     * All pixel colors are scaled from [0.0, 1.0] to [0, 255].
     */
-  def imageFromRgbTensor(t: RgbTensor[Double]): BufferedImage = {
+  def imageFromTensorRGB(t: TensorRGB[Double]): BufferedImage = {
 
     val img = new BufferedImage(t.X, t.Y, BufferedImage.TYPE_INT_RGB)
 
@@ -116,14 +123,14 @@ object Image extends Logs {
     * Extracts grayscale images from [[Tensor3D]] `t` by z-dimension.
     * The luminance can be amplified by `boost`.
     */
-  def imagesFromTensor3D(width: Int, height: Int, t: Tensor3D[Double], boost: Double = 1.0): Seq[BufferedImage] = {
+  def imagesFromTensor3D(t: Tensor3D[Double], boost: Double = 1.0): Seq[BufferedImage] = {
 
     val max = t.matrix.data.max
 
     (0 until t.matrix.rows).map { r =>
-      val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-      (0 until width).foreach { x =>
-        (0 until height).foreach { y =>
+      val img = new BufferedImage(t.X, t.Y, BufferedImage.TYPE_INT_RGB)
+      (0 until t.X).foreach { x =>
+        (0 until t.Y).foreach { y =>
           val v = (t(x, y, r) / max * 255.0 * boost).toInt
           var rgb = v
           rgb = (rgb << 8) + v
@@ -168,34 +175,6 @@ object Image extends Logs {
         }
       }
     DenseVector(res.toArray)
-  }
-
-}
-
-
-
-/**
-  * Represents a RGB image, accessible by (x, y, z) coordinates.
-  * Where x, y are width, height and z is the color channel.
-  */
-class RgbTensor[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3D[V] {
-
-  val X: Int = width
-  val Y: Int = height
-  val Z: Int = 3
-
-  val stride: Int = Y
-
-  def mapAt(x: (Int, Int, Int))(f: V => V): RgbTensor[V] = {
-    val newMat = matrix.copy
-    val (row, col) = projection(x._1, x._2, x._3)
-    newMat.update(row, col, f(apply(x)))
-    new RgbTensor(width, height, newMat)
-  }
-
-  def mapAll[T: ClassTag : Zero](f: V => T): RgbTensor[T] = {
-    val mapped = matrix.data.map(f)
-    new RgbTensor(width, height, DenseMatrix.create(matrix.rows, matrix.cols, mapped))
   }
 
 }

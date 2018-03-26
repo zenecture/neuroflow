@@ -34,11 +34,11 @@ object ConvViz {
   def apply = {
 
     val glasses = new java.io.File(path + "/glasses").list().map { s =>
-      (s"glasses-$s", loadRgbTensor(path + "/glasses/" + s).float, ->(1.0f, 0.0f))
+      (s"glasses-$s", loadTensorRGB(path + "/glasses/" + s).float, ->(1.0f, 0.0f))
     }.seq
 
     val noglasses = new java.io.File(path + "/noglasses").list().map { s =>
-      (s"noglasses-$s", loadRgbTensor(path + "/noglasses/" + s).float, ->(0.0f, 1.0f))
+      (s"noglasses-$s", loadTensorRGB(path + "/noglasses/" + s).float, ->(0.0f, 1.0f))
     }.seq
 
     val samples = Random.shuffle(glasses ++ noglasses)
@@ -79,14 +79,14 @@ object ConvViz {
     def writeLayers(stage: String): Unit = {
       samples.foreach {
         case (id, xs, ys) =>
-          val f0 = (net Ω c0).apply(xs)
-          val f1 = (net Ω c1).apply(xs)
-          val f2 = (net Ω c2).apply(xs)
-          val f3 = (net Ω c3).apply(xs)
-          val i0s = Image.imagesFromTensor3D(c0.dimOut._1, c0.dimOut._2, f0.double, boost = 1.3)
-          val i1s = Image.imagesFromTensor3D(c1.dimOut._1, c1.dimOut._2, f1.double, boost = 1.3)
-          val i2s = Image.imagesFromTensor3D(c2.dimOut._1, c2.dimOut._2, f2.double, boost = 1.3)
-          val i3s = Image.imagesFromTensor3D(c3.dimOut._1, c3.dimOut._2, f3.double, boost = 1.3)
+          val t0 = (net Ω c0).apply(xs)
+          val t1 = (net Ω c1).apply(xs)
+          val t2 = (net Ω c2).apply(xs)
+          val t3 = (net Ω c3).apply(xs)
+          val i0s = Image.imagesFromTensor3D(t0.double, boost = 1.3)
+          val i1s = Image.imagesFromTensor3D(t1.double, boost = 1.3)
+          val i2s = Image.imagesFromTensor3D(t2.double, boost = 1.3)
+          val i3s = Image.imagesFromTensor3D(t3.double, boost = 1.3)
           i0s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
           i1s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
           i2s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
