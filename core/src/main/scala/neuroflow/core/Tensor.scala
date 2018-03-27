@@ -26,10 +26,13 @@ trait Tensor[K, V] extends (K => V) {
     matrix(row, col)
   }
 
+  /** Immutable **/
   def mapAll[T: ClassTag : Zero](f: V => T): Tensor[K, T]
 
+  /** Immutable **/
   def mapAt(x: K)(f: V => V): Tensor[K, V]
 
+  /** Mutable */
   def updateAt(x: K)(v: V): Unit
 
 }
@@ -37,8 +40,7 @@ trait Tensor[K, V] extends (K => V) {
 
 /**
   * A tensor3d is a cubic volume, accessed using (x, y, z) coordinates.
-  * Internally, it is stored as linearized `matrix`, accessed by `projection`
-  * function with column stride `Y`.
+  * Internally, it is stored as linearized `matrix`, accessed by `projection` with stride `Y`.
   */
 trait Tensor3D[V] extends Tensor[(Int, Int, Int), V] {
 
