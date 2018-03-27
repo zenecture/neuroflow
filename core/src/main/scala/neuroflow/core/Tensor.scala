@@ -81,9 +81,9 @@ object Tensor3D {
   }
 
   /**
-    * Merges tensors `t` by z-dimension (depth).
+    * Concatenates tensors `t` by z-dimension (depth).
     */
-  def zCat[V](t: Seq[Tensor3D[V]]): Tensor3D[V] = {
+  def deepCat[V](t: Seq[Tensor3D[V]]): Tensor3D[V] = {
     // TODO
     ???
   }
