@@ -65,8 +65,7 @@ object Tensor3D {
     * Creates vertically shaped [[Tensor3D]] from vector `v` with dim (X, Y, Z) = (1, VectorLength, 1).
     */
   def fromVector[V: ClassTag : Zero](v: DenseVector[V]): Tensor3D[V] = {
-    val t = new Tensor3DImpl[V](DenseMatrix.create[V](1, v.length, v.data), X = 1, Y = v.length, Z = 1)
-    t
+    new Tensor3DImpl[V](DenseMatrix.create[V](1, v.length, v.data), X = 1, Y = v.length, Z = 1)
   }
 
   /**
