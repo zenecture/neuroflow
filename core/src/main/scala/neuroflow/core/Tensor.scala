@@ -50,9 +50,9 @@ trait Tensor3D[V] extends Tensor[(Int, Int, Int), V] {
 
   def mapAll[T: ClassTag : Zero](f: V => T): Tensor3D[T]
 
-  def updateAt(x: (Int, Int, Int))(v: V): Unit
-
   def mapAt(x: (Int, Int, Int))(f: V => V): Tensor3D[V]
+
+  def updateAt(x: (Int, Int, Int))(v: V): Unit
 
 }
 
@@ -93,15 +93,15 @@ object Tensor3D {
 
 class Tensor3DImpl[V](val matrix: DenseMatrix[V], val X: Int, val Y: Int, val Z: Int) extends Tensor3D[V] {
 
+  def mapAll[T: ClassTag : Zero](f: V => T): Tensor3D[T] = {
+    new Tensor3DImpl(matrix.map(f), X, Y, Z)
+  }
+
   def mapAt(x: (Int, Int, Int))(f: V => V): Tensor3D[V] = {
     val newMat = matrix.copy
     val (row, col) = projection(x._1, x._2, x._3)
     newMat.update(row, col, f(apply(x)))
     new Tensor3DImpl(newMat, X, Y, Z)
-  }
-
-  def mapAll[T: ClassTag : Zero](f: V => T): Tensor3D[T] = {
-    new Tensor3DImpl(matrix.map(f), X, Y, Z)
   }
 
   def updateAt(x: (Int, Int, Int))(v: V): Unit = {
