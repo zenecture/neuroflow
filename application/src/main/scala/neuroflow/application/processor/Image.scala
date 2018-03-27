@@ -26,9 +26,9 @@ object Image extends Logs {
     * where pixel values are normalized to be <= 1.0.
     */
 
-  def loadRgbVector(path: String): DenseVector[Double] = loadRgbVector(new File(path))
+  def loadVectorRGB(path: String): DenseVector[Double] = loadVectorRGB(new File(path))
 
-  def loadRgbVector(file: File): DenseVector[Double] = {
+  def loadVectorRGB(file: File): DenseVector[Double] = {
     val img = ImageIO.read(file)
     val res =
       (0 until img.getHeight).flatMap { h =>
