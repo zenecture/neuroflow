@@ -139,7 +139,6 @@ case class Momentum[V](μ: V) extends Update[V] {
 
   def release(): Unit = {
     M2.values.foreach(_.release())
-    M2.values.foreach(_.release())
   }
 
 }
