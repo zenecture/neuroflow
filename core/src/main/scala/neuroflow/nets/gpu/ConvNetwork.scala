@@ -215,8 +215,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
 
   /**
-    * Computes gradient for weights with respect to given batch,
-    * adapts their value using gradient descent and returns the loss matrix.
+    * Copies batch to GPU, computes gradient for weights, updates weights using gradient descent and returns the loss matrix.
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Double, batchSize: Int): Matrix = {
 
@@ -549,8 +548,7 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
 
 
   /**
-    * Computes gradient for weights with respect to given batch,
-    * adapts their value using gradient descent and returns the loss matrix.
+    * Copies batch to GPU, computes gradient for weights, updates weights using gradient descent and returns the loss matrix.
     */
   private def adaptWeights(x: Matrix, y: Matrix, stepSize: Float, batchSize: Int): Matrix = {
 
