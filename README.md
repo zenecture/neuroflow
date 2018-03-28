@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
 If you are new to Neural Nets, you can read about the core principles here:
 
   - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
+  - <a href="http://www.znctr.com/blog/convolutional-nets">znctr.com/blog/convolutional-nets</a>
   
 Seeing code examples is a good way to get started. You may have a look at the playground for basic inspiration.
 
