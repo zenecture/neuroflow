@@ -62,7 +62,7 @@ package object cuda extends Logs {
 
   implicit class enrichBridjPtr[T](val pointer: Pointer[T]) extends AnyVal {
     def toCuPointer = {
-      assert(pointer != null)
+      assert(pointer != null, s"GPU Garbage Collection Race Condition. Fine tune neuroflow.core.Settings.gcThreshold for your GPU. Current GcThreshold: ${ GcThreshold() / 1024.0 / 1024.0 }%.6g MB")
       fromNativePtr(pointer.getPeer)
     }
   }
