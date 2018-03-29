@@ -2,7 +2,6 @@ package neuroflow.playground
 
 import neuroflow.application.plugin.Extensions._
 import neuroflow.application.plugin.Notation._
-import neuroflow.application.processor.Image
 import neuroflow.application.processor.Image._
 import neuroflow.core.Activators.Float._
 import neuroflow.core._
@@ -83,14 +82,14 @@ object ConvViz {
           val t1 = (net Ω c1).apply(xs)
           val t2 = (net Ω c2).apply(xs)
           val t3 = (net Ω c3).apply(xs)
-          val i0s = Image.imagesFromTensor3D(t0.double, boost = 1.3)
-          val i1s = Image.imagesFromTensor3D(t1.double, boost = 1.3)
-          val i2s = Image.imagesFromTensor3D(t2.double, boost = 1.3)
-          val i3s = Image.imagesFromTensor3D(t3.double, boost = 1.3)
-          i0s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
-          i1s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
-          i2s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
-          i3s.zipWithIndex.foreach { case (img, idx) => Image.writeImage(img, path + s"/$stage" + s"/c3-$idx-$id", PNG) }
+          val i0s = imagesFromTensor3D(t0.double, boost = 1.3)
+          val i1s = imagesFromTensor3D(t1.double, boost = 1.3)
+          val i2s = imagesFromTensor3D(t2.double, boost = 1.3)
+          val i3s = imagesFromTensor3D(t3.double, boost = 1.3)
+          i0s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
+          i1s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
+          i2s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
+          i3s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c3-$idx-$id", PNG) }
       }
     }
 
