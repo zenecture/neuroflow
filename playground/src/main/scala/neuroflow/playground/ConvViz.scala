@@ -5,10 +5,10 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image
 import neuroflow.application.processor.Image._
 import neuroflow.core.Activators.Float._
-import neuroflow.dsl.Convolution.autoTupler
 import neuroflow.core._
-import neuroflow.dsl._
+import neuroflow.dsl.Convolution.autoTupler
 import neuroflow.dsl.Implicits._
+import neuroflow.dsl._
 import neuroflow.nets.gpu.ConvNetwork._
 
 import scala.util.Random
