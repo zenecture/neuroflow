@@ -16,7 +16,7 @@ import scala.collection.{Map, Set}
   *
   *   `verbose`             Indicates logging behavior on console.
   *   `learningRate`        A function from iteration `i` and learning rate `α`, producing a new learning rate.
-  *   `updateRule`          Defines the relationship between gradient, weights and learning rate during training.
+  *   `updateRule`          Defines the relationship between gradients, weights and learning rate during training.
   *   `precision`           The training will stop if precision is high enough.
   *   `iterations`          The training will stop if maximum iterations is reached.
   *   `prettyPrint`         If true, the layout is rendered graphically on console.
