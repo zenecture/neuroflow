@@ -17,6 +17,10 @@ libraryDependencies ++= Seq(
   "com.zenecture"   %%   "neuroflow-core"          %   "1.6.5",
   "com.zenecture"   %%   "neuroflow-application"   %   "1.6.5"
 )
+
+resolvers ++= Seq(
+  "neuroflow-libs" at "https://github.com/zenecture/neuroflow-libs/raw/master/"
+)
 ```
 
 If you are new to Neural Nets, you can read about the core principles here:
@@ -240,15 +244,7 @@ sudo apt-get install cuda
 sudo apt-get install cuda-toolkit-8-0
 ``` 
 
-With both driver and toolkit installed, add the <a href="http://jcuda.org">jCUDA</a> dependencies to your SBT project:
-
-```scala
-resolvers ++= Seq(
-  "neuroflow-libs" at "https://github.com/zenecture/neuroflow-libs/raw/master/"
-)
-```
-
-Then, you can import a GPU implementation for your model:
+With both driver and toolkit installed, you can import a GPU implementation for your model:
 
 ```scala
 import neuroflow.nets.gpu.DenseNetwork._
