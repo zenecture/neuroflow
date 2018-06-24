@@ -22,14 +22,17 @@ object Image extends Logs {
 
 
   /**
-    * Loads image from `file` or `path` and returns flattened [[DenseVector]]
+    * Loads image from `url`, `file` or `path` and returns flattened [[DenseVector]]
     * where pixel values are normalized to be <= 1.0.
     */
 
+  def loadVectorRGB(url: URL): DenseVector[Double] = loadVectorRGB(ImageIO.read(url))
+
   def loadVectorRGB(path: String): DenseVector[Double] = loadVectorRGB(new File(path))
 
-  def loadVectorRGB(file: File): DenseVector[Double] = {
-    val img = ImageIO.read(file)
+  def loadVectorRGB(file: File): DenseVector[Double] = loadVectorRGB(ImageIO.read(file))
+
+  def loadVectorRGB(img: BufferedImage): DenseVector[Double] = {
     val res =
       (0 until img.getHeight).flatMap { h =>
         (0 until img.getWidth).flatMap { w =>
@@ -91,6 +94,27 @@ object Image extends Logs {
       case JPG =>
         ImageIO.write(img, "jpg", outputfile)
     }
+  }
+
+
+  /**
+    * Loads RGB image from [[DenseVector]] `v`.
+    */
+  def imageFromVectorRGB(v: DenseVector[Double], X: Int, Y: Int): BufferedImage = {
+    val img = new BufferedImage(X, Y, BufferedImage.TYPE_INT_RGB)
+    (0 until X).foreach { x =>
+      (0 until Y).foreach { y =>
+        val i = y * (X * 3) + (x * 3)
+        val r = (v(i) * 255.0).toInt
+        val g = (v(i + 1) * 255.0).toInt
+        val b = (v(i + 2) * 255.0).toInt
+        var rgb = r
+        rgb = (rgb << 8) + g
+        rgb = (rgb << 8) + b
+        img.setRGB(x, y, rgb)
+      }
+    }
+    img
   }
 
 

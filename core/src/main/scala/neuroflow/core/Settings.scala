@@ -39,7 +39,7 @@ case class Settings[V]
                      updateRule        :  Update[V]                    =  Vanilla[V](),
                      precision         :  Double                       =  1E-5,
                      iterations        :  Int                          =  100,
-                     prettyPrint       :  Boolean                      =  true,
+                     prettyPrint       :  Boolean                      =  false,
                      coordinator       :  Node                         =  Node("localhost", 2552),
                      transport         :  Transport                    =  Transport(100000, "128 MiB"),
                      parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),

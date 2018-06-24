@@ -21,6 +21,7 @@ class ImageTest extends Specification {
     This spec will test image processor related functionality.
 
     It should:
+      - Conversions with DenseVec                     $imageDenseVecConversions
       - Load a RGB image into a RgbTensor             $imageToRgbTensor
       - Convert a RgbTensor to Image                  $rgbTensorToImage
 
@@ -28,6 +29,25 @@ class ImageTest extends Specification {
 
 
   val image = new URL("http://znctr.com/new-landing/senchabg.jpg")
+
+  def imageDenseVecConversions = {
+
+    val imgA = ImageIO.read(image)
+    val vec = Image.loadVectorRGB(image)
+    val imgB = Image.imageFromVectorRGB(vec, imgA.getWidth, imgA.getHeight)
+
+    Image.writeImage(imgB, "/Users/felix/github/unversioned/DenseVecToImage.jpg", JPG)
+
+    (0 until imgA.getWidth).flatMap { x =>
+      (0 until imgA.getHeight).map { y =>
+        imgA.getRGB(x, y) == imgB.getRGB(x, y)
+      }
+    }.forall(_ == true) match {
+      case true => success
+      case false => failure
+    }
+
+  }
 
   def imageToRgbTensor = {
     val img = ImageIO.read(image)
