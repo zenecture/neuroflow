@@ -48,7 +48,11 @@ object Image extends Logs {
     * Represents a RGB image, accessible by (x, y, z) coordinates.
     * Where x, y are width, height and z is the color channel.
     */
-  class TensorRGB[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3DImpl[V](matrix, width, height, 3)
+  class TensorRGB[V](width: Int, height: Int, override val matrix: DenseMatrix[V]) extends Tensor3DImpl[V](matrix, width, height, 3) {
+    override def mapAll[T: ClassTag : Zero](f: V => T): TensorRGB[T] = {
+      new TensorRGB[T](width, height, matrix.map(f))
+    }
+  }
 
 
   /**

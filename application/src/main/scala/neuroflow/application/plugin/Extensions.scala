@@ -81,6 +81,14 @@ object Extensions {
     def double: Tensor3D[Double] = t.mapAll(_.toDouble)
   }
 
+  implicit class TensorRGBDoubleToFloat(t: TensorRGB[Double]) {
+    def float: TensorRGB[Float] = t.mapAll(_.toFloat)
+  }
+
+  implicit class TensorRGBFloatToDouble(t: TensorRGB[Float]) {
+    def double: TensorRGB[Double] = t.mapAll(_.toDouble)
+  }
+
   implicit class Tensor3DToTensorRGBDouble(t: Tensor3D[Double]) {
     def rgbTensor: TensorRGB[Double] = {
       require(t.matrix.rows == 3, s"Tensor `t` must have depth z = 3 (rgb). Actual depth z = ${t.matrix.rows}")
