@@ -125,7 +125,7 @@ object WeightBreeder {
 
         case v: Vector[_]      =>
           if (seed.isDefinedAt(idx))
-            warn(s"A plain Vector layer does not have weights. Ignoring config index: $idx.")
+            debug(s"A plain Vector layer does not have weights. Ignoring config index: $idx.")
           None
 
         case c: Convolution[_] =>

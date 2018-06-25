@@ -1,6 +1,6 @@
 package neuroflow.application.plugin
 
-import java.io.{BufferedInputStream, File, FileInputStream, PrintWriter}
+import java.io._
 
 import breeze.linalg.DenseMatrix
 import breeze.storage.Zero
@@ -13,7 +13,6 @@ import neuroflow.core.{Network, WeightBreeder}
 import neuroflow.dsl.Layer
 
 import scala.collection.immutable.Stream
-import scala.io.Source
 
 /**
   * @author bogdanski
@@ -21,7 +20,7 @@ import scala.io.Source
   */
 object IO extends Logs {
 
-  case class RawMatrix[V: Zero](rows: Int, cols: Int, precision: String, data: Array[V]) {
+  case class RawMatrix[V: Zero](rows: Int, cols: Int, precision: String, data: Array[V]) extends Serializable {
     def toDenseMatrix: DenseMatrix[V] = DenseMatrix.create[V](rows, cols, data)
   }
 
@@ -45,16 +44,29 @@ object IO extends Logs {
   object File {
 
     /**
-      * Deserializes weights encoded as JSON from `file` to construct a `WeightBreeder`.
+      * Deserializes weights from binary `file` to construct a `WeightBreeder`.
       */
-    def weightBreeder[V](file: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = ~> (Source.fromFile(file).mkString) map Json.weightBreeder[V]
+    def weightBreeder[V](file: String): WeightBreeder[V] = {
+      val ois = new ObjectInputStream(new FileInputStream(file))
+      val out = ois.readObject().asInstanceOf[Array[RawMatrix[V]]]
+      ois.close()
+      new WeightBreeder[V] {
+        def apply(ls: Seq[Layer]): Network.Weights[V] = out.map(_.toDenseMatrix)
+      }
+    }
 
     /**
-      * Serializes `weights` of a network to `file` using JSON.
+      * Serializes `weights` to `file` using binary format.
       */
-    def writeWeights[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce String)): Unit = ~> (new PrintWriter(new File(file))) io (_.write(Json.writeWeights(weights))) io (_.close)
+    def writeWeights[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce Array[RawMatrix[V]])): Unit = {
+      val oos = new ObjectOutputStream(new FileOutputStream(file))
+      oos.writeObject(cp(weights))
+      oos.close()
+    }
 
   }
+
+
 
   object Jvm {
 
@@ -71,14 +83,22 @@ object IO extends Logs {
     /**
       * Gets the plain bytes from `file`.
       */
-    def getBytes(file: File): Seq[Byte] = ~> (new BufferedInputStream(new FileInputStream(file))) map
-      (s => (s, Stream.continually(s.read).takeWhile(_ != -1).map(_.toByte).toList)) io (_._1.close) map(_._2)
+    def getBytes(file: File): Seq[Byte] = ~> (new BufferedInputStream(new FileInputStream(file))) map (s => (s, Stream.continually(s.read).takeWhile(_ != -1).map(_.toByte).toList)) io (_._1.close) map(_._2)
 
   }
+
 
   /**
     * Type-Classes
     */
+
+  implicit object DoubleWeightsToRaw extends (Weights[Double] CanProduce Array[RawMatrix[Double]]) {
+    def apply(ws: Weights[Double]): Array[RawMatrix[Double]] = ws.map(m => RawMatrix(m.rows, m.cols, "double", m.toArray)).toArray
+  }
+
+  implicit object FloatWeightsToRaw extends (Weights[Float] CanProduce Array[RawMatrix[Float]]) {
+    def apply(ws: Weights[Float]): Array[RawMatrix[Float]] = ws.map(m => RawMatrix(m.rows, m.cols, "single", m.toArray)).toArray
+  }
 
   implicit object DoubleWeightsToJson extends (Weights[Double] CanProduce String) {
     def apply(ws: Weights[Double]): String = ws.map(m => RawMatrix(m.rows, m.cols, "double", m.toArray)).toArray.asJson.noSpaces
@@ -103,3 +123,4 @@ object IO extends Logs {
   }
 
 }
+

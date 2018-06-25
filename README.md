@@ -184,10 +184,10 @@ One example is sending the loss to a real-time TV dashboard.
 
 ### Useful JVM args
 
-````bash
+```bash
 -Dorg.slf4j.simpleLogger.defaultLogLevel=debug # for misc runtime sys infos and gpu memory
 -Xmx24G # example to increase heap size
-````
+```
 
 # Evaluation
 
@@ -252,7 +252,7 @@ import neuroflow.nets.gpu.DenseNetwork._
 
 # Persistence
 
-We can save and load nets with `neuroflow.application.plugin.IO`. The weight matrices are encoded in JSON format.
+We can save and load nets with `neuroflow.application.plugin.IO`. The weight matrices are encoded in binary format.
 
 ```scala
 import neuroflow.application.plugin.IO._
