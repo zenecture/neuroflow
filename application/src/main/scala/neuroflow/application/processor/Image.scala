@@ -45,6 +45,19 @@ object Image extends Logs {
 
 
   /**
+    * Scales `img` to `width` and `height`, not preserving ratios.
+    */
+  def scale(img: BufferedImage, width: Int, height: Int): BufferedImage = {
+    val scaled = img.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH)
+    val out = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+    val g = out.getGraphics()
+    g.drawImage(scaled, 0, 0, null)
+    g.dispose()
+    out
+  }
+
+
+  /**
     * Represents a RGB image, accessible by (x, y, z) coordinates.
     * Where x, y are width, height and z is the color channel.
     */
@@ -83,9 +96,45 @@ object Image extends Logs {
     tensor
   }
 
+
+  /**
+    * Loads portable gray map as flattened [[DenseVector]].
+    */
+
+  def loadPgm(path: String): DenseVector[Double] = loadPgm(new File(path))
+
+  def loadPgm(file: File): DenseVector[Double] = {
+    val raw = Source.fromFile(file).getLines.drop(2).toArray // P2, width, height
+    val max = raw.head.toDouble
+    val img = raw.tail.flatMap(_.split(" ")).map(_.toDouble / max)
+    DenseVector(img)
+  }
+
+
+  /**
+    * Loads image from `file` or `path` and returns flattened [[DenseVector]],
+    * where pixels are white or black, depending on the `selector`.
+    */
+
+  def loadBinary(path: String, selector: Int => Boolean): DenseVector[Double] = loadBinary(new File(path), selector)
+
+  def loadBinary(file: File, selector: Int => Boolean): DenseVector[Double] = {
+    val img = ImageIO.read(file)
+    val res =
+      (0 until img.getHeight).flatMap { h =>
+        (0 until img.getWidth).flatMap { w =>
+          val c = new Color(img.getRGB(w, h))
+          (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.0 else 0.0) :: Nil
+        }
+      }
+    DenseVector(res.toArray)
+  }
+
+
   sealed trait ImageFormat
   object PNG extends ImageFormat
   object JPG extends ImageFormat
+
 
   /**
     * Writes `img` to `filePath`.
@@ -169,40 +218,6 @@ object Image extends Logs {
       img
     }
 
-  }
-
-
-  /**
-    * Loads portable gray map as flattened [[DenseVector]].
-    */
-
-  def loadPgm(path: String): DenseVector[Double] = loadPgm(new File(path))
-
-  def loadPgm(file: File): DenseVector[Double] = {
-    val raw = Source.fromFile(file).getLines.drop(2).toArray // P2, width, height
-    val max = raw.head.toDouble
-    val img = raw.tail.flatMap(_.split(" ")).map(_.toDouble / max)
-    DenseVector(img)
-  }
-
-
-  /**
-    * Loads image from `file` or `path` and returns flattened [[DenseVector]],
-    * where pixels are white or black, depending on the `selector`.
-    */
-
-  def loadBinary(path: String, selector: Int => Boolean): DenseVector[Double] = loadBinary(new File(path), selector)
-
-  def loadBinary(file: File, selector: Int => Boolean): DenseVector[Double] = {
-    val img = ImageIO.read(file)
-    val res =
-      (0 until img.getHeight).flatMap { h =>
-        (0 until img.getWidth).flatMap { w =>
-          val c = new Color(img.getRGB(w, h))
-          (if (selector(c.getRed) || selector(c.getBlue) || selector(c.getGreen)) 1.0 else 0.0) :: Nil
-        }
-      }
-    DenseVector(res.toArray)
   }
 
 }

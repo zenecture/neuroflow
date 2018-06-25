@@ -24,6 +24,7 @@ class ImageTest extends Specification {
       - Conversions with DenseVec                     $imageDenseVecConversions
       - Load a RGB image into a RgbTensor             $imageToRgbTensor
       - Convert a RgbTensor to Image                  $rgbTensorToImage
+      - Scale an image                                $scaleImage
 
   """
 
@@ -64,6 +65,17 @@ class ImageTest extends Specification {
     Image.writeImage(img2, "/Users/felix/github/unversioned/RgbTensorToImage.jpg", JPG)
 
     if (img1.getWidth == img2.getWidth && img1.getHeight == img2.getHeight) success else failure
+
+  }
+
+  def scaleImage = {
+
+    val img = ImageIO.read(image)
+    val scaled = Image.scale(img, 200, 200)
+
+    Image.writeImage(scaled, "/Users/felix/github/unversioned/scaleImage.jpg", JPG)
+
+    if (scaled.getWidth == 200 && scaled.getHeight == 200) success else failure
 
   }
 
