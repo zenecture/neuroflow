@@ -30,6 +30,7 @@ object App extends App {
     case 17 => DistributedTraining.executors
     case 18 => Word2Vec.apply
     case 19 => ConvViz.apply
+    case 20 => ImageCluster.apply
 
     case  _ => sys.exit()
 
