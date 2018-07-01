@@ -116,3 +116,51 @@ object ImageCluster {
   }
 
 }
+
+/*
+
+Run example (1-20):
+Loading data ...
+
+
+
+
+             _   __                      ________
+            / | / /__  __  ___________  / ____/ /___ _      __
+           /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+          / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+         /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+                                                            1.6.6
+
+
+            Network : neuroflow.nets.gpu.DenseNetwork
+
+            Weights : 288,000,000 (≈ 1098.63 MB)
+          Precision : Single
+
+               Loss : neuroflow.core.SquaredMeanError
+             Update : neuroflow.core.Momentum
+
+             Layout : 120000 Vector
+                      1200 Dense (x)
+                      120000 Dense (ReLU)
+
+
+
+
+
+
+         O           O
+         O           O
+         O           O
+         O           O
+         O     O     O
+         O     O     O
+         O           O
+         O           O
+         O           O
+         O           O
+
+
+
+ */
