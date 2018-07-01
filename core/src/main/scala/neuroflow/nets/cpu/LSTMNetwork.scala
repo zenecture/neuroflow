@@ -9,6 +9,7 @@ import neuroflow.common.{CanProduce, ~>}
 import neuroflow.core
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
+import neuroflow.core.WaypointLogic.NoOp
 import neuroflow.core._
 import neuroflow.dsl._
 
@@ -115,7 +116,7 @@ private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: Los
       maybeGraph(errorMean)
       adaptWeights(xs, ys, stepSize)
       keepBest(errorMean)
-      waypoint(iteration)
+      waypoint(NoOp)(iteration)
       run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")

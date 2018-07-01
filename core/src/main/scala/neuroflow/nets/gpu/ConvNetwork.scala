@@ -202,9 +202,8 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
       else adaptWeights(x, y, stepSize, batchSize)
     val lossMean = mean(loss)
     if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
-    syncWeights()
     maybeGraph(lossMean)
-    waypoint(iteration)
+    waypoint(syncWeights)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSize,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
@@ -535,9 +534,8 @@ private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: Loss
       else adaptWeights(x, y, stepSize, batchSize)
     val lossMean = mean(loss)
     if (settings.verbose) info(f"Iteration $iteration.${batch + 1}, Avg. Loss = $lossMean%.6g, Vector: $loss")
-    syncWeights()
     maybeGraph(lossMean)
-    waypoint(iteration)
+    waypoint(syncWeights)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, batchSize,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)

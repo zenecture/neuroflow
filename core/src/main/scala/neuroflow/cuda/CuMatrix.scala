@@ -175,10 +175,10 @@ class CuMatrix[V](val rows: Int,
   def toDense: DenseMatrix[V] = {
     val arrayData = Pointer.allocateArray(data.getIO, size)
     val (_r, _c) = if (isTranspose) (cols, rows) else (rows, cols)
-
     JCublas2.cublasGetMatrix(_r, _c, elemSize.toInt, data.toCuPointer.withByteOffset(elemSize * offset), majorStride, arrayData.toCuPointer, _r)
-
-    new DenseMatrix(rows, cols, arrayData.getArray.asInstanceOf[Array[V]], 0, _r, isTranspose)
+    val array = arrayData.getArray.asInstanceOf[Array[V]]
+    arrayData.release()
+    new DenseMatrix(rows, cols, array, 0, _r, isTranspose)
   }
 
   def copy: CuMatrix[V] = ???

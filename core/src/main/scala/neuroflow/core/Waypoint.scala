@@ -15,11 +15,12 @@ case class Waypoint[V](nth: Int, action: (Int, Weights[V]) => Unit)
 
 trait WaypointLogic[V] { self: Network[V, _, _] =>
 
-  def waypoint(iteration: Int): Unit = {
+  def waypoint(sync: () => Unit)(iteration: Int): Unit = {
     self.settings.waypoint match {
       case Some(Waypoint(nth, action)) =>
         if (iteration % nth == 0) {
           info("Waypoint ...")
+          sync()
           action(iteration, self.weights)
         }
       case _ =>
@@ -27,3 +28,10 @@ trait WaypointLogic[V] { self: Network[V, _, _] =>
   }
 
 }
+
+object WaypointLogic {
+  object NoOp extends (() => Unit) {
+    def apply(): Unit = ()
+  }
+}
+

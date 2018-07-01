@@ -9,6 +9,7 @@ import neuroflow.common.CanProduce
 import neuroflow.core
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
+import neuroflow.core.WaypointLogic.NoOp
 import neuroflow.core._
 import neuroflow.dsl._
 
@@ -113,7 +114,7 @@ private[nets] case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunc
     val lossMean = mean(loss)
     if (settings.verbose) info(f"Iteration $iteration, Avg. Loss = $lossMean%.6g, Vector: $loss")
     maybeGraph(lossMean)
-    waypoint(iteration)
+    waypoint(NoOp)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xs, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
     } else {
