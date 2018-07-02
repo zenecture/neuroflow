@@ -53,7 +53,7 @@ val net = Network(
 )
 ```
 
-This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function. 
+This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function, running on the CPU. 
 The weights are initialized randomly in range (-1, 1) by `WeightBreeder`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
