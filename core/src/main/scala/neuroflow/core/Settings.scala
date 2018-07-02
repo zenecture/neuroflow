@@ -17,17 +17,17 @@ import scala.collection.{Map, Set}
   *   `verbose`             Indicates logging behavior on console.
   *   `learningRate`        A function from iteration `i` and learning rate `α`, producing a new learning rate.
   *   `updateRule`          Defines the relationship between gradients, weights and learning rate during training.
-  *   `precision`           The training will stop if precision is high enough.
-  *   `iterations`          The training will stop if maximum iterations is reached.
+  *   `precision`           Training stops if loss is small enough.
+  *   `iterations`          Training stops after `iterations`.
   *   `prettyPrint`         If true, the layout is rendered graphically on console.
   *   `coordinator`         The coordinator host address for distributed training.
   *   `transport`           Transport throughput specifics for distributed training.
-  *   `parallelism`         Controls how many threads are used for distributed training.
-  *   `batchSize`           Controls how many samples are presented per weight update. (1=on-line, ..., n=full-batch)
-  *   `gcThreshold`         Fine tune Garbage Collection threshold for GPU, set in bytes
+  *   `parallelism`         Number of threads used for distributed training.
+  *   `batchSize`           Number of samples presented per weight update. (1=on-line, ..., n=full-batch)
+  *   `gcThreshold`         Garbage Collection threshold for GPU, set in bytes.
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
-  *   `waypoint`            Periodic actions can be executed, e.g. saving the weights every n steps.
-  *   `approximation`       If set, the gradients are approximated numerically.
+  *   `waypoint`            Waypoint function, e. g. to periodically save weights.
+  *   `approximation`       If set, gradients are approximated numerically.
   *   `regularization`      The respective regulator tries to avoid over-fitting.
   *   `partitions`          A sequential training sequence can be partitioned for RNNs. (0 index-based)
   *   `specifics`           Some nets use specific parameters set in the `specifics` map.
