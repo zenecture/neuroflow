@@ -47,7 +47,7 @@ object LSTMNetwork {
 }
 
 
-private[nets] case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                      identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 

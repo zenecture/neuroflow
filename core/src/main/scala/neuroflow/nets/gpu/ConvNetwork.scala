@@ -50,7 +50,7 @@ object ConvNetwork {
 
 // <editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                            identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Double")
   extends CNN[Double] with WaypointLogic[Double] {
 
@@ -383,7 +383,7 @@ private[nets] case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: Los
 
 // <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
-private[nets] case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
+case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
                                           identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Single")
   extends CNN[Float] with WaypointLogic[Float] {
 

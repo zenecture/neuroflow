@@ -45,7 +45,7 @@ object DenseNetwork {
 }
 
 
-private[nets] case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                       identifier: String = "neuroflow.nets.distributed.DenseNetwork", numericPrecision: String = "Double")
   extends DistFFN[Double] with WaypointLogic[Double] {
 

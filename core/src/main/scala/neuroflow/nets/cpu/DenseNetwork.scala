@@ -47,7 +47,7 @@ object DenseNetwork {
 
 //<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                             identifier: String = "neuroflow.nets.cpu.DenseNetwork", numericPrecision: String = "Double")
   extends FFN[Double] with WaypointLogic[Double] {
 
@@ -290,7 +290,7 @@ private[nets] case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: Lo
 
 //<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
-private[nets] case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
+case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
                                            identifier: String = "neuroflow.nets.cpu.DenseNetwork", numericPrecision: String = "Single")
   extends FFN[Float] with WaypointLogic[Float] {
 
