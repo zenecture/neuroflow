@@ -209,7 +209,7 @@ We can put focus on a layer and use it as the actual model output. For instance,
 import neuroflow.dsl.Implicits._
 
 val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: SquaredMeanError()
-val ae = Network(layout = L, settings)
+val ae = Network(layout = L)
 
 ae.train(xs, xs)
 ```
