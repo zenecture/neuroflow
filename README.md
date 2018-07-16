@@ -53,7 +53,7 @@ val net = Network(
 )
 ```
 
-This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function, running on the CPU. 
+This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function, running on CPU. 
 The weights are initialized randomly in range (-1, 1) by `WeightBreeder`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
@@ -208,7 +208,7 @@ We can put focus on a layer and use it as the actual model output. For instance,
 ```scala
 import neuroflow.dsl.Implicits._
 
-val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: Loss()
+val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: SquaredMeanError()
 val ae = Network(layout = L, settings)
 
 ae.train(xs, xs)
@@ -217,15 +217,16 @@ ae.train(xs, xs)
 It learns the input identity, but we are interested in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
 
 ```scala
-val focused = ae Ω Dense(5, Linear)
+val focused = ae focus Dense(5, Linear)
 val result = focused(->(0.1, 0.2, ..., 0.23))
 println(result) // DenseVector(0.2, 0.7, 0.1, 0.8, 0.2)
 ```
 
-The focus `Ω` on a specific layer gives a function, which can be applied just like the net it stems from.
-The type signature of the function is derived from the input and the focused layers algebraic types. Another 
-scenario where focusing is useful is when weights are initialized, i. e. the activations of the layers can 
-be watched and adjusted to find good values.
+The `focus` on a specific layer gives a function, which can be applied just like the net it stems from.
+The type signature of the function is derived from the input and the focused layers algebraic types. 
+
+Another scenario where focusing is useful is when weights are initialized, i. e. the activations of the layers can 
+be watched and adjusted to find good values, if a JVM debugger can't be attached.
 
 
 # Using GPU
@@ -278,7 +279,7 @@ Settings(
 ```
 
 It is good practice to use the `Waypoint[V]` option for nets with long training times. The training process can be seen as an 
-infinite sampling wheel, and with waypoints we can harvest weights now and then to compute intermediate results. Another reason 
-to use it is when something crashes, periodically saved weights allow us to continue training from a recent point. Here, every 
+infinitely running wheel, and with waypoints we can harvest weights now and then to compute intermediate results. Another reason 
+to use it is when something crashes, periodically saved weights allow to continue training from a recent point. Here, every 
 `nth = 3` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights, which is 
 written to file using `File.writeWeights`.
