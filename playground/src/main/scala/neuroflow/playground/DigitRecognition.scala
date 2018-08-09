@@ -6,7 +6,7 @@ import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
-import neuroflow.core.Activators.Double._
+import neuroflow.core.Activators.Float._
 import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
@@ -26,9 +26,9 @@ object DigitRecognition {
   */
 
 
-  def digitSet2Vec(path: String): Seq[DenseVector[Double]] = {
+  def digitSet2Vec(path: String): Seq[DenseVector[Float]] = {
     val selector: Int => Boolean = _ < 255
-    (0 to 9) map (i => loadBinary(getResourceFile(path + s"$i.png"), selector))
+    (0 to 9) map (i => loadBinary(getResourceFile(path + s"$i.png"), selector).float)
   }
 
   def apply = {
@@ -38,9 +38,13 @@ object DigitRecognition {
 
     val sets = ('a' to 'h') map (c => digitSet2Vec(s"img/digits/$c/"))
 
-    val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit).map(_.toFloat) } }
-    val ys = sets.dropRight(1).flatMap { m => (0 to 9).map { digit =>
-      ->(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).toScalaVector.updated(digit, 1.0).denseVec.map(_.toFloat) }
+    val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit) } }
+    val ys = sets.dropRight(1).flatMap { m =>
+      (0 to 9).map { digit =>
+        val t = zero[Float](10)
+        t.update(digit, 1.0f)
+        t
+      }
     }
 
     val fn = ReLU
@@ -67,7 +71,7 @@ object DigitRecognition {
 
     println(s"Pos: $posWeights, Neg: $negWeights")
 
-    val setsResult = sets.map(s => s.map(v => net(v.float)))
+    val setsResult = sets.map(s => s.map(v => net(v)))
 
     ('a' to 'h') zip setsResult foreach {
       case (char, res) =>
