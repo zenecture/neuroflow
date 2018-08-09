@@ -208,13 +208,13 @@ We can put focus on a layer and use it as the actual model output. For instance,
 ```scala
 import neuroflow.dsl.Implicits._
 
-val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: SquaredMeanError()
+val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: AbsCubicError()
 val ae = Network(layout = L)
 
 ae.train(xs, xs)
 ```
 
-It learns the input identity, but we are interested in the 5-dimensional activation from the second bottleneck layer to produce a compressed version of the input.
+It learns the input identity, but we are interested in the 5-dimensional activation from the second bottleneck layer to produce a simple, compressed version of the input.
 
 ```scala
 val focused = ae focus Dense(5, Linear)
@@ -280,6 +280,6 @@ Settings(
 
 It is good practice to use the `Waypoint[V]` option for nets with long training times. The training process can be seen as an 
 infinitely running wheel, and with waypoints we can harvest weights now and then to compute intermediate results. Another reason 
-to use it is when something crashes, periodically saved weights allow to continue training from a recent point. Here, every 
+to use it is when something crashes, saved weights allow continuation of training from a recent point. Here, every 
 `nth = 3` step, the waypoint function is executed, receiving as input iteration count and a snapshot of the weights, which is 
 written to file using `File.writeWeights`.
