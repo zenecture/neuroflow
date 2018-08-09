@@ -49,7 +49,7 @@ object ConvViz {
     val c2 = Convolution(dimIn = c1.dimOut,     padding = 1, field = 4, stride = 2, filters = 1, activator = f)
     val c3 = Convolution(dimIn = c2.dimOut,     padding = 1, field = 3, stride = 1, filters = 1, activator = f)
 
-    val L = c0 :: c1 :: c2 :: c3 :: Dense(2, f) :: Softmax()
+    val L = c0 :: c1 :: c2 :: c3 :: Dense(2, f) :: SoftmaxLogEntropy()
 
     val μ = 0
 

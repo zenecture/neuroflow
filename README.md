@@ -14,8 +14,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.6.8",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.6.8"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.6.9",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.6.9"
 )
 
 resolvers ++= Seq(
@@ -72,7 +72,7 @@ val L =
       Dense   (420, f)      ::
       Dense   (314, f)      ::
       Dense   (271, f)      :: 
-      Dense    (23, f)      ::    Softmax()
+      Dense    (23, f)      ::    SoftmaxLogEntropy()
 
 val deeperNet = Network(
   layout = L, 
@@ -89,7 +89,7 @@ val deeperNet = Network(
 )
 ```
 
-Here, the `Softmax` layer computes loss and gradient, which is backpropped into the last `Dense` layer of the net. 
+Here, the `SoftmaxLogEntropy` layer computes loss and gradient, which is backpropped into the last `Dense` layer of the net. 
 The `updateRule` defines how weights are updated for gradient descent. The `batchSize` defines how many 
 samples are presented per weight update. The `learningRate` is a partial function from current iteration 
 and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss 

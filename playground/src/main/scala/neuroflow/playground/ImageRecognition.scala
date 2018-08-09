@@ -58,7 +58,7 @@ object ImageRecognition {
     val c7 = Convolution(dimIn = c6.dimOut,    padding = 0, field = 1, stride = 1, filters = 128, activator = f)
     val c8 = Convolution(dimIn = c7.dimOut,    padding = 0, field = 1, stride = 1, filters =  10, activator = f)
 
-    val L = c0 :: c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: c8 :: Dense(10, f) :: Softmax()
+    val L = c0 :: c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: c8 :: Dense(10, f) :: SoftmaxLogEntropy()
 
     val μ = 0.0
 

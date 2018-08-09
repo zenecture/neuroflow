@@ -72,7 +72,7 @@ case class DenseNetwork(layers: Seq[Layer], lossFunction: LossFunction[Double], 
     */
   override def checkSettings(): Unit = {
     super.checkSettings()
-    if (lossFunction.isInstanceOf[Softmax[_]])
+    if (lossFunction.isInstanceOf[SoftmaxLogEntropy[_]])
       throw new SettingsNotSupportedException("Softmax: Not supported at the moment.")
     if (settings.specifics.isDefined)
       warn("No specific settings supported. This has no effect.")

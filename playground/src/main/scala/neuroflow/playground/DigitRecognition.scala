@@ -55,7 +55,7 @@ object DigitRecognition {
          Dense  (400, fn)         ::
          Dense  (200, fn)         ::
          Dense  (50, fn)          ::
-         Dense  (10, fn)          ::  Softmax(),
+         Dense  (10, fn)          ::  SoftmaxLogEntropy(),
       settings = Settings[Float](
         learningRate = { case (_, _) => 1E-5 },
         updateRule = Momentum(0.8f),

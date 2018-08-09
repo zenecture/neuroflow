@@ -149,10 +149,10 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
     val r1 = flow(x, target)
     val r2 =
       if (target == _lastLayerIdx) lossFunction match {
-        case _: SquaredMeanError[_] => r1
-        case _: Softmax[_]          => SoftmaxImpl(r1)
-        case _                      => r1
-      } else                           r1
+        case _: SquaredMeanError[_]   => r1
+        case _: SoftmaxLogEntropy[_]  => SoftmaxImpl(r1)
+        case _                        => r1
+      } else                             r1
     r2
   }
 
@@ -371,10 +371,10 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     val r1 = flow(x, target)
     val r2 =
       if (target == _lastLayerIdx) lossFunction match {
-        case _: SquaredMeanError[_] => r1
-        case _: Softmax[_]          => SoftmaxImpl(r1)
-        case _                      => r1
-      } else                           r1
+        case _: SquaredMeanError[_]   => r1
+        case _: SoftmaxLogEntropy[_]  => SoftmaxImpl(r1)
+        case _                        => r1
+      } else                             r1
     r2
   }
 
