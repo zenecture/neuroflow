@@ -25,6 +25,12 @@ import scala.util.{Failure, Success, Try}
   */
 object Word2Vec {
 
+  /*
+      This model is just a sketch to illustrate the principle of Word2Vec.
+      Little things are missing compared to the original one, so it can't compete.
+      TODO: implement original one.
+   */
+
   def apply = {
 
     val windowL = 5
