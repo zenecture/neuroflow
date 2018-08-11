@@ -51,7 +51,7 @@ object TrendDetection {
 
     val f = Sigmoid
     val settings = Settings[Double](learningRate = { case (_, _) => 0.5 }, precision = 1E-4, iterations = 10000)
-    val net = Network(Vector(trend.size) :: Dense(25, f) :: Dense(1, f) :: SquaredMeanError(), settings)
+    val net = Network(Vector(trend.size) :: Dense(25, f) :: Dense(1, f) :: SquaredError(), settings)
 
     import Notation.Implicits.seqToVector
 

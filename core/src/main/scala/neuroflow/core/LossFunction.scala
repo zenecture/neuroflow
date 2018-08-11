@@ -74,7 +74,7 @@ trait LossFunction[V] extends Layout {
 
 /**
   *
-  *   L = Σ|(y - x)³|
+  *   L = Σ|1/3(y - x)³|
   *
   * Where `y` is the target and `x` the prediction.
   * The sum Σ is taken over the full batch and
@@ -108,12 +108,12 @@ case class AbsCubicError[V]() extends LossFunction[V] {
     val `1` = field.one
     val `2` = field + (`1`, `1`)
     val `3` = field + (`2`, `1`)
-    val pow = DenseMatrix.zeros[V](y.rows, y.cols)
-    pow := `3`
+    val threes = DenseMatrix.zeros[V](y.rows, y.cols)
+    threes := `3`
 
-    val cubic = (y - x) ^:^ pow
-    val err = _abs(cubic)
-    val grad = `3` *:* (x - y) *:* _abs(x - y)
+    val cubic = (y - x) ^:^ threes
+    val err = _abs(cubic / threes)
+    val grad = (x - y) *:* _abs(x - y)
 
     (err, grad)
 
@@ -147,23 +147,12 @@ case class AbsCubicError[V]() extends LossFunction[V] {
     val `1` = field.one
     val `2` = field + (`1`, `1`)
     val `3` = field + (`2`, `1`)
-    val pow = CuMatrix.zeros[V](y.rows, y.cols)
-    pow := `3`
+    val threes = CuMatrix.zeros[V](y.rows, y.cols)
+    threes := `3`
 
-    val r1 = y - x
-    val r2 = x - y
-
-    val cubic = r1 ^:^ pow
-    val err = _abs(cubic)
-    val r3 = _abs(r2)
-    val r4 = pow *:* r2
-    val grad = r3 *:* r4
-
-    r1.release()
-    r2.release()
-    r3.release()
-    r4.release()
-    pow.release()
+    val cubic = (y - x) ^:^ threes
+    val err = _abs(cubic / threes)
+    val grad = (x - y) *:* _abs(x - y)
 
     (err, grad)
 
@@ -182,7 +171,7 @@ case class AbsCubicError[V]() extends LossFunction[V] {
   * the square ² gives a convex functional form.
   *
   */
-case class SquaredMeanError[V]() extends LossFunction[V] {
+case class SquaredError[V]() extends LossFunction[V] {
 
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit

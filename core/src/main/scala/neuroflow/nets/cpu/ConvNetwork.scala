@@ -126,7 +126,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target, batchSize = 1)
     val r2 = lossFunction match {
-      case _: SquaredMeanError[_]  => r1
+      case _: SquaredError[_]  => r1
       case _: SoftmaxLogEntropy[_] => SoftmaxImpl(r1)
       case _                       => r1
     }
@@ -408,7 +408,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target, batchSize = 1)
     val r2 = lossFunction match {
-      case _: SquaredMeanError[_]  => r1
+      case _: SquaredError[_]  => r1
       case _: SoftmaxLogEntropy[_] => SoftmaxImpl(r1)
       case _                       => r1
     }

@@ -53,7 +53,7 @@ class DenseNetworkNumTest extends Specification {
          Dense  (7, f)   ::
          Dense  (8, f)   ::
          Dense  (7, f)   ::
-         Dense  (2, f)   ::  SquaredMeanError()
+         Dense  (2, f)   ::  SquaredError()
 
     val rand = weights.traverseAndBuild(extractor(L)._1, weights.normalSeed(1.0, 0.1))
 

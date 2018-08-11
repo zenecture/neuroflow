@@ -68,7 +68,7 @@ object ParityCluster {
     val L =
       Vector(dimension + 1)           ::
       Dense(3, Linear)                ::
-      Dense(dimension + 1, Sigmoid)   ::  SquaredMeanError()
+      Dense(dimension + 1, Sigmoid)   ::  SquaredError()
 
     val net = Network(
       layout = L,

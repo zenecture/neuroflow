@@ -50,7 +50,7 @@ trait EndsWith[L <: Layout, +Predicate]
 object EndsWith {
 
   implicit def habs[P <: Layer, V]: (P :: AbsCubicError[V]) EndsWith P = new ((P :: AbsCubicError[V]) EndsWith P) { }
-  implicit def hsme[P <: Layer, V]: (P :: SquaredMeanError[V]) EndsWith P = new ((P :: SquaredMeanError[V]) EndsWith P) { }
+  implicit def hsme[P <: Layer, V]: (P :: SquaredError[V]) EndsWith P = new ((P :: SquaredError[V]) EndsWith P) { }
   implicit def hsmx[P <: Layer, V]: (P :: SoftmaxLogEntropy[V]) EndsWith P = new ((P :: SoftmaxLogEntropy[V]) EndsWith P) { }
 
   implicit def hlist[H <: Layer, P <: Layer, L <: Layout]

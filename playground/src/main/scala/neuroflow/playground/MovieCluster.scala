@@ -45,7 +45,7 @@ object MovieCluster {
   val observations: List[Rating] = Source.fromFile(getResourceFile("file/ml-100k/u.data"))
     .getLines.map(_.split("\t")).map(r => Rating(r(0).toInt, r(1).toInt, r(2).toInt)).toList
 
-  val layout = Vector(movies.size) :: Dense(3, Linear) :: Dense(movies.size, Sigmoid) :: SquaredMeanError()
+  val layout = Vector(movies.size) :: Dense(3, Linear) :: Dense(movies.size, Sigmoid) :: SquaredError()
 
   def apply = {
 

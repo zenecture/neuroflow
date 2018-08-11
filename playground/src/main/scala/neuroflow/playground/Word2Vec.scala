@@ -80,7 +80,7 @@ object Word2Vec {
     val L =
       Vector(dim)                 ::
       Dense(20, Linear)           ::
-      Dense(dim, Sigmoid)         ::  SquaredMeanError()
+      Dense(dim, Sigmoid)         ::  SquaredError()
 
     val net =
       Network(

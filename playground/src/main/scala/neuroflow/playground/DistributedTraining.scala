@@ -35,7 +35,7 @@ object DistributedTraining extends Logs {
         Dense(out, f)             ::
         Dense(out, f)             ::
         Dense(out, f)             ::
-        Dense(dim, f)             :: SquaredMeanError(),
+        Dense(dim, f)             :: SquaredError(),
         Settings[Double](
           coordinator  = Node("localhost", 2552),
           transport    = Transport(100000, "128 MiB"),

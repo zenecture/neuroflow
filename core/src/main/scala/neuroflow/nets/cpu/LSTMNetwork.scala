@@ -38,7 +38,7 @@ object LSTMNetwork {
 
   implicit object double extends Constructor[Double, LSTMNetworkDouble] {
     def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): LSTMNetworkDouble = {
-      LSTMNetworkDouble(ls, SquaredMeanError(), settings, breeder(ls))
+      LSTMNetworkDouble(ls, SquaredError(), settings, breeder(ls))
     }
   }
 

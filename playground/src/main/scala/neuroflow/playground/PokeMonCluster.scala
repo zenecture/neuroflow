@@ -65,7 +65,7 @@ object PokeMonCluster {
       Vector(dim)                 ::
       Dense(3, Linear)            ::
       Dense(dim / 2, ReLU)        ::
-      Dense(dim, ReLU)            ::  SquaredMeanError()
+      Dense(dim, ReLU)            ::  SquaredError()
 
     val net =
       Network(

@@ -14,8 +14,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.6.9",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.6.9"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.0",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.0"
 )
 
 resolvers ++= Seq(
@@ -49,11 +49,11 @@ implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 0.1)
 val (g, h) = (Sigmoid, Sigmoid)
 
 val net = Network(
-  layout = Vector(2) :: Dense(3, g) :: Dense(1, h) :: SquaredMeanError()
+  layout = Vector(2) :: Dense(3, g) :: Dense(1, h) :: SquaredError()
 )
 ```
 
-This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function, running on CPU. 
+This gives a fully connected `DenseNetwork` under the `SquaredError` loss function, running on CPU. 
 The `weights` are drawn from normal distribution by `WeightBreeder`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
@@ -106,9 +106,9 @@ Our small `net` is a function `f: X -> Y`. It maps from 2d-vector `X` to 1d-vect
 There are many functions of this kind to learn out there. Here, we go with the XOR function. 
 It is linearly not separable, so we can check whether the net can capture this non-linearity.
 
-To learn, we need to know what it means to be wrong. The `SquaredMeanError` loss function is defined as follows:
+To learn, we need to know what it means to be wrong. The `SquaredError` loss function is defined as follows:
 
-    SquaredMeanError(X, Y, W) = Σ1/2(Y - net(X, W))²
+    SquaredError(X, Y, W) = Σ1/2(Y - net(X, W))²
 
 Where `W` are the weights, `Y` is the target and `net(X, W)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form. We interpret the XOR-adder as a regression challenge, so the `SquaredMeanError` is the choice. 

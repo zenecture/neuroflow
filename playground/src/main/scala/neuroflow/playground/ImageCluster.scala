@@ -69,7 +69,7 @@ object ImageCluster {
     val cl = Dense(inX * inY * inZ / 100, g)
     val id = Dense(inX * inY * inZ, f)
 
-    val L = in :: cl :: id :: SquaredMeanError()
+    val L = in :: cl :: id :: SquaredError()
 
     val μ = 0.0
 

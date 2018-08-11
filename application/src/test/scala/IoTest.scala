@@ -24,7 +24,7 @@ class IoTest extends Specification {
 
   import neuroflow.nets.cpu.DenseNetwork._
 
-  val layers = Vector(2) :: Dense(3, Sigmoid) :: Dense(2, Sigmoid) :: SquaredMeanError()
+  val layers = Vector(2) :: Dense(3, Sigmoid) :: Dense(2, Sigmoid) :: SquaredError()
 
   val measure: FFN[Double] = {
     implicit val wp = neuroflow.core.WeightBreeder[Double].static(0.0)

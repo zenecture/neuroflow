@@ -66,7 +66,7 @@ class ConvNetworkNumTest  extends Specification {
     val a = Convolution(dimIn = dim,      padding = (0, 0), field = (2, 2), stride = (1, 1), filters = 4, activator = f)
     val b = Convolution(dimIn = a.dimOut, padding = (0, 0), field = (1, 1), stride = (1, 1), filters = 4, activator = f)
 
-    val L = a :: b :: Dense(out, f) :: SquaredMeanError()
+    val L = a :: b :: Dense(out, f) :: SquaredError()
 
     val rand = weights.traverseAndBuild(extractor(L)._1, weights.normalSeed(0.1, 0.01))
 
