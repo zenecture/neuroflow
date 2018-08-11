@@ -44,7 +44,7 @@ import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 
-implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+implicit val weights = neuroflow.core.WeightBreeder[Double].normal(μ = 0.0, σ = 0.1)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
@@ -54,7 +54,7 @@ val net = Network(
 ```
 
 This gives a fully connected `DenseNetwork` under the `SquaredMeanError` loss function, running on CPU. 
-The weights are initialized randomly in range (-1, 1) by `WeightBreeder`. We have predefined activators and 
+The `weights` are drawn from normal distribution by `WeightBreeder`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
 A full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
@@ -259,13 +259,13 @@ We can save and load weights from nets with `neuroflow.application.plugin.IO`.
 import neuroflow.application.plugin.IO._
 
 val file = "/path/to/net.nf"
-implicit val breeder = File.weightBreeder[Double](file)
+implicit val weights = File.weightBreeder[Double](file)
 val net = Network(layout, settings)
 File.writeWeights(net.weights, file)
 val json = Json.writeWeights(net.weights)
 ```
 
-The implicit `breeder` to construct `net` comes from `File.weightBreeder`. To save the weights back to `file`, 
+The implicit `weights` to construct `net` comes from `File.weightBreeder`. To save the weights back to `file`, 
 we use `File.writeWeights`. The weight matrices are encoded in binary format.
  
 To write into a database, we can use `Json.writeWeights` to retrieve a raw JSON string and fire a SQL query with it.
