@@ -44,7 +44,7 @@ import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.nets.cpu.DenseNetwork._
 
-implicit val weights = neuroflow.core.WeightBreeder[Double].normal(μ = 0.0, σ = 0.1)
+implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 0.1)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
