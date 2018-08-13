@@ -283,7 +283,7 @@ File.writeWeights(net.weights, file)
 val json = Json.writeWeights(net.weights)
 ```
 
-The implicit `weights` to construct `net` comes from `File.weightBreeder`. To save the weights back to `file`, 
+The implicit `weights` to construct `net` come from `File.weightBreeder`. To save the weights back to `file`, 
 we use `File.writeWeights`. The weight matrices are encoded in binary format.
  
 To write into a database, we can use `Json.writeWeights` to retrieve a raw JSON string and fire a SQL query with it.
