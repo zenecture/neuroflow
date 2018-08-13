@@ -53,7 +53,7 @@ object ConvViz {
 
     val μ = 0
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Float].normal(Map(
+    implicit val weights = WeightBreeder[Float].normal(Map(
       0 -> (μ, 0.1),  1 -> (μ, 1), 2 -> (μ, 0.1), 3 -> (μ, 1), 4 -> (1E-4, 1E-4)
     ))
 

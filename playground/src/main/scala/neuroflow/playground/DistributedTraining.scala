@@ -25,7 +25,7 @@ object DistributedTraining extends Logs {
 
   def coordinator = {
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     val f   = ReLU
 

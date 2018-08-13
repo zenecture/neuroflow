@@ -40,8 +40,8 @@ object Word2Vec {
     val output = "/Users/felix/github/unversioned/word2vec.txt"
     val wps = "/Users/felix/github/unversioned/word2vecWp.nf"
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
-//     implicit val breeder = IO.File.readDouble(wps)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
+//     implicit val weights = IO.File.readDouble(wps)
 
     val corpus = Source.fromFile(getResourceFile("file/newsgroup/reduced.txt")).mkString.split(" ").map(_ -> 1)
 

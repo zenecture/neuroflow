@@ -50,7 +50,7 @@ object MovieCluster {
   def apply = {
 
     import neuroflow.application.plugin.Extensions.VectorOps
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     val topByUser = observations.take(observationLimit).filter(_.rating == 5).groupBy(_.user).map {
       case (user, ratings) =>

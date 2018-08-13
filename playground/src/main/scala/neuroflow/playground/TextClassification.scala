@@ -62,7 +62,7 @@ object TextClassification {
 
   def apply = {
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     val cars = normalize(readAll("file/newsgroup/cars/"))
     val med = normalize(readAll("file/newsgroup/med/"))
@@ -88,7 +88,7 @@ object TextClassification {
   def test = {
 
     val net = {
-      implicit val breeder = File.weightBreeder[Double](netFile)
+      implicit val weights = File.weightBreeder[Double](netFile)
       Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Sigmoid) :: SoftmaxLogEntropy())
     }
 

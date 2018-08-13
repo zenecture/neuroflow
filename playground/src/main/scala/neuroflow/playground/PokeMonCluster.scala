@@ -59,13 +59,13 @@ object PokeMonCluster {
     val  xs = pokemons.map(p => p -> toVector(p).denseVec)
     val dim = xs.head._2.size
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     val L =
       Vector(dim)                 ::
       Dense(3, Linear)            ::
       Dense(dim / 2, ReLU)        ::
-      Dense(dim, ReLU)            ::  SquaredError()
+      Dense(dim, ReLU)            ::   SquaredError()
 
     val net =
       Network(

@@ -73,8 +73,8 @@ object ImageCluster {
 
     val μ = 0.0
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Float].normal(μ, 0.001)
-//    implicit val breeder = IO.File.weightBreeder[Float](wps + "-iter-6400.nf")
+    implicit val weights = WeightBreeder[Float].normal(μ, 0.001)
+//    implicit val weights = IO.File.weightBreeder[Float](wps + "-iter-6400.nf")
 
     val net = Network(
       layout = L,

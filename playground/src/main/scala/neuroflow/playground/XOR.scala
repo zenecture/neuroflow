@@ -4,6 +4,7 @@ import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
+import neuroflow.nets.cpu.DenseNetwork._
 
 /**
   * @author bogdanski
@@ -26,9 +27,8 @@ object XOR {
 
      */
 
-    import neuroflow.nets.cpu.DenseNetwork._
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].normal {
+    implicit val weights = WeightBreeder[Double].normal {
       Map ( // normal config per layer index
         1 -> (0.0, 1.0),
         2 -> (0.0, 0.1)

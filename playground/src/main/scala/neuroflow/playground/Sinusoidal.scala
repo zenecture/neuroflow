@@ -26,7 +26,7 @@ object Sinusoidal {
 
     */
 
-  implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-0.2, 0.2)
+  implicit val weights = WeightBreeder[Double].random(-0.2, 0.2)
 
   def apply = {
 

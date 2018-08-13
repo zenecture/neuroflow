@@ -26,7 +26,7 @@ object ShallowNet {
 
   def apply = {
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     val settings = Settings[Double](
       learningRate = { case (_, _) => 0.01 },

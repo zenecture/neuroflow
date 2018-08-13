@@ -27,7 +27,7 @@ object TrendDetection {
 
     import neuroflow.application.plugin.Notation
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     def noise = if (Random.nextDouble > 0.5) 0.0625 else -0.0625
 

@@ -38,7 +38,7 @@ object Sequences {
   def cosine2sine = {
 
     import neuroflow.nets.cpu.LSTMNetwork._
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-0.2, 0.2)
+    implicit val weights = WeightBreeder[Double].random(-0.2, 0.2)
 
     val stepSize = 0.1
     val xsys = Range.Double(0.0, 1.0, stepSize).map(x => (->(cos(10 * x)), ->(sin(10 * x))))

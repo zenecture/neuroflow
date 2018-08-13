@@ -31,7 +31,7 @@ object AudioRecognition {
 
   def apply = {
 
-    implicit val breeder = neuroflow.core.WeightBreeder[Double].random(-1, 1)
+    implicit val weights = WeightBreeder[Double].random(-1, 1)
 
     val fn = Tanh
     val sets = Settings[Double](iterations = 2000, precision = 1E-4)
