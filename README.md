@@ -101,7 +101,7 @@ The numerical type is set by explicitly annotating it on both the `WeightBreeder
 
 Have a look at the `Settings` class for the complete list of options.
 
-### Own Activators
+### Activators
 
 A neural net consists of matrix multiplications and function applications. Since matrix multiplication is inherently linear,
 all non-linearity has to come from the cells activators. The predefined ones are common and should be sufficient for most data, 
@@ -117,6 +117,29 @@ val c = new Activator[Double] {
 
 Then just drop it into a layer, e. g. `Dense(3, c) `. Luckily, the CPU implementation is flexible to run arbitrary code. 
 If you need custom activators for GPU, you need to fork NF and do CUDA coding.
+
+### Loss Functions
+
+You can tackle a lot of challenges by using the predefined loss functions. However, as with the activators, at times you need
+your own loss function, `Y, X -> Loss, Gradient`, so here is how to write one, for both CPU and GPU:
+
+```scala
+val myLoss = new LossFunction[Double] {
+  def apply(y: DenseMatrix[Double], x: DenseMatrix[Double])(implicit /* a lot of implicits... */): (DenseMatrix[Double], DenseMatrix[Double]) = (loss, gradient) // CPU
+  def apply(y: CuMatrix[Double], x: CuMatrix[Double])(implicit /* a lot of implicits... */): (CuMatrix[Double], CuMatrix[Double]) = (loss, gradient) // GPU
+}
+```
+
+The row-batched targets `y` and predictions `x` are given input to produce a `Tuple`, yielding loss and gradient, which will be backpropagated into the raw output layer.
+Don't fear the long implicit parameters when implementing the trait, these operators come from Breeze and should be just fine.
+
+```scala
+implicit def evidence[P <: Layer, V]: (P :: myLoss.type) EndsWith P = new ((P :: myLoss.type) EndsWith P) { }
+val L = Vector(3) :: Dense(3, Tanh) :: Dense(3, Tanh) :: myLoss 
+```  
+
+Then, to use it with the front-end DSL, you have to provide evidence for compile time checks.
+Alternatively, you can work with the corresponding net implementation, passing the layout directly without any checks. 
 
 # Training
 
