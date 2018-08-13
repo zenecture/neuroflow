@@ -226,7 +226,8 @@ We can put focus on a layer and use it as the actual model output. For instance,
 ```scala
 import neuroflow.dsl.Implicits._
 
-val L = Vector(23) :: Dense(5, Linear) :: Dense(23, Sigmoid) :: AbsCubicError()
+val f = Dense(5, Linear)
+val L = Vector(23) :: f :: Dense(23, Sigmoid) :: AbsCubicError()
 val ae = Network(layout = L)
 
 ae.train(xs, xs)
@@ -235,12 +236,12 @@ ae.train(xs, xs)
 It learns the input identity, but we are interested in the 5-dimensional activation from the second bottleneck layer to produce a simple, compressed version of the input.
 
 ```scala
-val focused = ae focus Dense(5, Linear)
+val focused = ae focus f 
 val result = focused(->(0.1, 0.2, ..., 0.23))
 println(result) // DenseVector(0.2, 0.7, 0.1, 0.8, 0.2)
 ```
 
-The `focus` on a specific layer gives a function, which can be applied just like the net it stems from.
+The `focus` on layer `f` gives a function, which can be applied just like the net it stems from.
 The type signature of the function is derived from the input and the focused layers algebraic types. 
 
 Another scenario where focusing is useful is when weights are initialized, i. e. the activations of the layers can 
