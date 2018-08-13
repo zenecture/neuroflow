@@ -115,7 +115,7 @@ val c = new Activator[Double] {
 }
 ``` 
 
-Then just drop it into a layer, e.g. `Dense(3, c) `. Luckily, the CPU implementation is flexible to run arbitrary code. 
+Then just drop it into a layer, e. g. `Dense(3, c) `. Luckily, the CPU implementation is flexible to run arbitrary code. 
 If you need custom activators for GPU, you need to fork NF and do CUDA coding.
 
 # Training
