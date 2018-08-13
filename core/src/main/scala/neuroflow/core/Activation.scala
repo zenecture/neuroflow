@@ -33,6 +33,7 @@ trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializab
   }
 }
 
+
 /**
   * Collection of pre-defined activators.
   */
@@ -60,7 +61,7 @@ object Activator {
       val `1` = ring.one
       def apply(x: V): V = _max(`0`, x)
       def derivative(x: V): V = if (x > `0`) `1` else f * x
-      val symbol: String = s"ReLU<$f>"
+      val symbol: String = s"LeakyReLU<$f>"
     }
   }
 
@@ -113,6 +114,16 @@ object Activator {
       def apply(x: V): V = x * x
       def derivative(x: V): V = `2` * x
       val symbol = "x²"
+    }
+  }
+
+  implicit class BiasedActivator[N: Semiring](activator: Activator[N]) {
+    private val ring = implicitly[Semiring[N]]
+    /** Additive bias `b` to `activator`, yielding f(x + b). */
+    def biased(b: N): Activator[N] = new Activator[N] {
+      val symbol: String = activator.symbol + s" + Bias($b)"
+      def apply(x: N): N = activator.apply(ring + (x, b))
+      def derivative(x: N): N = activator.derivative(ring + (x, b))
     }
   }
 
