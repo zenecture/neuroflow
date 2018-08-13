@@ -1,8 +1,11 @@
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/newlogo.png" width=480 height=132 />
 
-NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
+NeuroFlow is a library to design, train and evaluate Artificial Neural Networks. 
 
 # Getting Started
+
+The library aims at ease of use, keeping things intuitive and simple. :o) 
+Neural Nets bring joy into your project, a journey full of experiments.
 
 There are three modules:
 
@@ -23,14 +26,12 @@ resolvers ++= Seq(
 )
 ```
 
-If you are new to Neural Nets, you can read about the core principles here:
+If you are new to the math behind Neural Nets, you can read about the core principles here:
 
   - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
   - <a href="http://www.znctr.com/blog/convolutional-nets">znctr.com/blog/convolutional-nets</a>
   
-Seeing code examples is a good way to get started. You may have a look at the playground for basic inspiration.
-
-Neural Nets bring joy into your project, a journey full of experiments. 
+Seeing code examples is a good way to get started. You may have a look at the playground for basic inspiration. 
 
 # Construction of a Net  
 
