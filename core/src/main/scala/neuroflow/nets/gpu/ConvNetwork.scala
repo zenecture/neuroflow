@@ -75,7 +75,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
       case x: Linear[_]  => CuMatrix.Activators.linear[Double]  ->  CuMatrix.Activators.linear_derivative[Double]
       case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Double] ->  CuMatrix.Activators.sigmoid_derivative[Double]
       case x: Tanh[_]    => CuMatrix.Activators.tanh[Double]    ->  CuMatrix.Activators.tanh_derivative[Double]
-      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${x.symbol}.")
     }
   }
 
@@ -408,7 +408,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
       case x: Linear[_]  => CuMatrix.Activators.linear[Float]  ->  CuMatrix.Activators.linear_derivative[Float]
       case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Float] ->  CuMatrix.Activators.sigmoid_derivative[Float]
       case x: Tanh[_]    => CuMatrix.Activators.tanh[Float]    ->  CuMatrix.Activators.tanh_derivative[Float]
-      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: $x.")
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${x.symbol}.")
     }
   }
 
