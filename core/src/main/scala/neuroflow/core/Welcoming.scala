@@ -6,6 +6,10 @@ import neuroflow.common.TypeSize
 import neuroflow.dsl.{Convolution, Layer}
 
 /**
+  *
+  *   This is coding style from the 70s :D
+  *   Muhahaharrrr - a true pirate knows its time!
+  *
   * @author bogdanski
   * @since 09.07.16
   */
@@ -22,7 +26,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |           /  |/ / _ \\/ / / / ___/ __ \\/ /_  / / __ \\ | /| / /
       |          / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/   
-      |                                                            1.7.0
+      |                                                            1.7.1
       |
       |
       |            Network : $identifier

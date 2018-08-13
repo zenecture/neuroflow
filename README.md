@@ -14,8 +14,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.0",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.0"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.1",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.1"
 )
 
 resolvers ++= Seq(
@@ -62,7 +62,7 @@ implemented as a heterogenous list, allowing compile-time checks for valid compo
 a little deeper net, with some rates and rules defined, could look like this:
 
 ```scala
-val (e, f) = (Linear, ReLU)
+val (e, f) = (Linear.biased(0.1), ReLU)
 
 val L =
       Vector   (11)         ::
