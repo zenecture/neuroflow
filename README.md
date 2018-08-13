@@ -101,7 +101,7 @@ The numerical type is set by explicitly annotating it on both the `WeightBreeder
 
 Have a look at the `Settings` class for the complete list of options.
 
-## Activators
+### Own Activators
 
 A neural net consists of matrix multiplications and function applications. Since matrix multiplication is inherently linear,
 all non-linearity has to come from the cells activators. The predefined ones are common and should be sufficient for most data, 
@@ -113,10 +113,10 @@ val c = new Activator[Double] {
   def apply(x: Double): Double = x + 0.1
   def derivative(x: Double): Double = 1.0
 }
-// then just drop it into a layer, e.g. Dense(3, c) ...
 ``` 
 
-Luckily, the CPU implementation is flexible here. If you need custom activators for GPU, you need to fork NF and do CUDA coding.
+Then just drop it into a layer, e.g. `Dense(3, c) `. Luckily, the CPU implementation is flexible to run arbitrary code. 
+If you need custom activators for GPU, you need to fork NF and do CUDA coding.
 
 # Training
 
