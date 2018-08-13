@@ -261,8 +261,8 @@ val myLoss = new LossFunction[Double] {
 }
 ```
 
-The row-batched targets `y` and predictions `x` are given input to produce a `Tuple`, yielding loss and gradient, which will be backpropagated into the raw output layer.
-Don't fear the long implicit parameters when implementing the trait, these operators come from Breeze and should be just fine.
+The targets `y` and predictions `x` are given input to produce a `Tuple`, yielding `loss` and `gradient`, which will be backpropagated into the raw output layer.
+The batch layout is row-wise, so you need to work with the matrices accordingly. Don't fear the long implicit parameters when implementing the trait, these operators come from Breeze and should be just fine.
 
 ```scala
 implicit def evidence[P <: Layer, V]: (P :: myLoss.type) EndsWith P = new ((P :: myLoss.type) EndsWith P) { }
