@@ -225,7 +225,7 @@ println(result) // DenseVector(0.2, 0.7, 0.1, 0.8, 0.2)
 ```
 
 The `focus` on layer `f` gives a function, which can be applied just like the net it stems from.
-The type signature of the function is derived from the input and the focused layers algebraic types. 
+The type signature of the function is derived from the focused layer's algebraic type. 
 
 Another scenario where focusing is useful is when weights are initialized, i. e. the activations of the layers can 
 be watched and adjusted to find good values, if a JVM debugger can't be attached.
