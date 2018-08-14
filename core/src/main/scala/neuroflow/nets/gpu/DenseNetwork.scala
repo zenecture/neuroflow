@@ -161,12 +161,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target)
-    val r2 =
-      if (target == _lastLayerIdx) lossFunction match {
-        case _: SquaredError[_]      => r1
-        case _: SoftmaxLogEntropy[_] => SoftmaxImpl(r1)
-        case _                       => r1
-      } else                            r1
+    val r2 = if (target == _lastLayerIdx) lossFunction.sink(r1) else r1
     r2
   }
 
@@ -486,12 +481,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target)
-    val r2 =
-      if (target == _lastLayerIdx) lossFunction match {
-        case _: SquaredError[_]      => r1
-        case _: SoftmaxLogEntropy[_] => SoftmaxImpl(r1)
-        case _                       => r1
-      } else                            r1
+    val r2 = if (target == _lastLayerIdx) lossFunction.sink(r1) else r1
     r2
   }
 

@@ -1,8 +1,9 @@
 package neuroflow.core
 
-import breeze.linalg._
+import breeze.linalg.{sum, _}
 import breeze.linalg.operators._
 import breeze.math.{Field, Semiring}
+import breeze.{linalg, numerics}
 import breeze.numerics._
 import breeze.storage.Zero
 import jcuda.jcublas.cublasHandle
@@ -23,6 +24,7 @@ import scala.reflect.ClassTag
   */
 trait LossFunction[V] extends Layout {
 
+  /** CPU */
   def apply(y: DenseMatrix[V], x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
@@ -44,6 +46,7 @@ trait LossFunction[V] extends Layout {
             _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V])
 
+  /** GPU */
   def apply(y: CuMatrix[V], x: CuMatrix[V])
            (implicit
             handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
@@ -68,6 +71,28 @@ trait LossFunction[V] extends Layout {
             _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V])
+
+  /** Optional post processing of raw output, e.g. for evaluation after training. */
+  def sink(x: DenseMatrix[V])
+           (implicit
+            field: Field[V], classTag: ClassTag[V],
+            _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _sum: sum.Impl[DenseMatrix[V], V],
+            _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _abs: abs.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] = x
 
 }
 
@@ -330,6 +355,10 @@ case class SoftmaxLogEntropy[V]() extends LossFunction[V] {
     (err, grad)
 
   }
+
+  override def sink(x: DenseMatrix[V])(implicit field: Field[V], classTag: ClassTag[V], _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]], _exp: numerics.exp.Impl[DenseMatrix[V], DenseMatrix[V]], _sum: sum.Impl[DenseMatrix[V], V], _log: numerics.log.Impl[DenseMatrix[V], DenseMatrix[V]], _abs: numerics.abs.Impl[DenseMatrix[V], DenseMatrix[V]], _mat: linalg.operators.OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]], _mat2: linalg.operators.OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]], _mat3: linalg.operators.OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _add: linalg.operators.OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+                                       _sub: linalg.operators.OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _neg: linalg.operators.OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]], _pow: linalg.operators.OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _mulInPl: linalg.operators.OpMulScalar.InPlaceImpl2[DenseMatrix[V], V], _setInPl: linalg.operators.OpSet.InPlaceImpl2[DenseMatrix[V], V], _powInPl: linalg.operators.OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]], _subInPl: linalg.operators.OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]], _addInPl: linalg.operators.OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] =
+    SoftmaxImpl(x)
 
 }
 
