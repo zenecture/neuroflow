@@ -4,8 +4,8 @@ NeuroFlow is a library to design, train and evaluate Artificial Neural Networks.
 
 # Getting Started
 
-The library aims at ease of use, keeping things intuitive and simple. :o) 
-Neural Nets bring joy into your project, a journey full of experiments.
+The library aims at ease of use, keeping things intuitive and simple. 
+Neural Nets bring joy into your project, a journey full of experiments. :o)
 
 There are three modules:
 
@@ -216,7 +216,7 @@ val ae = Network(layout = L)
 ae.train(xs, xs)
 ```
 
-It learns the input identity, but we are interested in the 5-dimensional activation from the second bottleneck layer to produce a simple, compressed version of the input.
+It learns the input identity, but we are interested in the 5-dimensional activation from bottleneck layer `f` to produce a simple, compressed version of the input.
 
 ```scala
 val focused = ae focus f 
@@ -247,7 +247,7 @@ val c = new Activator[Double] {
 ``` 
 
 Then just drop it into a layer, e. g. `Dense(3, c) `. Luckily, the CPU implementation is flexible to run arbitrary code. 
-If you need custom activators for GPU, you need to fork NF and do CUDA coding.
+If you need custom activators for GPU, you need to fork NF and implement them in CUDA. 
 
 ### Loss Functions
 
@@ -262,14 +262,15 @@ val myLoss = new LossFunction[Double] {
 ```
 
 The targets `y` and predictions `x` are given input to produce a `Tuple`, yielding `loss` and `gradient`, which will be backpropagated into the raw output layer.
-The batch layout is row-wise, so you need to work with the matrices accordingly. Don't fear the long implicit parameters when implementing the trait, these operators come from Breeze and should be just fine.
+The batch layout is row-wise, so you need to work with the matrices accordingly. Don't fear the long implicit parameters when implementing the trait, 
+these operators come from Breeze and should be just fine. You can also look at the predefined loss functions for a starting point. 
 
 ```scala
 implicit def evidence[P <: Layer, V]: (P :: myLoss.type) EndsWith P = new ((P :: myLoss.type) EndsWith P) { }
-val L = Vector(3) :: Dense(3, Tanh) :: Dense(3, Tanh) :: myLoss 
+val L = Vector(3) :: Dense(3, Tanh) :: Dense(3, Tanh) :: myLoss
 ```  
 
-Then, to use it with the front-end DSL, you have to provide evidence for compile time checks.
+To use your loss function with the front-end DSL, you have to provide evidence for compile time checks.
 Alternatively, you can work with the corresponding net implementation, passing the layout directly without any checks. 
 
 # Using GPU
