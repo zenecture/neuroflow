@@ -14,8 +14,8 @@ import breeze.numerics.{exp, log, pow, tanh}
 /**
   * A label for a [[neuroflow.dsl.Layer]] with `activator` to fire the cells.
   */
-trait HasActivator[N] {
-  val activator: Activator[N]
+trait HasActivator[V] {
+  val activator: Activator[V]
 }
 
 /**
