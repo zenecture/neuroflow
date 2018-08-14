@@ -83,7 +83,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
-    sink(x.toDenseMatrix, _lastLayerIdx).toDenseVector
+    sink(prepare(x.toDenseMatrix), _lastLayerIdx).toDenseVector
   }
 
 
@@ -102,8 +102,8 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
       case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Vector) => {
-      if (idx > 0) cp(sink(in.toDenseMatrix, idx - 1), l)
-      else cp(in.toDenseMatrix, l)
+      if (idx > 0) cp(sink(prepare(in.toDenseMatrix), idx - 1), l)
+      else cp(prepare(in.toDenseMatrix), l)
     }
   }
 
@@ -119,8 +119,17 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = BatchBreeder.breedFFN(xs, ys, batchSize)
+    val xsys = BatchBreeder.breedFFN(xs, ys, batchSize).map { case (xs, ys) => (prepare(xs), ys) }
     run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+  }
+
+  private def prepare(x: Matrix): Matrix = {
+    _layers(0) match {
+      case vec: neuroflow.dsl.Vector[Double] => vec.activator match {
+        case Some(fn) => x.map(fn)
+        case _        => x
+      }
+    }
   }
 
 
@@ -326,7 +335,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     * Computes output for `x`.
     */
   def apply(x: Vector): Vector = {
-    sink(x.toDenseMatrix, _lastLayerIdx).toDenseVector
+    sink(prepare(x.toDenseMatrix), _lastLayerIdx).toDenseVector
   }
 
 
@@ -345,8 +354,8 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
       case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Vector) => {
-      if (idx > 0) cp(sink(in.toDenseMatrix, idx - 1), l)
-      else cp(in.toDenseMatrix, l)
+      if (idx > 0) cp(sink(prepare(in.toDenseMatrix), idx - 1), l)
+      else cp(prepare(in.toDenseMatrix), l)
     }
   }
 
@@ -362,10 +371,18 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = BatchBreeder.breedFFN(xs, ys, batchSize)
+    val xsys = BatchBreeder.breedFFN(xs, ys, batchSize).map { case (xs, ys) => (prepare(xs), ys) }
     run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
+  private def prepare(x: Matrix): Matrix = {
+    _layers(0) match {
+      case vec: neuroflow.dsl.Vector[Float] => vec.activator match {
+        case Some(fn) => x.map(fn)
+        case _        => x
+      }
+    }
+  }
 
   private def sink(x: Matrix, target: Int): Matrix = {
     val r1 = flow(x, target)

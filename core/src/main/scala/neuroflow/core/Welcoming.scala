@@ -26,7 +26,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |           /  |/ / _ \\/ / / / ___/ __ \\/ /_  / / __ \\ | /| / /
       |          / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
       |         /_/ |_/\\___/\\__,_/_/   \\____/_/   /_/\\____/|__/|__/   
-      |                                                            1.7.2
+      |                                                            1.7.3
       |
       |
       |            Network : $identifier
@@ -46,9 +46,10 @@ trait Welcoming { self: Network[_, _, _] =>
 
   private def buildString(l: Layer): String =
     l match {
-      case c:  Convolution[_] => s"${c.dimInPadded._1}*${c.dimInPadded._2}*${c.dimInPadded._3} ~> [${c.field._1}*${c.field._2} : ${c.stride._1}*${c.stride._2}] ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
-      case h: HasActivator[_] => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
-      case _                  => s"${l.neurons} ${l.symbol}"
+      case c:  Convolution[_]         => s"${c.dimInPadded._1}*${c.dimInPadded._2}*${c.dimInPadded._3} ~> [${c.field._1}*${c.field._2} : ${c.stride._1}*${c.stride._2}] ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
+      case h: HasActivator[_]         => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
+      case v: neuroflow.dsl.Vector[_] => s"${l.neurons} ${l.symbol}" + { if (v.activator.isDefined) { s"(${v.activator.get.symbol})" } else "" }
+      case _                          => s"${l.neurons} ${l.symbol}"
     }
 
   private def sizeOf(p: String): Double = p match {

@@ -36,10 +36,10 @@ sealed trait Out
 
 
 /**
-  * Input for a dense net, where `dimension` is
-  * the number of `neurons` of this layer.
+  * Input vector for a dense net, with `neurons` in this layer.
+  * Optionally, an `activator` can be applied element wise.
   */
-case class Vector[V](dimension: Int) extends Layer with In {
+case class Vector[V](dimension: Int, activator: Option[Activator[V]] = None) extends Layer with In {
   type algebraicType = DenseVector[V]
   val symbol: String = "Vector"
   val neurons: Int = dimension

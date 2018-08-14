@@ -20,9 +20,6 @@ import scala.collection.{Map, Set}
   *   `precision`           Training stops if loss is small enough.
   *   `iterations`          Training stops after `iterations`.
   *   `prettyPrint`         If true, the layout is rendered graphically on console.
-  *   `coordinator`         The coordinator host address for distributed training.
-  *   `transport`           Transport throughput specifics for distributed training.
-  *   `parallelism`         Number of threads used for distributed training.
   *   `batchSize`           Number of samples presented per weight update. (1=on-line, ..., n=full-batch)
   *   `gcThreshold`         Garbage Collection threshold for GPU, set in bytes.
   *   `lossFuncOutput`      Prints the loss to the specified file/closure.
@@ -40,9 +37,6 @@ case class Settings[V]
                      precision         :  Double                       =  1E-5,
                      iterations        :  Int                          =  100,
                      prettyPrint       :  Boolean                      =  false,
-                     coordinator       :  Node                         =  Node("localhost", 2552),
-                     transport         :  Transport                    =  Transport(100000, "128 MiB"),
-                     parallelism       :  Option[Int]                  =  Some(Runtime.getRuntime.availableProcessors),
                      batchSize         :  Option[Int]                  =  None,
                      gcThreshold       :  Option[Long]                 =  None,
                      lossFuncOutput    :  Option[LossFuncOutput]       =  None,
