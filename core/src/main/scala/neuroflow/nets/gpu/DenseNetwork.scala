@@ -64,13 +64,20 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
 
   private val _layers = layers.toArray
 
+  private def activatorMapping(a: Activator[_], b: Double) = {
+    a match {
+      case x: ReLU[_]    => (CuMatrix.Activators.relu[Double]    , CuMatrix.Activators.relu_derivative[Double]    , b)
+      case x: Linear[_]  => (CuMatrix.Activators.linear[Double]  , CuMatrix.Activators.linear_derivative[Double]  , b)
+      case x: Sigmoid[_] => (CuMatrix.Activators.sigmoid[Double] , CuMatrix.Activators.sigmoid_derivative[Double] , b)
+      case x: Tanh[_]    => (CuMatrix.Activators.tanh[Double]    , CuMatrix.Activators.tanh_derivative[Double]    , b)
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${a.symbol}.")
+    }
+  }
+
   private val _activators     = _layers.tail.map {
     case h: HasActivator[_] => h.activator match {
-      case x: ReLU[_]    => CuMatrix.Activators.relu[Double]    -> CuMatrix.Activators.relu_derivative[Double]
-      case x: Linear[_]  => CuMatrix.Activators.linear[Double]  -> CuMatrix.Activators.linear_derivative[Double]
-      case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Double] -> CuMatrix.Activators.sigmoid_derivative[Double]
-      case x: Tanh[_]    => CuMatrix.Activators.tanh[Double]    -> CuMatrix.Activators.tanh_derivative[Double]
-      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${x.symbol}.")
+      case x: Activator[_] with Bias[Double]  => activatorMapping(x.activator, x.bias)
+      case x: Activator[_]                    => activatorMapping(x, 0.0)
     }
   }
 
@@ -162,6 +169,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Double]]
     @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
       val p = in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       p.release()
       fa += i -> a
@@ -216,6 +224,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
 
     @tailrec def forward(in: CuMatrix[Double], i: Int): Unit = {
       val p = in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
       p.release()
@@ -371,13 +380,20 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
 
   private val _layers = layers.toArray
 
+  private def activatorMapping(a: Activator[_], b: Float) = {
+    a match {
+      case x: ReLU[_]    => (CuMatrix.Activators.relu[Float]    , CuMatrix.Activators.relu_derivative[Float]    , b)
+      case x: Linear[_]  => (CuMatrix.Activators.linear[Float]  , CuMatrix.Activators.linear_derivative[Float]  , b)
+      case x: Sigmoid[_] => (CuMatrix.Activators.sigmoid[Float] , CuMatrix.Activators.sigmoid_derivative[Float] , b)
+      case x: Tanh[_]    => (CuMatrix.Activators.tanh[Float]    , CuMatrix.Activators.tanh_derivative[Float]    , b)
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${a.symbol}.")
+    }
+  }
+
   private val _activators     = _layers.tail.map {
     case h: HasActivator[_] => h.activator match {
-      case x: ReLU[_]    => CuMatrix.Activators.relu[Float]    -> CuMatrix.Activators.relu_derivative[Float]
-      case x: Linear[_]  => CuMatrix.Activators.linear[Float]  -> CuMatrix.Activators.linear_derivative[Float]
-      case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Float] -> CuMatrix.Activators.sigmoid_derivative[Float]
-      case x: Tanh[_]    => CuMatrix.Activators.tanh[Float]    -> CuMatrix.Activators.tanh_derivative[Float]
-      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${x.symbol}.")
+      case x: Activator[_] with Bias[Float]   => activatorMapping(x.activator, x.bias)
+      case x: Activator[_]                    => activatorMapping(x, 0.0f)
     }
   }
 
@@ -468,6 +484,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     val fa  = collection.mutable.Map.empty[Int, CuMatrix[Float]]
     @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
       val p = in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       p.release()
       fa += i -> a
@@ -522,6 +539,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
 
     @tailrec def forward(in: CuMatrix[Float], i: Int): Unit = {
       val p = in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
       p.release()

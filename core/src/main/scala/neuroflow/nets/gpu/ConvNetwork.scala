@@ -69,13 +69,20 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     case c: Convolution[Double] => c
   }.toArray
 
-  private val _activators = _allLayers.map { l =>
-    l.activator match {
-      case x: ReLU[_]    => CuMatrix.Activators.relu[Double]    ->  CuMatrix.Activators.relu_derivative[Double]
-      case x: Linear[_]  => CuMatrix.Activators.linear[Double]  ->  CuMatrix.Activators.linear_derivative[Double]
-      case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Double] ->  CuMatrix.Activators.sigmoid_derivative[Double]
-      case x: Tanh[_]    => CuMatrix.Activators.tanh[Double]    ->  CuMatrix.Activators.tanh_derivative[Double]
-      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${x.symbol}.")
+  private def activatorMapping(a: Activator[_], b: Double) = {
+    a match {
+      case x: ReLU[_]    => (CuMatrix.Activators.relu[Double]    , CuMatrix.Activators.relu_derivative[Double]    , b)
+      case x: Linear[_]  => (CuMatrix.Activators.linear[Double]  , CuMatrix.Activators.linear_derivative[Double]  , b)
+      case x: Sigmoid[_] => (CuMatrix.Activators.sigmoid[Double] , CuMatrix.Activators.sigmoid_derivative[Double] , b)
+      case x: Tanh[_]    => (CuMatrix.Activators.tanh[Double]    , CuMatrix.Activators.tanh_derivative[Double]    , b)
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${a.symbol}.")
+    }
+  }
+  
+  private val _activators = _allLayers.map {
+    case h: HasActivator[_] => h.activator match {
+      case x: Activator[_] with Bias[Double] => activatorMapping(x.activator, x.bias)
+      case x: Activator[_]                   => activatorMapping(x, 0.0)
     }
   }
 
@@ -165,6 +172,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     @tailrec def conv(_in: CuMatrix[Double], i: Int): Unit = {
       val l = _convLayers(i)
       val p = _cuWeights(i) * convolute(_in, l, batchSize)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
       _fr += a
@@ -174,6 +182,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     @tailrec def fully(_in: CuMatrix[Double], i: Int): Unit = {
       val l = _allLayers(i)
       val p = _in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       _fa += a
       _fr += a
@@ -234,6 +243,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
       val l = _convLayers(i)
       val c = convolute(_in, l, batchSize)
       val p = _cuWeights(i) * c
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
       fa += i -> {
@@ -251,6 +261,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     @tailrec def fully(_in: CuMatrix[Double], i: Int): Unit = {
       val l = _allLayers(i)
       val p = _in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
       fa += i -> a
@@ -402,13 +413,20 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     case c: Convolution[Float]  => c
   }.toArray
 
-  private val _activators = _allLayers.map { l =>
-    l.activator match {
-      case x: ReLU[_]    => CuMatrix.Activators.relu[Float]    ->  CuMatrix.Activators.relu_derivative[Float]
-      case x: Linear[_]  => CuMatrix.Activators.linear[Float]  ->  CuMatrix.Activators.linear_derivative[Float]
-      case x: Sigmoid[_] => CuMatrix.Activators.sigmoid[Float] ->  CuMatrix.Activators.sigmoid_derivative[Float]
-      case x: Tanh[_]    => CuMatrix.Activators.tanh[Float]    ->  CuMatrix.Activators.tanh_derivative[Float]
-      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${x.symbol}.")
+  private def activatorMapping(a: Activator[_], b: Float) = {
+    a match {
+      case x: ReLU[_]    => (CuMatrix.Activators.relu[Float]    , CuMatrix.Activators.relu_derivative[Float]    , b)
+      case x: Linear[_]  => (CuMatrix.Activators.linear[Float]  , CuMatrix.Activators.linear_derivative[Float]  , b)
+      case x: Sigmoid[_] => (CuMatrix.Activators.sigmoid[Float] , CuMatrix.Activators.sigmoid_derivative[Float] , b)
+      case x: Tanh[_]    => (CuMatrix.Activators.tanh[Float]    , CuMatrix.Activators.tanh_derivative[Float]    , b)
+      case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${a.symbol}.")
+    }
+  }
+
+  private val _activators = _allLayers.map {
+    case h: HasActivator[_] => h.activator match {
+      case x: Activator[_] with Bias[Float]  => activatorMapping(x.activator, x.bias)
+      case x: Activator[_]                   => activatorMapping(x, 0.0f)
     }
   }
 
@@ -497,6 +515,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     @tailrec def conv(_in: CuMatrix[Float], i: Int): Unit = {
       val l = _convLayers(i)
       val p = _cuWeights(i) * convolute(_in, l, batchSize)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       _fa += { if (i == _lastC) reshape_batch(a, l.dimOut, batchSize) else a }
       _fr += a
@@ -506,6 +525,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     @tailrec def fully(_in: CuMatrix[Float], i: Int): Unit = {
       val l = _allLayers(i)
       val p = _in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       _fa += a
       _fr += a
@@ -566,6 +586,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
       val l = _convLayers(i)
       val c = convolute(_in, l, batchSize)
       val p = _cuWeights(i) * c
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
       fa += i -> {
@@ -584,6 +605,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     @tailrec def fully(_in: CuMatrix[Float], i: Int): Unit = {
       val l = _allLayers(i)
       val p = _in * _cuWeights(i)
+      p += _activators(i)._3
       val a = _activators(i)._1(p)
       val b = _activators(i)._2(p)
       fa += i -> a
