@@ -9,7 +9,7 @@ object App extends App {
 
   println("Run example (1-18): ")
 
-  6 match {
+  scala.io.StdIn.readInt() match {
 
     case  1 => XOR.apply
     case  2 => ShallowNet.apply
