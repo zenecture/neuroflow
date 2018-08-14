@@ -63,11 +63,11 @@ implemented as a heterogenous list, allowing compile-time checks for valid compo
 a little deeper net, with some rates and rules defined, could look like this:
 
 ```scala
-val (e, f) = (Linear.biased(0.1), ReLU)
+val (e, f) = (Some(Linear.biased(0.1)), ReLU)
 
 val L =
-      Vector   (11)         ::
-      Dense    ( 3, e)      ::
+      Vector   (11, e)      ::
+      Dense    ( 3, f)      ::
       Dense   (180, f)      ::
       Dense   (360, f)      ::
       Dense   (420, f)      ::
