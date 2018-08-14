@@ -21,12 +21,12 @@ trait HasActivator[N] {
 /**
   * The activator function with its derivative.
   */
-trait Activator[N] extends (N => N) with UFunc with MappingUFunc with Serializable { self =>
-  implicit object impl extends Impl[N, N] { def apply(v: N): N = self.apply(x = v) }
+trait Activator[V] extends (V => V) with UFunc with MappingUFunc with Serializable { self =>
+  implicit object impl extends Impl[V, V] { def apply(v: V): V = self.apply(x = v) }
   val symbol: String
-  def apply(x: N): N
-  def derivative(x: N): N
-  def map[B](f: B => N, g: N => B): Activator[B] = new Activator[B] {
+  def apply(x: V): V
+  def derivative(x: V): V
+  def map[B](f: B => V, g: V => B): Activator[B] = new Activator[B] {
     val symbol: String = self.symbol
     def apply(x: B): B = g(self(f(x)))
     def derivative(x: B): B = g(self.derivative(f(x)))
@@ -117,14 +117,25 @@ object Activator {
     }
   }
 
-  implicit class BiasedActivator[N: Semiring](activator: Activator[N]) {
-    private val ring = implicitly[Semiring[N]]
-    /** Additive bias `b` to `activator`, yielding f(x + b). */
-    def biased(b: N): Activator[N] = new Activator[N] {
+  sealed trait Bias[V] {
+    val bias: V
+    val activator: Activator[V]
+  }
+
+  implicit class BiasedActivator[V: Semiring](a: Activator[V]) {
+
+    private val ring = implicitly[Semiring[V]]
+
+    /** Additive bias `b` to activator `a`, yielding f(x + b),
+      * a possibility to shift input space left or right. */
+    def biased(b: V): Activator[V] = new Activator[V] with Bias[V] {
+      val bias: V = b
+      val activator: Activator[V] = a
       val symbol: String = activator.symbol + s" + Bias($b)"
-      def apply(x: N): N = activator.apply(ring + (x, b))
-      def derivative(x: N): N = activator.derivative(ring + (x, b))
+      def apply(x: V): V = activator.apply(ring + (x, b))
+      def derivative(x: V): V = activator.derivative(ring + (x, b))
     }
+
   }
 
 }
