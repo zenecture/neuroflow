@@ -19,6 +19,9 @@ import scala.collection._
 
 /**
   *
+  *     JUST A SKETCH !!! NOT FOR PRODUCTION !!!
+  *
+  *
   * This is a Long-Short-Term Memory Network. The standard model is sketched out.
   * It comes with recurrent connections and a dedicated memory cell with input-, output-
   * and forget-gates for each neuron. Multiple layers can be stacked horizontally,
