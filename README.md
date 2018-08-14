@@ -261,16 +261,21 @@ val myLoss = new LossFunction[Double] {
 }
 ```
 
-The targets `y` and predictions `x` are given input to produce a `Tuple`, yielding `loss` and `gradient`, which will be backpropagated into the raw output layer.
+The targets `y` and predictions `x` are given input to produce `loss` and `gradient`, which will be backpropagated into the raw output layer.
 The batch layout is row-wise, so you need to work with the matrices accordingly. Don't fear the long implicit parameters when implementing the trait, 
-these operators come from Breeze and should be just fine. You can also look at the predefined loss functions for a starting point. 
+these operators come from Breeze and should be just fine. Also look at the predefined loss functions for a starting point. 
 
 ```scala
 implicit def evidence[P <: Layer, V]: (P :: myLoss.type) EndsWith P = new ((P :: myLoss.type) EndsWith P) { }
-val L = Vector(3) :: Dense(3, Tanh) :: Dense(3, Tanh) :: myLoss
-```  
+```
 
-To use your loss function with the front-end DSL, you have to provide evidence for compile time checks.
+To use your loss function with the front-end DSL, you have to provide `evidence` for compile time checks.
+
+```scala
+val L = Vector(3) :: Dense(3, Tanh) :: Dense(3, Tanh) :: myLoss
+val net = Network(layout = L, settings)
+```
+
 Alternatively, you can work with the corresponding net implementation, passing the layout directly without any checks. 
 
 # Using GPU
