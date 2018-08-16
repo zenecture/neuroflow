@@ -26,10 +26,6 @@ object IsValidLayoutFor {
                                                       startsWith: L StartsWith In,
                                                       endsWith: L EndsWith Out): L IsValidLayoutFor N = new IsValidLayoutFor[L, N] { }
 
-  implicit def evidence_ffn_dist[L <: Layout, N <: DistFFN[_]](implicit
-                                                               startsWith: L StartsWith In,
-                                                               endsWith: L EndsWith Out): L IsValidLayoutFor N = new IsValidLayoutFor[L, N] { }
-
 }
 
 

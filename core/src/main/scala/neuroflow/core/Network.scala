@@ -133,36 +133,3 @@ trait RNN[V] extends Network[V, Vectors[V], Vectors[V]] {
 
 }
 
-
-trait DistributedTraining {
-
-  /**
-    * Triggers execution of training for nodes `ns`.
-    */
-  def train(ns: collection.Set[Node]): Unit
-
-}
-
-
-trait DistFFN[V] extends Network[V, Vector[V], Vector[V]] with DistributedTraining {
-
-  override def checkSettings(): Unit = {
-    if (settings.partitions.isDefined)
-      warn("FFNs don't support partitions. This setting has no effect.")
-    if (settings.batchSize.isDefined)
-      warn("Setting the batch size has no effect in distributed training.")
-  }
-
-}
-
-
-trait DistCNN[V] extends Network[V, Tensor3D[V], Vector[V]] with DistributedTraining {
-
-  override def checkSettings(): Unit = {
-    if (settings.partitions.isDefined)
-      warn("CNNs don't support partitions. This setting has no effect.")
-    if (settings.batchSize.isDefined)
-      warn("Setting the batch size has no effect in distributed training.")
-  }
-
-}
