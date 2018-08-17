@@ -49,48 +49,52 @@ object ShallowNet {
 /*
 
 
-                 _   __                      ________
-                / | / /__  __  ___________  / ____/ /___ _      __
-               /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
-              / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
-             /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
 
 
-                Version : 1.4.0
-
-                Network : neuroflow.nets.cpu.DenseNetwork
-                   Loss : neuroflow.core.Softmax
-                 Update : neuroflow.core.Vanilla
-
-                 Layout : 2 In
-                          1 Out (σ)
-
-                Weights : 2 (≈ 1,52588e-05 MB)
-              Precision : Double
+                     _   __                      ________
+                    / | / /__  __  ___________  / ____/ /___ _      __
+                   /  |/ / _ \/ / / / ___/ __ \/ /_  / / __ \ | /| / /
+                  / /|  /  __/ /_/ / /  / /_/ / __/ / / /_/ / |/ |/ /
+                 /_/ |_/\___/\__,_/_/   \____/_/   /_/\____/|__/|__/
+                                                                    1.7.4
 
 
+                    Network : neuroflow.nets.cpu.DenseNetwork
 
+                    Weights : 2 (≈ 1,52588e-05 MB)
+                  Precision : Double
 
-             O
-             O     O
+                       Loss : neuroflow.core.SquaredError
+                     Update : neuroflow.core.Vanilla
+
+                     Layout : 2 Vector
+                              1 Dense (σ)
 
 
 
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [25.01.2018 13:08:39:494] Training with 1 samples, batch size = 1, batches = 1 ...
-    Jan 25, 2018 1:08:39 PM com.github.fommil.jni.JniLoader liberalLoad
-    INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader3459823189525380021netlib-native_system-osx-x86_64.jnilib
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [25.01.2018 13:08:39:674] Iteration 1.1, Avg. Loss = 0,346574, Vector: 0.34657359027997264
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [25.01.2018 13:08:39:678] Iteration 2.1, Avg. Loss = 0,346574, Vector: 0.34657359027997264
-    ...
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [25.01.2018 13:09:20:586] Iteration 99999.1, Avg. Loss = 3,10725e-13, Vector: 3.1072471834145533E-13
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [25.01.2018 13:09:20:586] Iteration 100000.1, Avg. Loss = 3,10655e-13, Vector: 3.106548091796204E-13
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [25.01.2018 13:09:20:586] Took 100000 of 100000 iterations.
-    Output: DenseVector(0.4999992118567189)
-    Parameters must roughly be of shape: -a, +a or +a, -a
-    Network was:
-    ---
-    -0.5421605034076382
-    0.5421499948305565
+
+
+
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:19:574] Training with 1 samples, batch size = 1, batches = 1.
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:19:574] Breeding batches ...
+        [scala-execution-context-global-64] DEBUG neuroflow.core.BatchBreeder$ - [17.08.2018 23:37:19:668] Bred Batch 0.
+        Aug 17, 2018 11:37:19 PM com.github.fommil.jni.JniLoader liberalLoad
+        INFORMATION: successfully loaded /var/folders/t_/plj660gn6ps0546vj6xtx92m0000gn/T/jniloader5479581012101716539netlib-native_system-osx-x86_64.jnilib
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:19:762] Iteration 1.1, Avg. Loss = 0,00416456, Vector: 0.004164557113913071
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:19:768] Iteration 2.1, Avg. Loss = 0,00416368, Vector: 0.004163681528061246
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:19:768] Iteration 3.1, Avg. Loss = 0,00416281, Vector: 0.004162806113613538
+        ...
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:26:603] Iteration 99999.1, Avg. Loss = 7,53834e-13, Vector: 7.53833714358451E-13
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:26:603] Iteration 100000.1, Avg. Loss = 7,53664e-13, Vector: 7.53664111307632E-13
+        [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [17.08.2018 23:37:26:603] Took 100000 of 100000 iterations.
+        Output: DenseVector(0.5000012275948406)
+        Parameters must be of shape: -a, +a or +a, -a
+        Network was:
+        ---
+        -0.3423958262832021
+        0.3424121942144106
+        [success] Total time: 15 s, completed 17.08.2018 23:37:26
 
 
  */
+
