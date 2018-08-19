@@ -204,7 +204,7 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 ### Focusing
 
-We can put focus on a layer and use it as the actual model output. For instance, here is a simple AutoEncoder `ae`:
+We can put focus on a layer and use it as the actual model output, instead of the last layer. For instance, here is a simple AutoEncoder `ae`:
 
 ```scala
 import neuroflow.dsl.Implicits._
