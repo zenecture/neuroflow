@@ -256,20 +256,20 @@ your own loss function, `Y, X -> Loss, Gradient`, so here is how to write one, f
 
 ```scala
 val myLoss = new LossFunction[Double] {
-  def apply(y: DenseMatrix[Double], x: DenseMatrix[Double])(implicit /* a lot of implicits... */): (DenseMatrix[Double], DenseMatrix[Double]) = (loss, gradient) // CPU
-  def apply(y: CuMatrix[Double], x: CuMatrix[Double])(implicit /* a lot of implicits... */): (CuMatrix[Double], CuMatrix[Double]) = (loss, gradient) // GPU
+  def apply(y: DenseMatrix[Double], x: DenseMatrix[Double])(implicit /* operators ... */): (DenseMatrix[Double], DenseMatrix[Double]) = (loss, gradient) // CPU
+  def apply(y: CuMatrix[Double], x: CuMatrix[Double])(implicit /* operators ... */): (CuMatrix[Double], CuMatrix[Double]) = (loss, gradient) // GPU
 }
 ```
 
 The targets `y` and predictions `x` are given input to produce `loss` and `gradient`, which will be backpropagated into the raw output layer.
 The batch layout is row-wise, so you need to work with the matrices accordingly. Don't fear the long implicit parameters when implementing the trait, 
-these operators come from Breeze and should be just fine. Also look at the predefined loss functions for a starting point. 
+these operators come from Breeze and should be just fine. Also look at the predefined loss functions for a starting point how to work with them. 
 
 ```scala
 implicit def evidence[P <: Layer, V]: (P :: myLoss.type) EndsWith P = new ((P :: myLoss.type) EndsWith P) { }
 ```
 
-To use your loss function with the front-end DSL, you have to provide `evidence` for compile time checks.
+To use your loss function with the front-end DSL, you need to provide `evidence` for compile time checks.
 
 ```scala
 val L = Vector(3) :: Dense(3, Tanh) :: Dense(3, Tanh) :: myLoss
