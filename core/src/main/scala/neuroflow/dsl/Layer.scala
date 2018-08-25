@@ -1,7 +1,7 @@
 package neuroflow.dsl
 
 import breeze.linalg.DenseVector
-import neuroflow.core.{Activator, HasActivator, Tensor3D}
+import neuroflow.core.{Activator, Tensor3D}
 
 /**
   * @author bogdanski
@@ -32,6 +32,15 @@ sealed trait Layer extends Serializable {
 
 sealed trait In
 sealed trait Out
+
+
+
+/**
+  * A label for a [[Layer]] with `activator` to fire the cells.
+  */
+trait HasActivator[V] {
+  val activator: Activator[V]
+}
 
 
 

@@ -12,13 +12,6 @@ import breeze.numerics.{exp, log, pow, tanh}
   */
 
 /**
-  * A label for a [[neuroflow.dsl.Layer]] with `activator` to fire the cells.
-  */
-trait HasActivator[V] {
-  val activator: Activator[V]
-}
-
-/**
   * The activator function with its derivative.
   */
 trait Activator[V] extends (V => V) with UFunc with MappingUFunc with Serializable { self =>
