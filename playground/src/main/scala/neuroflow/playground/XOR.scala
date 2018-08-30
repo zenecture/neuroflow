@@ -27,7 +27,6 @@ object XOR {
 
      */
 
-
     implicit val weights = WeightBreeder[Double].normal {
       Map ( // normal config per layer index
         1 -> (0.0, 1.0),
@@ -36,18 +35,18 @@ object XOR {
     }
 
     val fn = Sigmoid
+    val L = Vector(2) :: Dense(3, fn) :: Dense(1, fn) :: SquaredError()
+
+    val net = Network(layout = L,
+      Settings[Double](
+        learningRate = { case (_, _) => 1.0 },
+        iterations = 100000,
+        lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None))
+      )
+    )
 
     val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
     val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
-
-    val settings = Settings[Double](
-      learningRate = { case (_, _) => 1.0 },
-      iterations = 100000,
-      lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None)))
-
-
-    val L = Vector(2) :: Dense(3, fn) :: Dense(1, fn) :: SquaredError()
-    val net = Network(layout = L, settings)
 
     net.train(xs, ys)
 
