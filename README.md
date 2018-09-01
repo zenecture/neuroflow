@@ -17,8 +17,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.4",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.4"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.5",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.5"
 )
 
 resolvers ++= Seq(
@@ -234,7 +234,7 @@ be watched and adjusted to find good values, if a JVM debugger can't be attached
 
 ### Activators
 
-A neural net consists of matrix multiplications and function applications. Since matrix multiplication is inherently linear,
+A neural net consists of matrix multiplications and function applications. Since matrix multiplication is inherently linear here,
 all non-linearity has to come from the cells activators. The predefined ones are common and should be sufficient for most data, 
 but at times special functions are required. Here is an example how to define your own:
 

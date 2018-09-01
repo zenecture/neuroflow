@@ -8,6 +8,9 @@ __device__ inline TYPE relu_d(TYPE a) { if (a > 0) return 1; else return 0; }
 __device__ inline TYPE linear_a(TYPE a) { return a; }
 __device__ inline TYPE linear_d(TYPE a) { return 1.0; }
 
+__device__ inline TYPE square_a(TYPE a) { return a * a; }
+__device__ inline TYPE square_d(TYPE a) { return 2.0 * a; }
+
 __device__ inline TYPE tanh_a(TYPE a) { return tanh(a); }
 __device__ inline TYPE tanh_d(TYPE a) { return 1.0 - pow(tanh(a), 2.0); }
 
@@ -20,6 +23,8 @@ MAP_FUN_1(relu_a, TYPE)
 MAP_FUN_1(relu_d, TYPE)
 MAP_FUN_1(linear_a, TYPE)
 MAP_FUN_1(linear_d, TYPE)
+MAP_FUN_1(square_a, TYPE)
+MAP_FUN_1(square_d, TYPE)
 MAP_FUN_1(tanh_a, TYPE)
 MAP_FUN_1(tanh_d, TYPE)
 MAP_FUN_1(sigmoid_a, TYPE)

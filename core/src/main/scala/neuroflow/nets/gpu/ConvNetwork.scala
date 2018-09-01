@@ -73,6 +73,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     a match {
       case x: ReLU[_]    => (CuMatrix.Activators.relu[Double]    , CuMatrix.Activators.relu_derivative[Double]    , b)
       case x: Linear[_]  => (CuMatrix.Activators.linear[Double]  , CuMatrix.Activators.linear_derivative[Double]  , b)
+      case x: Square[_]  => (CuMatrix.Activators.square[Double]  , CuMatrix.Activators.square_derivative[Double]  , b)
       case x: Sigmoid[_] => (CuMatrix.Activators.sigmoid[Double] , CuMatrix.Activators.sigmoid_derivative[Double] , b)
       case x: Tanh[_]    => (CuMatrix.Activators.tanh[Double]    , CuMatrix.Activators.tanh_derivative[Double]    , b)
       case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${a.symbol}.")
@@ -412,6 +413,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     a match {
       case x: ReLU[_]    => (CuMatrix.Activators.relu[Float]    , CuMatrix.Activators.relu_derivative[Float]    , b)
       case x: Linear[_]  => (CuMatrix.Activators.linear[Float]  , CuMatrix.Activators.linear_derivative[Float]  , b)
+      case x: Square[_]  => (CuMatrix.Activators.square[Float]  , CuMatrix.Activators.square_derivative[Float]  , b)
       case x: Sigmoid[_] => (CuMatrix.Activators.sigmoid[Float] , CuMatrix.Activators.sigmoid_derivative[Float] , b)
       case x: Tanh[_]    => (CuMatrix.Activators.tanh[Float]    , CuMatrix.Activators.tanh_derivative[Float]    , b)
       case x             => throw new SettingsNotSupportedException(s"This activator is not implemented for CUDA: ${a.symbol}.")
