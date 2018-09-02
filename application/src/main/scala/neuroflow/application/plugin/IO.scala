@@ -29,14 +29,14 @@ object IO extends Logs {
     /**
       * Deserializes weights from `json` to construct a `WeightBreeder`.
       */
-    def weightBreeder[V](json: String)(implicit cp: (String CanProduce Weights[V])): WeightBreeder[V] = new WeightBreeder[V] {
+    def weightBreeder[V](json: String)(implicit cp: String CanProduce Weights[V]): WeightBreeder[V] = new WeightBreeder[V] {
       def apply(ls: Seq[Layer]): Network.Weights[V] = cp(json)
     }
 
     /**
       * Serializes weights of `network` to json string.
       */
-    def writeWeights[V](weights: Weights[V])(implicit cp: (Weights[V] CanProduce String)): String = cp(weights)
+    def writeWeights[V](weights: Weights[V])(implicit cp: Weights[V] CanProduce String): String = cp(weights)
 
   }
 
@@ -58,7 +58,7 @@ object IO extends Logs {
     /**
       * Serializes `weights` to `file` using binary format.
       */
-    def writeWeights[V](weights: Weights[V], file: String)(implicit cp: (Weights[V] CanProduce Array[RawMatrix[V]])): Unit = {
+    def writeWeights[V](weights: Weights[V], file: String)(implicit cp: Weights[V] CanProduce Array[RawMatrix[V]]): Unit = {
       val oos = new ObjectOutputStream(new FileOutputStream(file))
       oos.writeObject(cp(weights))
       oos.close()
