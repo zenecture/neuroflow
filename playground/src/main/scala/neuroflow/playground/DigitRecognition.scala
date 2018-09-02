@@ -33,9 +33,6 @@ object DigitRecognition {
 
   def apply = {
 
-    val config = (1 to 3).map(_ -> (0.0, 0.01)) :+ 4 -> (0.0, 0.1)
-    implicit val weights = WeightBreeder[Float].normal(config.toMap)
-
     val sets = ('a' to 'h') map (c => digitSet2Vec(s"img/digits/$c/"))
 
     val xs = sets.dropRight(1).flatMap { s => (0 to 9).map { digit => s(digit) } }
@@ -46,6 +43,9 @@ object DigitRecognition {
         t
       }
     }
+
+    val config = (1 to 3).map(_ -> (0.0, 0.01)) :+ 4 -> (0.0, 0.1)
+    implicit val weights = WeightBreeder[Float].normal(config.toMap)
 
     val (f, g) = (ReLU.biased(0.1f), ReLU.biased(1.0f))
 
