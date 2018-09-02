@@ -3,11 +3,10 @@ package neuroflow.nets.gpu
 import breeze.linalg._
 import breeze.stats._
 import jcuda.jcublas.{JCublas2, cublasHandle}
-import neuroflow.common.CanProduce
 import neuroflow.core.Activator._
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
-import neuroflow.core._
+import neuroflow.core.{CanProduce, _}
 import neuroflow.cuda._
 import neuroflow.dsl._
 

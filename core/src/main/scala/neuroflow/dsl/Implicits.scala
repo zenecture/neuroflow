@@ -1,8 +1,7 @@
 package neuroflow.dsl
 
 import breeze.linalg.{DenseMatrix, DenseVector}
-import neuroflow.common.CanProduce
-import neuroflow.core.{Tensor3D, Tensor3DImpl}
+import neuroflow.core.{CanProduce, Tensor3D, Tensor3DImpl}
 
 /**
   * @author bogdanski

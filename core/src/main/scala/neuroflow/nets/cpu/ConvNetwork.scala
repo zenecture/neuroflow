@@ -2,10 +2,9 @@ package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.stats._
-import neuroflow.common.CanProduce
 import neuroflow.core.Network._
 import neuroflow.core.WaypointLogic.NoOp
-import neuroflow.core._
+import neuroflow.core.{CanProduce, _}
 import neuroflow.dsl._
 
 import scala.annotation.tailrec

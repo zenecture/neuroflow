@@ -7,9 +7,9 @@ import breeze.storage.Zero
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
-import neuroflow.common.{CanProduce, Logs, ~>}
+import neuroflow.common.{Logs, ~>}
 import neuroflow.core.Network.Weights
-import neuroflow.core.{Network, WeightBreeder}
+import neuroflow.core.{CanProduce, Network, WeightBreeder}
 import neuroflow.dsl.Layer
 
 import scala.collection.immutable.Stream

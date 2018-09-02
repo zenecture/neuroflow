@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import breeze.linalg.DenseMatrix
 import breeze.storage.Zero
-import neuroflow.common.{CanProduce, Logs}
+import neuroflow.common.Logs
 import neuroflow.core.Network.Weights
 import neuroflow.dsl._
 

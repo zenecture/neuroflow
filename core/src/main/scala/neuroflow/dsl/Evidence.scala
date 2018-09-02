@@ -48,6 +48,7 @@ object EndsWith {
   implicit def habs[P <: Layer, V]: (P :: AbsCubicError[V]) EndsWith P = new ((P :: AbsCubicError[V]) EndsWith P) { }
   implicit def hsme[P <: Layer, V]: (P :: SquaredError[V]) EndsWith P = new ((P :: SquaredError[V]) EndsWith P) { }
   implicit def hsmx[P <: Layer, V]: (P :: SoftmaxLogEntropy[V]) EndsWith P = new ((P :: SoftmaxLogEntropy[V]) EndsWith P) { }
+  implicit def hsmxM[P <: Layer, V]: (P :: SoftmaxLogMultEntropy[V]) EndsWith P = new ((P :: SoftmaxLogMultEntropy[V]) EndsWith P) { }
 
   implicit def hlist[H <: Layer, P <: Layer, L <: Layout]
     (implicit e: L EndsWith P): (H :: L) EndsWith P = new ((H :: L) EndsWith P) { }

@@ -2,7 +2,6 @@ package neuroflow.core
 
 import java.text.NumberFormat.{getIntegerInstance => formatter}
 
-import neuroflow.common.TypeSize
 import neuroflow.dsl.{Convolution, HasActivator, Layer}
 
 /**

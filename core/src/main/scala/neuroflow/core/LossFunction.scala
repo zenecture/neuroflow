@@ -72,7 +72,10 @@ trait LossFunction[V] extends Layout {
             _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
             _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V])
 
-  /** Optional post processing of raw output, e.g. for evaluation after training. */
+  /**
+    * Optional post processing of raw output layer, i. e. transforming raw output values
+    * when evaluating the net. This can be seen as an implicit sink layer.
+    *  */
   def sink(x: DenseMatrix[V])
            (implicit
             field: Field[V], classTag: ClassTag[V],
@@ -285,6 +288,7 @@ case class SquaredError[V]() extends LossFunction[V] {
   * formulated under a cross-entropy regime. The softmaxed class scores sum up to one such that they
   * are interpretable as percent, e. g.
   *
+  *   K:          4
   *   Target:     (0, 1, 0, 0)
   *   Prediction: (0.2, 0.4, 0.3, 0.1)
   *   Loss:       -log(0.4) ≈ 0,916
@@ -359,6 +363,101 @@ case class SoftmaxLogEntropy[V]() extends LossFunction[V] {
   override def sink(x: DenseMatrix[V])(implicit field: Field[V], classTag: ClassTag[V], _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]], _exp: numerics.exp.Impl[DenseMatrix[V], DenseMatrix[V]], _sum: sum.Impl[DenseMatrix[V], V], _log: numerics.log.Impl[DenseMatrix[V], DenseMatrix[V]], _abs: numerics.abs.Impl[DenseMatrix[V], DenseMatrix[V]], _mat: linalg.operators.OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]], _mat2: linalg.operators.OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]], _mat3: linalg.operators.OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _add: linalg.operators.OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
                                        _sub: linalg.operators.OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _neg: linalg.operators.OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]], _pow: linalg.operators.OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _mulInPl: linalg.operators.OpMulScalar.InPlaceImpl2[DenseMatrix[V], V], _setInPl: linalg.operators.OpSet.InPlaceImpl2[DenseMatrix[V], V], _powInPl: linalg.operators.OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]], _subInPl: linalg.operators.OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]], _addInPl: linalg.operators.OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] =
     SoftmaxImpl(x)
+
+}
+
+
+
+/**
+  *
+  *   L = -Σ(y * log(e^x / (Σe^X / N)))
+  *
+  * Works for `N`-of-K classification, where `y` is the target and `x` the prediction. The target is
+  * expressed using hot-vector encoding, e. g. (0, 1, 0, 1) where ones are the true classes. The loss is
+  * formulated under a cross-entropy regime. The softmaxed class scores sum up to `N`.
+  *
+  *   N, K:       2, 4
+  *   Target:     (0, 1, 0, 1)
+  *   Prediction: (0.4, 0.8, 0.5, 0.3)
+  *   Loss:       -log(0.8) + -log(0.3) ≈ 1,4271
+  *
+  */
+case class SoftmaxLogMultEntropy[V](N: Int)(implicit cp: Int CanProduce V) extends LossFunction[V] {
+
+  private val _N = cp.apply(N)
+
+  def apply(y: DenseMatrix[V], x: DenseMatrix[V])
+           (implicit
+            field: Field[V], classTag: ClassTag[V],
+            _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _exp: exp.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _sum: sum.Impl[DenseMatrix[V], V],
+            _log: log.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _abs: abs.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _mat: OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _add: OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+            _sub: OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _neg: OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]],
+            _pow: OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[DenseMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[DenseMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): (DenseMatrix[V], DenseMatrix[V]) = {
+
+    val probs = SoftmaxImpl(x)
+    probs *= _N
+    val err = -(y *:* _log(probs))
+    val grad = probs - y
+
+    (err, grad)
+
+  }
+
+  def apply(y: CuMatrix[V], x: CuMatrix[V])
+           (implicit
+            handle: cublasHandle, field: Field[V], classTag: ClassTag[V],
+            _srm: subRowMax.Impl[CuMatrix[V], CuMatrix[V]],
+            _exp: exp.Impl[CuMatrix[V], CuMatrix[V]],
+            _sum: sum.Impl[CuMatrix[V], V],
+            _log: log.Impl[CuMatrix[V], CuMatrix[V]],
+            _abs: abs.Impl[CuMatrix[V], CuMatrix[V]],
+            _mat: OpMulMatrix.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mat2: OpMulMatrix.Impl2[V, CuMatrix[V], CuMatrix[V]],
+            _mat3: OpMulMatrix.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _add: OpAdd.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _sub: OpSub.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _sub2: OpSub.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul1: OpMulScalar.Impl2[CuMatrix[V], V, CuMatrix[V]],
+            _mul2: OpMulScalar.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _neg: OpNeg.Impl[CuMatrix[V], CuMatrix[V]],
+            _pow: OpPow.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _div: OpDiv.Impl2[CuMatrix[V], CuMatrix[V], CuMatrix[V]],
+            _mulInPl: OpMulScalar.InPlaceImpl2[CuMatrix[V], V],
+            _setInPl: OpSet.InPlaceImpl2[CuMatrix[V], V],
+            _powInPl: OpPow.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _subInPl: OpSub.InPlaceImpl2[CuMatrix[V], CuMatrix[V]],
+            _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V]) = {
+
+    val probs = SoftmaxImpl(x)
+    probs *= _N
+    val err = -(y *:* _log(probs))
+    val grad = probs - y
+
+    probs.release()
+
+    (err, grad)
+
+  }
+
+  override def sink(x: DenseMatrix[V])(implicit field: Field[V], classTag: ClassTag[V], _srm: subRowMax.Impl[DenseMatrix[V], DenseMatrix[V]], _exp: numerics.exp.Impl[DenseMatrix[V], DenseMatrix[V]], _sum: sum.Impl[DenseMatrix[V], V], _log: numerics.log.Impl[DenseMatrix[V], DenseMatrix[V]], _abs: numerics.abs.Impl[DenseMatrix[V], DenseMatrix[V]], _mat: linalg.operators.OpMulMatrix.Impl2[DenseMatrix[V], V, DenseMatrix[V]], _mat2: linalg.operators.OpMulMatrix.Impl2[V, DenseMatrix[V], DenseMatrix[V]], _mat3: linalg.operators.OpMulMatrix.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _add: linalg.operators.OpAdd.Impl2[DenseMatrix[V], V, DenseMatrix[V]],
+                                       _sub: linalg.operators.OpSub.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _neg: linalg.operators.OpNeg.Impl[DenseMatrix[V], DenseMatrix[V]], _pow: linalg.operators.OpPow.Impl2[DenseMatrix[V], DenseMatrix[V], DenseMatrix[V]], _mulInPl: linalg.operators.OpMulScalar.InPlaceImpl2[DenseMatrix[V], V], _setInPl: linalg.operators.OpSet.InPlaceImpl2[DenseMatrix[V], V], _powInPl: linalg.operators.OpPow.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]], _subInPl: linalg.operators.OpSub.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]], _addInPl: linalg.operators.OpAdd.InPlaceImpl2[DenseMatrix[V], DenseMatrix[V]]): DenseMatrix[V] = {
+      val probs = SoftmaxImpl(x)
+      probs *= _N
+      probs
+    }
 
 }
 

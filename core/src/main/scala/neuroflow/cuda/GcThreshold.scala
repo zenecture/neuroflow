@@ -1,7 +1,7 @@
 package neuroflow.cuda
 
-import neuroflow.common.{Logs, TypeSize}
-import neuroflow.core.Network
+import neuroflow.common.Logs
+import neuroflow.core.{Network, TypeSize}
 
 /**
   * @author bogdanski

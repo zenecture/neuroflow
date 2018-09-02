@@ -1,4 +1,4 @@
-package neuroflow.common
+package neuroflow.core
 
 import scala.annotation.implicitNotFound
 
@@ -31,6 +31,14 @@ object CanProduce {
 
   implicit object FloatCanProduceDouble extends (Float CanProduce Double) {
     def apply(float: Float): Double = float.toDouble
+  }
+
+  implicit object IntCanProduceDouble extends (Int CanProduce Double) {
+    def apply(integer: Int): Double = integer.toDouble
+  }
+
+  implicit object IntCanProduceFloat extends (Int CanProduce Float) {
+    def apply(integer: Int): Float = integer.toFloat
   }
 
 }

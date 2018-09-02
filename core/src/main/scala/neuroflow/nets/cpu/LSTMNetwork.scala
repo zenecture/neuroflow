@@ -5,7 +5,7 @@ import java.lang.System.identityHashCode
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import neuroflow.common.{CanProduce, ~>}
+import neuroflow.common.~>
 import neuroflow.core
 import neuroflow.core.Activator._
 import neuroflow.core.Network._
