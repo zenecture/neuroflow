@@ -17,8 +17,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.5",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.5"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.6",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.6"
 )
 
 resolvers ++= Seq(
