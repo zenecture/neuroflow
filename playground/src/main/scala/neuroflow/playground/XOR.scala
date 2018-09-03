@@ -66,3 +66,23 @@ object XOR {
 }
 
 
+/*
+      ...
+    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.09.2018 23:21:07:156] Iteration 99999.1, Avg. Loss = 0,000160901, Vector: 1.6090055545206475E-4
+    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.09.2018 23:21:07:156] Iteration 100000.1, Avg. Loss = 0,000160899, Vector: 1.6089888616269398E-4
+    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.09.2018 23:21:07:156] Took 100000 of 100000 iterations.
+    Input: DenseVector(0.0, 0.0), Output: DenseVector(0.006936831967249095)
+    Input: DenseVector(0.0, 1.0), Output: DenseVector(0.9909241417205932)
+    Input: DenseVector(1.0, 0.0), Output: DenseVector(0.9892000479937961)
+    Input: DenseVector(1.0, 1.0), Output: DenseVector(0.008640869703306806)
+    Network was:
+    ---
+    -5.6134085682826855  -7.9952489974746195  -1.542845474986887
+    11.18611554484063    -6.7407859286679646  0.9044785552871019
+    ---
+    -13.772289650351814
+    -22.131232331989253
+    25.97562379449903
+
+ */
+
