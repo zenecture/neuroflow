@@ -28,20 +28,25 @@ object XOR {
      */
 
     implicit val weights = WeightBreeder[Double].normal {
-      Map ( // normal config per layer index
+      Map (
+     // 0 -> input vector, no weights
         1 -> (0.0, 1.0),
         2 -> (0.0, 0.1)
       )
     }
 
-    val fn = Sigmoid
-    val L = Vector(2) :: Dense(3, fn) :: Dense(1, fn) :: SquaredError()
+    val f = Sigmoid
 
-    val net = Network(layout = L,
-      Settings[Double](
+    val L = Vector(2)    ::
+            Dense(3, f)  ::
+            Dense(1, f)  ::  SquaredError()
+
+    val net = Network(
+      layout = L,
+      settings = Settings[Double](
         learningRate = { case (_, _) => 1.0 },
         iterations = 100000,
-        lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt"), None))
+        lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt")))
       )
     )
 
@@ -50,19 +55,14 @@ object XOR {
 
     net.train(xs, ys)
 
-    val a = net.apply(->(0.0, 0.0))
-    val b = net.apply(->(0.0, 1.0))
-    val c = net.apply(->(1.0, 0.0))
-    val d = net.apply(->(1.0, 1.0))
-
-    println(s"Input: 0.0, 0.0   Output: $a")
-    println(s"Input: 0.0, 1.0   Output: $b")
-    println(s"Input: 1.0, 0.0   Output: $c")
-    println(s"Input: 1.0, 1.0   Output: $d")
+    xs.foreach { x =>
+      println(s"Input: $x, Output: ${net(x)}")
+    }
 
     println("Network was: " + net)
 
   }
 
 }
+
 
