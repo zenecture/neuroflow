@@ -374,7 +374,8 @@ case class SoftmaxLogEntropy[V]() extends LossFunction[V] {
   *
   * Works for `N`-of-K classification, where `y` is the target and `x` the prediction. The target is
   * expressed using hot-vector encoding, i. e. (0, 1, 0, 1) where ones are the true classes. The loss is
-  * formulated under a cross-entropy regime. The softmaxed class scores sum up to `N`. Example:
+  * formulated under a cross-entropy regime. The softmaxed class scores sum up to `N`, K is set implicitly by
+  * the neurons of the last layer. Example:
   *
   *   N, K:       2, 4
   *   Target:     (0, 1, 0, 1)
