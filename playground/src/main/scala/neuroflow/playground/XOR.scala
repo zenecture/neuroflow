@@ -37,9 +37,9 @@ object XOR {
 
     val f = Sigmoid
 
-    val L = Vector(2)    ::
-            Dense(3, f)  ::
-            Dense(1, f)  ::  SquaredError()
+    val L = Vector(2)     ::
+             Dense(3, f)  ::
+             Dense(1, f)  ::  SquaredError()
 
     val net = Network(
       layout = L,
