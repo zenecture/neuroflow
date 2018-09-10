@@ -27,19 +27,13 @@ object XOR {
 
      */
 
-    implicit val weights = WeightBreeder[Double].normal {
-      Map (
-     // 0 -> input vector, no weights
-        1 -> (0.0, 1.0),
-        2 -> (0.0, 0.1)
-      )
-    }
+    implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 1.0)
 
     val f = Sigmoid
 
-    val L = Vector(2)     ::
-             Dense(3, f)  ::
-             Dense(1, f)  ::  SquaredError()
+    val L = Vector (2)    ::
+            Dense  (3, f)  ::
+            Dense  (1, f)  ::  SquaredError()
 
     val net = Network(
       layout = L,
@@ -68,21 +62,24 @@ object XOR {
 
 /*
       ...
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.09.2018 23:21:07:156] Iteration 99999.1, Avg. Loss = 0,000160901, Vector: 1.6090055545206475E-4
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.09.2018 23:21:07:156] Iteration 100000.1, Avg. Loss = 0,000160899, Vector: 1.6089888616269398E-4
-    [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [03.09.2018 23:21:07:156] Took 100000 of 100000 iterations.
-    Input: DenseVector(0.0, 0.0), Output: DenseVector(0.006936831967249095)
-    Input: DenseVector(0.0, 1.0), Output: DenseVector(0.9909241417205932)
-    Input: DenseVector(1.0, 0.0), Output: DenseVector(0.9892000479937961)
-    Input: DenseVector(1.0, 1.0), Output: DenseVector(0.008640869703306806)
-    Network was:
-    ---
-    -5.6134085682826855  -7.9952489974746195  -1.542845474986887
-    11.18611554484063    -6.7407859286679646  0.9044785552871019
-    ---
-    -13.772289650351814
-    -22.131232331989253
-    25.97562379449903
+      [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [10.09.2018 19:52:02:739] Iteration 99998.1, Avg. Loss = 8,70932e-05, Vector: 8.709321657962622E-5
+      [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [10.09.2018 19:52:02:739] Iteration 99999.1, Avg. Loss = 8,70923e-05, Vector: 8.709233203724416E-5
+      [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [10.09.2018 19:52:02:739] Iteration 100000.1, Avg. Loss = 8,70914e-05, Vector: 8.709144751277962E-5
+      [run-main-0] INFO neuroflow.nets.cpu.DenseNetworkDouble - [10.09.2018 19:52:02:740] Took 100000 of 100000 iterations.
+      Input: DenseVector(0.0, 0.0), Output: DenseVector(0.010012593375718236)
+      Input: DenseVector(0.0, 1.0), Output: DenseVector(0.9939939161874651)
+      Input: DenseVector(1.0, 0.0), Output: DenseVector(0.9939952785050477)
+      Input: DenseVector(1.0, 1.0), Output: DenseVector(0.001341408554410443)
+      Network was:
+      ---
+      -4.803669356636045  7.023630858404076   5.881032948167752
+      7.183252477792682   -4.750168900470756  5.907718336854065
+      ---
+      -14.456524517267937
+      -14.463219452537524
+      19.732046801403914
+      [success] Total time: 16 s, completed 10.09.2018 19:52:02
+
 
  */
 
