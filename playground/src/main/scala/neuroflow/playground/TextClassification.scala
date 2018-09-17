@@ -60,6 +60,14 @@ object TextClassification {
       (raw.head, raw.tail.map(_.toDouble).toVector)
     }.toMap.filter(l => dimension.forall(l._2.size == _))
 
+
+  val L =
+            Vector  (20)           ::
+            Dense   (40, Tanh)     ::
+            Dense   (40, Tanh)     ::
+            Dense   (2, Sigmoid)   ::   SoftmaxLogEntropy()
+
+
   def apply = {
 
     implicit val weights = WeightBreeder[Double].random(-1, 1)
@@ -74,8 +82,10 @@ object TextClassification {
 
     println("No. of samples: " + allTrain.size)
 
-    val net = Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Sigmoid) :: SoftmaxLogEntropy(),
-      Settings[Double](iterations = 15000, learningRate = { case _ => 1E-4 }))
+    val net = Network(
+      layout = L,
+      settings = Settings[Double](iterations = 15000, learningRate = { case _ => 1E-4 })
+    )
 
     net.train(allTrain.map(_._1.denseVec), allTrain.map(_._2))
 
@@ -89,7 +99,7 @@ object TextClassification {
 
     val net = {
       implicit val weights = File.weightBreeder[Double](netFile)
-      Network(Vector(20) :: Dense(40, Tanh) :: Dense(40, Tanh) :: Dense(2, Sigmoid) :: SoftmaxLogEntropy())
+      Network(layout = L)
     }
 
     val cars = normalize(readAll("file/newsgroup/cars/", offset = maxSamples, max = maxSamples))
