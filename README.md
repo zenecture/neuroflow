@@ -113,7 +113,8 @@ To learn, we need to know what it means to be wrong. The `SquaredError` loss fun
 
 Where `W` are the weights, `Y` is the target and `net(X, W)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form. We interpret the XOR-adder as a regression challenge, so the `SquaredError` is our choice. 
-Alternatively, for 1-of-K classification, we could use the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`SoftmaxLogEntropy`</a> loss function.
+Alternatively, for 1-of-K classification, we could use the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`SoftmaxLogEntropy`</a> loss function, 
+for N-of-K `SoftmaxLogMultEntropy` respectively.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
 
