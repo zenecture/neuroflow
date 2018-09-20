@@ -139,7 +139,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     val batchSize = settings.batchSize.getOrElse(xs.size)
     require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
     if (settings.verbose) {
-      if(xs.size % batchSize == 0) warn(s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
+      if(xs.size % batchSize != 0) warn(s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
@@ -479,7 +479,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     val batchSize = settings.batchSize.getOrElse(xs.size)
     require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
     if (settings.verbose) {
-      if(xs.size % batchSize == 0) warn(s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
+      if(xs.size % batchSize != 0) warn(s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toFloat / batchSize.toFloat).toInt}.")
       info(s"Breeding batches ...")
     }
