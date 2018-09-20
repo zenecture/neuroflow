@@ -48,9 +48,11 @@ object BatchBreeder extends Logs {
 
   /**
     * Groups `xs` and targets `ys` into batches in parallel.
+    *  (Additionally, it returns a map from batch to batchSize,
+    *   to take care for unevenly distributed batches.)
     * Memory = O(2n)
     */
-  def breedCNN[V: ClassTag : Zero](xs: Seq[Tensor3D[V]], ys: Seq[DenseVector[V]], batchSize: Int): Seq[(DenseMatrix[V], DenseMatrix[V])] = {
+  def breedCNN[V: ClassTag : Zero](xs: Seq[Tensor3D[V]], ys: Seq[DenseVector[V]], batchSize: Int): (Seq[(DenseMatrix[V], DenseMatrix[V])], Map[Int, Int]) = {
 
     val xsys = xs.zip(ys).grouped(batchSize).zipWithIndex.toSeq.par.map { case (xy, batchNo) =>
 
@@ -73,11 +75,11 @@ object BatchBreeder extends Logs {
 
       debug(s"Bred Batch $batchNo.")
 
-      x -> y
+      (x -> y) -> xy.size
 
     }.seq
 
-    xsys
+    xsys.map(_._1) -> xsys.zipWithIndex.map(b => b._2 -> b._1._2).toMap
 
   }
 

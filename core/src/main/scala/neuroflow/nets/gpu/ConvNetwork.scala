@@ -138,17 +138,17 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
     require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
-    require(xs.size % batchSize == 0, s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
     if (settings.verbose) {
+      if(xs.size % batchSize == 0) warn(s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toDouble / batchSize.toDouble).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = BatchBreeder.breedCNN(xs, ys, batchSize)
+    val (xsys, batchSizes) = BatchBreeder.breedCNN(xs, ys, batchSize)
     gcThreshold match {
       case Some(bytes) => GcThreshold.set(bytes)
       case None        =>
     }
-    run(xsys, learningRate(1 -> 1.0), batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
 
@@ -198,8 +198,9 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, batchSizes: Map[Int, Int], precision: Double,
                            batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
+    val batchSize = batchSizes(batch)
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
@@ -209,7 +210,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     maybeGraph(lossMean)
     waypoint(syncWeights)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSize,
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSizes,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
@@ -477,17 +478,17 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
     require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
-    require(xs.size % batchSize == 0, s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
     if (settings.verbose) {
+      if(xs.size % batchSize == 0) warn(s"Batches are not even. (${xs.size} % $batchSize = ${xs.size % batchSize} != 0)")
       info(s"Training with ${xs.size} samples, batch size = $batchSize, batches = ${math.ceil(xs.size.toFloat / batchSize.toFloat).toInt}.")
       info(s"Breeding batches ...")
     }
-    val xsys = BatchBreeder.breedCNN(xs, ys, batchSize)
+    val (xsys, batchSizes) = BatchBreeder.breedCNN(xs, ys, batchSize)
     gcThreshold match {
       case Some(bytes) => GcThreshold.set(bytes)
       case None        =>
     }
-    run(xsys, learningRate(1 -> 1.0).toFloat, batchSize, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0).toFloat, batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
 
@@ -537,8 +538,9 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
   /**
     * The training loop.
     */
-  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, batchSize: Int, precision: Double,
+  @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, batchSizes: Map[Int, Int], precision: Double,
                            batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
+    val batchSize = batchSizes(batch)
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize, batchSize)
@@ -548,7 +550,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     maybeGraph(lossMean)
     waypoint(syncWeights)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, batchSize,
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, batchSizes,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
