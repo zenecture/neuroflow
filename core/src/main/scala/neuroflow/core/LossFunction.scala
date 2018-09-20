@@ -285,10 +285,10 @@ case class SquaredError[V]() extends LossFunction[V] {
   *
   * Works for 1-of-K classification, where `y` is the target and `x` the prediction. The target is
   * expressed using hot-vector encoding, e. g. (0, 1, 0, 0) where 1 is the true class. The loss is
-  * formulated under a cross-entropy regime. The softmaxed class scores sum up to one such that they
-  * are interpretable as percent, e. g.
+  * formulated under a cross-entropy regime. K is set implicitly by the neurons of the last layer.
+  * The softmaxed class scores sum up to 1, such that they are interpretable as percent, e. g.
   *
-  *   K:          4
+  *   N, K:       1, 4
   *   Target:     (0, 1, 0, 0)
   *   Prediction: (0.2, 0.4, 0.3, 0.1)
   *   Loss:       -log(0.4) ≈ 0,916
