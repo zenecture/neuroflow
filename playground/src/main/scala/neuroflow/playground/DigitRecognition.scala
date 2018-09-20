@@ -6,6 +6,7 @@ import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.Notation._
 import neuroflow.application.processor.Image._
 import neuroflow.common.~>
+import neuroflow.core
 import neuroflow.core.Activators.Float._
 import neuroflow.core._
 import neuroflow.dsl._
@@ -54,7 +55,7 @@ object DigitRecognition {
             Dense  (400, f)                  ::
             Dense  (200, f)                  ::
             Dense  (50, f)                   ::
-            Dense  (10, g)                   ::   SoftmaxLogEntropy()
+            Dense  (10, g)                   ::   SoftmaxLogMultEntropy[Float](N = 1)
 
     val net = Network(
       layout = L,
