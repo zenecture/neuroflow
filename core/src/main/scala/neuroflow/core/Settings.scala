@@ -35,7 +35,7 @@ case class Settings[V]
                      learningRate      :  LearningRate                 =  { case (i, α) => α },
                      updateRule        :  Update[V]                    =  Vanilla[V](),
                      precision         :  Double                       =  1E-5,
-                     iterations        :  Int                          =  100,
+                     iterations        :  Int                          =  Int.MaxValue,
                      prettyPrint       :  Boolean                      =  false,
                      batchSize         :  Option[Int]                  =  None,
                      gcThreshold       :  Option[Long]                 =  None,
