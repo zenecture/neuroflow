@@ -34,7 +34,7 @@ case class Settings[V]
                     (verbose           :  Boolean                      =  true,
                      learningRate      :  LearningRate                 =  { case (i, α) => α },
                      updateRule        :  Update[V]                    =  Vanilla[V](),
-                     precision         :  Double                       =  1E-5,
+                     precision         :  Double                       =  1E-3,
                      iterations        :  Int                          =  Int.MaxValue,
                      prettyPrint       :  Boolean                      =  false,
                      batchSize         :  Option[Int]                  =  None,
