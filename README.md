@@ -17,8 +17,8 @@ To use NeuroFlow for Scala 2.12.x, add these dependencies to your SBT project:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.8",
-  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.8"
+  "com.zenecture"   %%   "neuroflow-core"          %   "1.7.9",
+  "com.zenecture"   %%   "neuroflow-application"   %   "1.7.9"
 )
 
 resolvers ++= Seq(
@@ -202,6 +202,18 @@ println(result) // DenseVector(0.9940081702899719)
 ```
 
 The resulting vector has dimension = 1, as specified for the XOR-example.
+
+### Batching
+
+We can use `net.batchApply`, which is more efficient than `net.apply` for each single input.
+
+```
+val net = Network(layout = Vector(2) :: Dense(3, f) :: Dense(2, f) :: SquaredError())
+val batch = (1 to 100).map { _ => DenseVector.rand[Double](size = 2) } // Sequence of 100 Vectors of length 2
+val res = net.batchApply(batch)
+
+println(res.size) // = 100
+```
 
 ### Focusing
 
