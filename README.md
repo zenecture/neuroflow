@@ -84,7 +84,7 @@ val deeperNet = Network(
     learningRate = { 
       case (iter, α) if iter < 128 => 1E-4
       case (_, _)  => 1E-6
-    }, 
+    },
     precision = 1E-8
   )
 )
@@ -197,7 +197,7 @@ When training is done, the net can be evaluated like a regular function:
 
 ```scala
 val x = ->(0.0, 1.0)
-val result = net(x)
+val result = net(x) // or: net.apply(x), net.evaluate(x)
 println(result) // DenseVector(0.9940081702899719)
 ```
 
@@ -205,14 +205,11 @@ The resulting vector has dimension = 1, as specified for the XOR-example.
 
 ### Batching
 
-We can use `net.batchApply`, which is more efficient than `net.apply` for each single input.
+To compute all results of our XOR data in one step, we can use `net.batchApply`, which is more efficient than `net.apply` for each single input vector.
 
-```
-val net = Network(layout = Vector(2) :: Dense(3, f) :: Dense(2, f) :: SquaredError())
-val batch = (1 to 100).map { _ => DenseVector.rand[Double](size = 2) } // Sequence of 100 Vectors of length 2
-val res = net.batchApply(batch)
-
-println(res.size) // = 100
+```scala
+val res = net.batchApply(xs)
+println(res.size) // = 4
 ```
 
 ### Focusing
