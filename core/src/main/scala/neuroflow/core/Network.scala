@@ -53,6 +53,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 
   sayHi()
 
+
   val identifier: String
 
   val numericPrecision: String
@@ -68,6 +69,18 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 
   /** The weights are a bunch of matrices. */
   val weights: Weights[V]
+
+
+  /**
+    * Computes output for given input `in`.
+    */
+  def apply(in: In): Out
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Seq[In]): Seq[Out]
 
   /**
     * Computes output for given input `in`.

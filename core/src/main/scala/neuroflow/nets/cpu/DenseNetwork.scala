@@ -2,6 +2,7 @@ package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.stats._
+import neuroflow.core
 import neuroflow.core.IllusionBreaker.SettingsNotSupportedException
 import neuroflow.core.Network._
 import neuroflow.core.WaypointLogic.NoOp
@@ -83,6 +84,17 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
     */
   def apply(x: Vector): Vector = {
     sink(prepare(x.toDenseMatrix), _lastLayerIdx).toDenseVector
+  }
+
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Vectors): Vectors = {
+    BatchBreeder.unsliceMatrixByRow {
+      sink(prepare(BatchBreeder.vertCatVectorBatch(xs)), _lastLayerIdx)
+    }
   }
 
 
@@ -331,6 +343,17 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     */
   def apply(x: Vector): Vector = {
     sink(prepare(x.toDenseMatrix), _lastLayerIdx).toDenseVector
+  }
+
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Vectors): Vectors = {
+    BatchBreeder.unsliceMatrixByRow {
+      sink(prepare(BatchBreeder.vertCatVectorBatch(xs)), _lastLayerIdx)
+    }
   }
 
 

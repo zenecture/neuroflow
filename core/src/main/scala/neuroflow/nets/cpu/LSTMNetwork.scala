@@ -94,6 +94,13 @@ case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     ~> (reset()) next unfoldingFlow(in, initialOut, _ANil, _ANil, 0) map (_.map(_.toDenseVector))
   }
 
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Seq[_root_.neuroflow.core.Network.Vectors[Double]]): Seq[_root_.neuroflow.core.Network.Vectors[Double]] = ???
+
   /**
     * Trains this net with input `xs` against output `ys`.
     */

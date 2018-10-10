@@ -2,6 +2,7 @@ package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.stats._
+import neuroflow.core
 import neuroflow.core.Network._
 import neuroflow.core.WaypointLogic.NoOp
 import neuroflow.core.{CanProduce, _}
@@ -81,7 +82,18 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     * Computes output for `x`.
     */
   def apply(x: Tensor): Vector = {
-    sink(x.matrix, _lastLayerIdx).toDenseVector
+    sink(x.matrix, _lastLayerIdx, batchSize = 1).toDenseVector
+  }
+
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Tensors): Vectors = {
+    BatchBreeder.unsliceMatrixByRow {
+      sink(BatchBreeder.horzCatTensorBatch(xs), _lastLayerIdx, batchSize = xs.size)
+    }
   }
 
 
@@ -100,7 +112,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
       case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Tensor) => {
-      cp(sink(in.matrix, idx), l)
+      cp(sink(in.matrix, idx, batchSize = 1), l)
     }
   }
 
@@ -122,8 +134,8 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
   }
 
 
-  private def sink(x: Matrix, target: Int): Matrix = {
-    val r1 = flow(x, target, batchSize = 1)
+  private def sink(x: Matrix, target: Int, batchSize: Int): Matrix = {
+    val r1 = flow(x, target, batchSize)
     val r2 = if (target == _lastLayerIdx) lossFunction.sink(r1) else r1
     r2
   }
@@ -360,7 +372,18 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     * Computes output for `x`.
     */
   def apply(x: Tensor): Vector = {
-    sink(x.matrix, _lastLayerIdx).toDenseVector
+    sink(x.matrix, _lastLayerIdx, batchSize = 1).toDenseVector
+  }
+
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Tensors): Vectors = {
+    BatchBreeder.unsliceMatrixByRow {
+      sink(BatchBreeder.horzCatTensorBatch(xs), _lastLayerIdx, batchSize = xs.size)
+    }
   }
 
 
@@ -379,7 +402,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
       case None => warn(s"Focus layer $l not found. Fallback to last layer."); _lastLayerIdx
     }
     (in: Tensor) => {
-      cp(sink(in.matrix, idx), l)
+      cp(sink(in.matrix, idx, batchSize = 1), l)
     }
   }
 
@@ -401,8 +424,8 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
   }
 
 
-  private def sink(x: Matrix, target: Int): Matrix = {
-    val r1 = flow(x, target, batchSize = 1)
+  private def sink(x: Matrix, target: Int, batchSize: Int): Matrix = {
+    val r1 = flow(x, target, batchSize)
     val r2 = if (target == _lastLayerIdx) lossFunction.sink(r1) else r1
     r2
   }

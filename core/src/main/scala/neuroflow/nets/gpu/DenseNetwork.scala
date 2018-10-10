@@ -109,6 +109,17 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
 
 
   /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Vectors): Vectors = {
+    BatchBreeder.unsliceMatrixByRow {
+      sink(prepare(BatchBreeder.vertCatVectorBatch(xs)), _lastLayerIdx)
+    }
+  }
+
+
+  /**
     * `apply` under a focused layer.
     */
   def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
@@ -427,6 +438,17 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     */
   def apply(x: Vector): Vector = {
     sink(prepare(x.toDenseMatrix), _lastLayerIdx).toDenseVector
+  }
+
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Vectors): Vectors = {
+    BatchBreeder.unsliceMatrixByRow {
+      sink(prepare(BatchBreeder.vertCatVectorBatch(xs)), _lastLayerIdx)
+    }
   }
 
 

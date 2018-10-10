@@ -21,14 +21,8 @@ object BatchBreeder extends Logs {
 
     val xsys = xs.zip(ys).grouped(batchSize).zipWithIndex.toSeq.par.map { case (xy, batchNo) =>
 
-      val x = DenseMatrix.zeros[V](xy.size, xy.head._1.length)
+      val x = vertCatVectorBatch(xy.map(_._1))
       val y = DenseMatrix.zeros[V](xy.size, xy.head._2.length)
-
-      (0 until x.rows).foreach { row =>
-        (0 until x.cols).foreach { col =>
-          x.update(row, col, xy(row)._1(col))
-        }
-      }
 
       (0 until y.rows).foreach { row =>
         (0 until y.cols).foreach { col =>
@@ -56,16 +50,8 @@ object BatchBreeder extends Logs {
 
     val xsys = xs.zip(ys).grouped(batchSize).zipWithIndex.toSeq.par.map { case (xy, batchNo) =>
 
-      val x = DenseMatrix.zeros[V](xy.head._1.matrix.rows, xy.head._1.matrix.cols * xy.size)
+      val x = horzCatTensorBatch(xy.map(_._1))
       val y = DenseMatrix.zeros[V](xy.size, xy.head._2.length)
-
-      (0 until x.rows).foreach { row =>
-        (0 until x.cols).foreach { col =>
-          val b = col / xy.head._1.matrix.cols
-          val c = col % xy.head._1.matrix.cols
-          x.update(row, col, xy(b)._1.matrix(row, c))
-        }
-      }
 
       (0 until y.rows).foreach { row =>
         (0 until y.cols).foreach { col =>
@@ -81,6 +67,35 @@ object BatchBreeder extends Logs {
 
     xsys.map(_._1) -> xsys.zipWithIndex.map(b => b._2 -> b._1._2).toMap
 
+  }
+
+  def vertCatVectorBatch[V: ClassTag : Zero](xs: Seq[DenseVector[V]]): DenseMatrix[V] = {
+    val x = DenseMatrix.zeros[V](xs.size, xs.head.length)
+    (0 until x.rows).foreach { row =>
+      (0 until x.cols).foreach { col =>
+        x.update(row, col, xs(row)(col))
+      }
+    }
+    x
+  }
+
+  def horzCatTensorBatch[V: ClassTag : Zero](ts: Seq[Tensor3D[V]]): DenseMatrix[V] = {
+    val x = DenseMatrix.zeros[V](ts.head.matrix.rows, ts.head.matrix.cols * ts.size)
+    (0 until x.rows).foreach { row =>
+      (0 until x.cols).foreach { col =>
+        val b = col / ts.head.matrix.cols
+        val c = col % ts.head.matrix.cols
+        x.update(row, col, ts(b).matrix(row, c))
+      }
+    }
+    x
+  }
+
+  def unsliceMatrixByRow[V: ClassTag : Zero](m: DenseMatrix[V]): Seq[DenseVector[V]] = {
+    (0 until m.rows).map { r =>
+      val v = m(r, ::).t
+      v
+    }
   }
 
 }
