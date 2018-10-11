@@ -26,11 +26,13 @@ import scala.util.{Failure, Success, Try}
 object Word2Vec {
 
   /*
+
       This model is a sketch to illustrate the principle of Word2Vec skip-gram,
       i.e. using a linear bottleneck projection layer for clustering words.
 
-      It produces a word vector dictionary, sliding a window over the text corpus.
-      The vectors have dimension `wordDim`. Only words with a minimum word count are not `cutOff`.
+      It produces a word vector dictionary, sliding a window over the text corpus: << windowL | target word | windowR >>
+      The resulting vectors have dimension `wordDim`. Words without a minimum word count are `cutOff`.
+
    */
 
   def apply = {
@@ -122,7 +124,7 @@ object Word2Vec {
       val sims  = res.map { r =>
         r._1 -> cosineSimilarity(found._2, r._2)
       }.sortBy(_._2).reverse.take(10)
-      println(s"10 similar words for ${found._1}:")
+      println(s"10 close words for ${found._1}:")
       sims.foreach(println)
     }
 
@@ -132,9 +134,10 @@ object Word2Vec {
 
 /*
 
+    Example:
 
     Find wordId: 888
-    10 similar words for that:
+    10 close words for that:
     (that,0.9999999999999998)
     (this,0.9561189745530446)
     (so,0.9422961435537252)
