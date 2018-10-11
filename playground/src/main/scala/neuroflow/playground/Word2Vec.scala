@@ -118,9 +118,9 @@ object Word2Vec {
       }
     }.io(_.close)
 
-    var findId: Int = 0
-    while ({ print("Find wordId: "); findId = StdIn.readInt(); findId >= 0 }) {
-      val found = res(findId)
+    var find: String = ""
+    while ({ print("Find word: "); find = StdIn.readLine(); find != "!q" }) {
+      val found = res.find(_._1 == find).getOrElse(???)
       val sims  = res.map { r =>
         r._1 -> cosineSimilarity(found._2, r._2)
       }.sortBy(_._2).reverse.take(10)
@@ -136,7 +136,7 @@ object Word2Vec {
 
     Example:
 
-    Find wordId: 888
+    Find word: that
     10 close words for that:
     (that,0.9999999999999998)
     (this,0.9561189745530446)
