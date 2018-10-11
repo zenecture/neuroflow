@@ -2,7 +2,7 @@ package neuroflow.playground
 
 import java.io.{File, FileOutputStream, PrintWriter}
 
-import neuroflow.application.plugin.Extensions.cosineSimilarity
+import neuroflow.application.plugin.Extensions._
 import neuroflow.application.plugin.IO
 import neuroflow.application.plugin.IO.Jvm._
 import neuroflow.application.plugin.IO._
@@ -10,11 +10,11 @@ import neuroflow.application.plugin.Notation.ζ
 import neuroflow.application.processor.Normalizer.ScaledVectorSpace
 import neuroflow.application.processor.Util._
 import neuroflow.common.~>
-import neuroflow.core.Activators.Double._
+import neuroflow.core.Activators.Float._
 import neuroflow.core._
 import neuroflow.dsl._
 import neuroflow.dsl.Implicits._
-import neuroflow.nets.cpu.DenseNetwork._
+import neuroflow.nets.gpu.DenseNetwork._
 
 import scala.io.{Source, StdIn}
 import scala.util.{Failure, Success, Try}
@@ -26,38 +26,42 @@ import scala.util.{Failure, Success, Try}
 object Word2Vec {
 
   /*
-      This model is just a sketch to illustrate the principle of Word2Vec.
-      Little things are missing compared to the original one, so it can't compete.
-      TODO: implement original one.
+      This model is a sketch to illustrate the principle of Word2Vec skip-gram,
+      i.e. using a linear bottleneck projection layer for clustering words.
+
+      It produces a word vector dictionary, sliding a window over the text corpus.
+      The vectors have dimension `wordDim`. Only words with a minimum word count are not `cutOff`.
    */
 
   def apply = {
 
-    val windowL = 5
-    val windowR = 5
-    val cutOff  = 5
+    val wordDim = 20
+
+    val windowL = 4
+    val windowR = 4
+    val cutOff  = 16
 
     val output = "/Users/felix/github/unversioned/word2vec.txt"
     val wps = "/Users/felix/github/unversioned/word2vecWp.nf"
 
-    implicit val weights = WeightBreeder[Double].random(-1, 1)
-//     implicit val weights = IO.File.readDouble(wps)
+    implicit val weights = WeightBreeder[Float].normal(μ = 0.01, σ = 0.01)
+//     implicit val weights = IO.File.weightBreeder[Float](wps)
 
     val corpus = Source.fromFile(getResourceFile("file/newsgroup/reduced.txt")).mkString.split(" ").map(_ -> 1)
 
-    val wc = collection.mutable.HashMap.empty[String, Int]
+    val wordCount = collection.mutable.HashMap.empty[String, Int]
     corpus.foreach { c =>
-      wc.get(c._1) match {
-        case Some(i) => wc += c._1 -> (i + 1)
-        case None    => wc += c._1 -> 1
+      wordCount.get(c._1) match {
+        case Some(i) => wordCount += c._1 -> (i + 1)
+        case None    => wordCount += c._1 -> 1
       }
     }
 
-    val words = wc.filter(_._2 >= cutOff)
+    val words = wordCount.filter(_._2 >= cutOff)
 
     val vecs  = words.zipWithIndex.map {
       case (w, i) => w._1 -> {
-        val v = ζ[Double](words.size)
+        val v = ζ[Float](words.size)
         v.update(i, 1.0f)
         v
       }
@@ -79,33 +83,36 @@ object Word2Vec {
 
     val L =
       Vector(dim)                 ::
-      Dense(20, Linear)           ::
-      Dense(dim, Sigmoid)         ::  SquaredError()
+      Dense(wordDim, Linear)      ::
+      Dense(dim, ReLU)            ::  SoftmaxLogMultEntropy[Float](N = windowL + windowR)
 
     val net =
       Network(
         layout = L,
-        Settings[Double](
+        Settings[Float](
           learningRate    = { case (_, _) => 1E-4 },
-          updateRule      = Momentum(0.9),
+          updateRule      = Momentum(0.9f),
           iterations      = 10000,
-          regularization  = Some(KeepBest),
           prettyPrint     = true,
-          waypoint        = Some(Waypoint(nth = 10, (_, ws) => IO.File.writeWeights(ws, wps))))
+          batchSize       = Some(10070),
+          gcThreshold     = Some(256L * 1024L * 1024L),
+          waypoint        = Some(Waypoint(nth = 200, (_, ws) => IO.File.writeWeights(ws, wps))))
       )
 
     net.train(xsys.map(_._2), xsys.map(_._3))
 
+    val focused = net focus L.tail.head
+
     val resRaw = vecs.map {
-      case (w, v) => w -> net.focus(L.tail.head).apply(v)
+      case (w, v) => w -> focused(v)
     }.toSeq
 
-    val res = resRaw.map(_._1).zip(ScaledVectorSpace(resRaw.map(_._2)))
+    val res = resRaw.map(_._1).zip(ScaledVectorSpace(resRaw.map(_._2.double)))
 
     val outputFile = ~>(new File(output)).io(_.delete)
     ~>(new PrintWriter(new FileOutputStream(outputFile, true))).io { writer =>
       res.foreach { v =>
-        writer.println(prettyPrint(v._2.toScalaVector, ";") + s";${v._1}")
+        writer.println(v._1 + " " + prettyPrint(v._2.toScalaVector, " "))
       }
     }.io(_.close)
 
