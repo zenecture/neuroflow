@@ -40,6 +40,7 @@ Seeing code examples is a good way to get started. You may have a look at the pl
 Let's construct the fully connected feed-forward net (FFN) depicted above.
 
 ```scala
+import neuroflow.application.plugin.Notation._
 import neuroflow.core.Activators.Double._
 import neuroflow.core._
 import neuroflow.dsl._
@@ -49,8 +50,20 @@ implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 1.0)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
+val L = Vector(2) :: Dense (3, g) :: Dense (1, h) :: SquaredError()
+
 val net = Network(
-  layout = Vector(2) :: Dense(3, g) :: Dense(1, h) :: SquaredError()
+  layout = L,
+  settings = Settings[Double](
+    updateRule = Vanilla(), 
+    batchSize = Some(4), 
+    iterations = 100000,
+    learningRate = { 
+      case (iter, α) if iter < 128 => 1.0
+      case (_, _)  => 0.5
+    },
+    precision = 1E-4
+  )
 )
 ```
 
@@ -58,43 +71,10 @@ This gives a fully connected `DenseNetwork` under the `SquaredError` loss functi
 The `weights` are drawn from normal distribution by `WeightBreeder`. We have predefined activators and 
 place a softly firing `Sigmoid` on the cells.
 
-A full model is expressed as a linear `Layout` graph and a `Settings` instance. The layout is 
-implemented as a heterogenous list, allowing compile-time checks for valid compositions. For instance, 
-a little deeper net, with some rates and rules defined, could look like this:
-
-```scala
-val (e, f) = (Some(Linear.biased(0.1)), ReLU)
-
-val L =
-      Vector   (11, e)      ::
-      Dense    ( 3, f)      ::
-      Dense   (180, f)      ::
-      Dense   (360, f)      ::
-      Dense   (420, f)      ::
-      Dense   (314, f)      ::
-      Dense   (271, f)      :: 
-      Dense    (23, f)      ::    SoftmaxLogEntropy()
-
-val deeperNet = Network(
-  layout = L, 
-  settings = Settings[Double](
-    updateRule = Vanilla(), 
-    batchSize = Some(8), 
-    iterations = 256,
-    learningRate = { 
-      case (iter, α) if iter < 128 => 1E-4
-      case (_, _)  => 1E-6
-    },
-    precision = 1E-8
-  )
-)
-```
-
-Here, the `SoftmaxLogEntropy` layer computes loss and gradient, which is backpropped into the last `Dense` layer of the net. 
-The `updateRule` defines how weights are updated for gradient descent. The `batchSize` defines how many 
-samples are presented per weight update. The `learningRate` is a partial function from current iteration 
-and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss 
-satisfies `precision`. 
+Layout `L` is implemented as a heterogenous list, allowing compile-time checks for valid compositions. The `updateRule` 
+defines how weights are updated for gradient descent. With `batchSize` we define how many samples are presented per weight update. 
+The `learningRate` is a partial function from current iteration and learning rate producing a new learning rate. 
+Training terminates after `iterations`, or if loss satisfies `precision`. 
 
 Another important aspect of the net is its numerical type. For example, on the GPU, you might want to work with `Float` instead of `Double`.
 The numerical type is set by explicitly annotating it on both the `WeightBreeder` and `Settings` instances.
@@ -107,25 +87,23 @@ Our small `net` is a function `f: X -> Y`. It maps from 2d-vector `X` to 1d-vect
 There are many functions of this kind to learn out there. Here, we go with the XOR function. 
 It is linearly not separable, so we can check whether the net can capture this non-linearity.
 
-To learn, we need to know what it means to be wrong. The `SquaredError` loss function is defined as follows:
+To learn, we need to know what it means to be wrong. For our layout `L` we use the `SquaredError` loss function, which is defined as follows:
 
     SquaredError(X, Y, W) = Σ1/2(Y - net(X, W))²
 
 Where `W` are the weights, `Y` is the target and `net(X, W)` the prediction. The sum `Σ` is taken over all samples and 
 the square `²` gives a convex functional form. We interpret the XOR-adder as a regression challenge, so the `SquaredError` is our choice. 
 Alternatively, for 1-of-K classification, we could use the <a href="http://www.znctr.com/blog/digit-recognition#softmax">`SoftmaxLogEntropy`</a> loss function, 
-for N-of-K `SoftmaxLogMultEntropy` respectively.
+for N-of-K classification `SoftmaxLogMultEntropy` respectively.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
 
-<small><em>Example: Derivative for w<sub>8</sub></em></small>
+<small><em>Example: Derivative for w<sub>8</sub></em>, derived by the library.</small>
 
 In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
 Let's define the XOR training data using in-line vector notation:
 
 ```scala
-import neuroflow.application.plugin.Notation._
-
 val xs = Seq(->(0.0, 0.0), ->(0.0, 1.0), ->(1.0, 0.0), ->(1.0, 1.0))
 val ys = Seq(->(0.0), ->(1.0), ->(1.0), ->(0.0))
 
