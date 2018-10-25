@@ -97,7 +97,7 @@ for N-of-K classification `SoftmaxLogMultEntropy` respectively.
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/derivative.png" width=443 height=320 />
 
-<small><em>Example: Derivative for w<sub>8</sub></em>, built by the library.</small>
+<small><em>Example: Derivative for w<sub>8</sub>, built by the library.</em></small>
 
 In NeuroFlow, we work with <a href="https://github.com/scalanlp/breeze">Breeze</a>, in particular with `DenseVector[V]` and `DenseMatrix[V]`.
 Let's define the XOR training data using in-line vector notation:
