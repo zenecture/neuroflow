@@ -69,9 +69,11 @@ val net = Network(
 
 This gives a fully connected `DenseNetwork` under the `SquaredError` loss function, running on CPU. The `weights` are drawn from 
 normal distribution by `WeightBreeder`. We have predefined activators and place a softly firing `Sigmoid` on the cells. Layout `L` is 
-implemented as a heterogenous list, always ending with a loss function `0 :: 1 :: ... :: Loss`. The `updateRule` defines how weights are updated 
-for gradient descent. With `batchSize` we define how many samples are presented per weight update. The `learningRate` is a partial function 
-from current iteration and learning rate producing a new learning rate. Training terminates after `iterations`, or if loss satisfies `precision`. 
+implemented as a heterogenous list, always ending with a loss function `0 :: 1 :: ... :: Loss`, which is also checked on compile-time. 
+
+Further, we apply some rates and rules. The `updateRule` defines how weights are updated for gradient descent. With `batchSize` we 
+define how many samples are presented per weight update. The `learningRate` is a partial function from current iteration and learning rate 
+producing a new learning rate. Training terminates after `iterations`, or if loss satisfies `precision`. 
 
 Another important aspect of the net is its numerical type. For example, on the GPU, you might want to work with `Float` instead of `Double`.
 The numerical type is set by explicitly annotating it on both the `WeightBreeder` and `Settings` instances.
