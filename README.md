@@ -2,6 +2,15 @@
 
 NeuroFlow is a library to design, train and evaluate Artificial Neural Networks. 
 
+1. [Getting Started](#getting-started)
+2. [Construct a Dense Net](#construct-a-dense-net)
+3. [Training it](#training-it)
+4. [Monitoring](#monitoring)
+5. [Evaluation](#evaluation)
+6. [Extending](#extending)
+7. [Using GPU](#using-gpu)
+8. [Persistence](#persistence)
+
 # Getting Started
 
 The library aims at ease of use, keeping things intuitive and simple. 
@@ -33,7 +42,7 @@ If you are new to the math behind Neural Nets, you can read about the core princ
   
 Seeing code examples is a good way to get started. You may have a look at the playground for basic inspiration. 
 
-# Construction of a Net  
+# Construct a Dense Net  
 
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/arch.png" width=443 height=320 />
 
@@ -80,7 +89,7 @@ The numerical type is set by explicitly annotating it on both the `WeightBreeder
 
 Have a look at the `Settings` class for the complete list of options.
 
-# Training
+# Training it
 
 Our small `net` is a function `f: X -> Y`. It maps from 2d-vector `X` to 1d-vector `Y`.
 There are many functions of this kind to learn out there. Here, we go with the XOR function. 
