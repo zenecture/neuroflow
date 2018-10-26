@@ -50,7 +50,7 @@ implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 1.0)
 
 val (g, h) = (Sigmoid, Sigmoid)
 
-val L = Vector(2) :: Dense (3, g) :: Dense (1, h) :: SquaredError()
+val L = Vector(2) :: Dense(3, g) :: Dense(1, h) :: SquaredError()
 
 val net = Network(
   layout = L,
@@ -160,13 +160,6 @@ Settings(
 
 This function gets executed in the background after each iteration, using the `Avg. Loss` as input. 
 One example is sending the loss to a real-time TV dashboard.
-
-### Useful JVM args
-
-```bash
--Dorg.slf4j.simpleLogger.defaultLogLevel=debug # for misc runtime sys infos and gpu memory
--Xmx24G # example to increase heap size
-```
 
 # Evaluation
 
@@ -285,6 +278,23 @@ With both driver and toolkit installed, you can import a GPU implementation for 
 
 ```scala
 import neuroflow.nets.gpu.DenseNetwork._
+```
+
+### Memory Management
+
+The library uses a hybrid approach to manage GPU RAM, both manually managed and garbage collected. Large matrices, as the batch activations or derivatives, are allocated and freed manually.
+Whereas small auxiliary matrices are bound to JVM's garbage collection, which is triggered during training when free GPU RAM hits `gcThreshold: Option[Long]`, set in bytes. The library tries to find 
+a good initial value, but for optimal results it has to be fine tuned to the respective graphics card.
+
+```scala
+settings.gcThreshold = Some(1024L * 1024L * 1024L /* 1G */)
+```
+
+### Useful JVM args
+
+```bash
+-Dorg.slf4j.simpleLogger.defaultLogLevel=debug # for misc runtime sys infos and gpu memory
+-Xmx24G # example to increase heap size, to hold all batches in a queue on host (RAM + swap)
 ```
 
 # Persistence
