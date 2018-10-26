@@ -229,13 +229,13 @@ but at times special functions are required. Here is an example how to define yo
 
 ```scala
 val c = new Activator[Double] {
-  val symbol = "My linear activator"
-  def apply(x: Double): Double = x + 0.1
-  def derivative(x: Double): Double = 1.0
+  val symbol = "My non-linear activator"
+  def apply(x: Double): Double = x * x
+  def derivative(x: Double): Double = 2.0 * x
 }
 ``` 
 
-Then just drop it into a layer, e. g. `Dense(3, c) `. Luckily, the CPU implementation is flexible to run arbitrary code. 
+Then just drop it into a layer, e. g. `Dense(3, c)`. Luckily, the CPU implementation is flexible to run arbitrary code. 
 If you need custom activators for GPU, you need to fork NF and implement them in CUDA. 
 
 ### Loss Functions
