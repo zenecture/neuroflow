@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/zenecture/zenecture-docs/master/neuroflow/newlogo.png" width=480 height=132 />
 
-NeuroFlow is a library to design, train and evaluate Artificial Neural Networks. 
+NeuroFlow is a Scala library to design, train and evaluate Artificial Neural Networks. 
 
 1. [Getting Started](#getting-started)
 2. [Construct a Dense Net](#construct-a-dense-net)
@@ -168,7 +168,7 @@ Settings(
 ```
 
 This function gets executed in the background after each iteration, using the `Avg. Loss` as input. 
-One example is sending the loss to a real-time TV dashboard.
+One example is sending the loss to a browser based grapher.
 
 # Evaluation
 
