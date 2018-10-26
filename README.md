@@ -2,7 +2,7 @@
 
 NeuroFlow is a Scala library to design, train and evaluate Artificial Neural Networks. 
 
-1. [Getting Started](#getting-started)
+1. [Getting started](#getting-started)
 2. [Construct a Dense Net](#construct-a-dense-net)
 3. [Training it](#training-it)
 4. [Monitoring](#monitoring)
@@ -11,7 +11,7 @@ NeuroFlow is a Scala library to design, train and evaluate Artificial Neural Net
 7. [Using GPU](#using-gpu)
 8. [Persistence](#persistence)
 
-# Getting Started
+# Getting started
 
 The library aims at ease of use, keeping things intuitive and simple. 
 Neural Nets bring joy into your project, a journey full of experiments. :o)
