@@ -1,6 +1,7 @@
 package neuroflow.core
 
 import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.math.Semiring
 import breeze.storage.Zero
 
 import scala.reflect.ClassTag
@@ -62,7 +63,22 @@ trait Tensor3D[V] extends Tensor[(Int, Int, Int), V] {
 object Tensor3D {
 
   /**
-    * Creates vertically shaped [[Tensor3D]] from vector `v` with dim (X, Y, Z) = (1, VectorLength, 1).
+    * Creates all zero [[Tensor3D]] of dim (X, Y, Z) = (`x`, `y`, `z`).
+    */
+  def zeros[V: ClassTag : Zero](x: Int, y: Int, z: Int): Tensor3D[V] = {
+    new Tensor3DImpl[V](DenseMatrix.zeros[V](rows = z, cols = x * y), X = x, Y = y, Z = z)
+  }
+
+  /**
+    * Creates all one [[Tensor3D]] of dim (X, Y, Z) = (`x`, `y`, `z`).
+    */
+  def ones[V: ClassTag : Zero : Semiring](x: Int, y: Int, z: Int): Tensor3D[V] = {
+    val zs = zeros(x, y, z)
+    zs.mapAll(_ => implicitly[Semiring[V]].one)
+  }
+
+  /**
+    * Creates vertically shaped [[Tensor3D]] from vector `v` with dim (X, Y, Z) = (1, |Vector|, 1).
     */
   def fromVector[V: ClassTag : Zero](v: DenseVector[V]): Tensor3D[V] = {
     new Tensor3DImpl[V](DenseMatrix.create[V](1, v.length, v.data), X = 1, Y = v.length, Z = 1)
@@ -84,9 +100,13 @@ object Tensor3D {
   /**
     * Concatenates tensors `t` by z-dimension (depth).
     */
-  def deepCat[V](t: Seq[Tensor3D[V]]): Tensor3D[V] = {
-    // TODO
-    ???
+  def deepCat[V: ClassTag : Zero](ts: Seq[Tensor3D[V]]): Tensor3D[V] = {
+    val x = ts.head.X
+    val y = ts.head.Y
+    val z = ts.map(_.Z).sum
+    require(ts.forall(t => t.X == x && t.Y == y), "All tensors must share same dimension X, Y!")
+    val mergedMat = ts.map(_.matrix).reduce((a, b) => DenseMatrix.vertcat(a, b))
+    new Tensor3DImpl[V](mergedMat, X = x, Y = y, Z = z)
   }
 
 }
