@@ -44,5 +44,5 @@ case class Settings[V]
                      approximation     :  Option[Approximation[V]]     =  None,
                      regularization    :  Option[Regularization]       =  None,
                      partitions        :  Option[Set[Int]]             =  None,
-                     specifics         :  Option[Map[String, Double]]  =  None) extends Serializable
+                     specifics         :  Option[Map[String, V]]       =  None) extends Serializable
 
