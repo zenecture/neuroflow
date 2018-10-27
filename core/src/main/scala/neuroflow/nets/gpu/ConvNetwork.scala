@@ -510,7 +510,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
       case Some(bytes) => GcThreshold.set(bytes)
       case None        =>
     }
-    run(xsys, learningRate(1 -> 1.0).toFloat, batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0f), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
 
@@ -572,7 +572,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     maybeGraph(lossMean)
     waypoint(syncWeights)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, batchSizes,
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSizes,
         precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")

@@ -61,7 +61,7 @@ object ConvViz {
       layout = L,
       Settings[Float](
         prettyPrint     =  true,
-        learningRate    =  { case (i, α) => 1E-3 },
+        learningRate    =  { case (i, α) => 1E-3f },
         updateRule      =  Momentum(μ = 0.8f),
         gcThreshold     =  Some(100 * 1024 * 1024L),
         batchSize       =  Some(20),

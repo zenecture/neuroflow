@@ -490,7 +490,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
       case Some(bytes) => GcThreshold.set(bytes)
       case None        => GcThreshold.set(this, batchSize * 2)
     }
-    run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0f), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
 
@@ -547,7 +547,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     maybeGraph(lossMean)
     waypoint(syncWeights)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
     }

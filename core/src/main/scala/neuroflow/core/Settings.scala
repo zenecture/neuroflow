@@ -32,7 +32,7 @@ import scala.collection.{Map, Set}
   */
 case class Settings[V]
                     (verbose           :  Boolean                      =  true,
-                     learningRate      :  LearningRate                 =  { case (i, α) => α },
+                     learningRate      :  LearningRate[V]              =  { case (i, α) => α }: LearningRate[V],
                      updateRule        :  Update[V]                    =  Vanilla[V](),
                      precision         :  Double                       =  1E-3,
                      iterations        :  Int                          =  Int.MaxValue,

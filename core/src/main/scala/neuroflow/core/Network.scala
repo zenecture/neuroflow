@@ -36,13 +36,13 @@ object Network extends Lexicon {
 
 trait Lexicon {
 
-  type Vector[V]     =  DenseVector[V]
-  type Matrix[V]     =  DenseMatrix[V]
-  type Vectors[V]    =  Seq[Vector[V]]
-  type Matrices[V]   =  Seq[Matrix[V]]
-  type Tensors[V]    =  Seq[Tensor3D[V]]
-  type Weights[V]    =  IndexedSeq[Matrix[V]]
-  type LearningRate  =  PartialFunction[(Int, Double), Double]
+  type Vector[V]        =  DenseVector[V]
+  type Matrix[V]        =  DenseMatrix[V]
+  type Vectors[V]       =  Seq[Vector[V]]
+  type Matrices[V]      =  Seq[Matrix[V]]
+  type Tensors[V]       =  Seq[Tensor3D[V]]
+  type Weights[V]       =  IndexedSeq[Matrix[V]]
+  type LearningRate[V]  =  PartialFunction[(Int, V), V]
 
 }
 

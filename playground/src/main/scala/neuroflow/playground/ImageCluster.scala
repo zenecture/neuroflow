@@ -81,8 +81,8 @@ object ImageCluster {
       Settings[Float](
         prettyPrint     = true,
         learningRate    = {
-          case (i, α) if i < 150 => 1E-8
-          case (i, α)            => 1E-9
+          case (i, α) if i < 150 => 1E-8f
+          case (i, α)            => 1E-9f
         },
         updateRule      = Momentum(μ = 0.8f),
         iterations      = Int.MaxValue,

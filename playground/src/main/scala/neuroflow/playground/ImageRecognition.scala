@@ -76,8 +76,8 @@ object ImageRecognition {
       Settings[Float](
         prettyPrint     = true,
         learningRate    = {
-          case (i, α) if i < 4000 => 1E-5
-          case (i, α)             => 1E-6
+          case (i, α) if i < 4000 => 1E-5f
+          case (i, α)             => 1E-6f
         },
         updateRule      = Momentum(μ = 0.8f),
         iterations      = Int.MaxValue,

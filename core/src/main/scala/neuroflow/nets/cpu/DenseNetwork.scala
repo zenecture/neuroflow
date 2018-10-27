@@ -391,7 +391,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
       info(s"Breeding batches ...")
     }
     val xsys = BatchBreeder.breedFFN(xs, ys, batchSize).map { case (xs, ys) => (prepare(xs), ys) }
-    run(xsys, learningRate(1 -> 1.0).toFloat, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0f), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
   private def prepare(x: Matrix): Matrix = {
@@ -440,7 +440,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     maybeGraph(lossMean)
     waypoint(NoOp)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
     }

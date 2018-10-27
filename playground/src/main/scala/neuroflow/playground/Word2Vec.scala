@@ -92,7 +92,7 @@ object Word2Vec {
       Network(
         layout = L,
         Settings[Float](
-          learningRate    = { case (_, _) => 1E-4 },
+          learningRate    = { case (_, _) => 1E-4f },
           updateRule      = Momentum(0.9f),
           iterations      = 10000,
           prettyPrint     = true,

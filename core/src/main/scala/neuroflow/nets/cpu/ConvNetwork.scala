@@ -420,7 +420,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
       info(s"Breeding batches ...")
     }
     val (xsys, batchSizes) = BatchBreeder.breedCNN(xs, ys, batchSize)
-    run(xsys, learningRate(1 -> 1.0).toFloat, batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0f), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
   }
 
 

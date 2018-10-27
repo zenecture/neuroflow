@@ -60,7 +60,7 @@ object DigitRecognition {
     val net = Network(
       layout = L,
       settings = Settings[Float](
-        learningRate = { case (_, _) => 1E-4 },
+        learningRate = { case (_, _) => 1E-4f },
         prettyPrint = true,
         updateRule = Momentum(0.8f),
         precision = 1E-3,
