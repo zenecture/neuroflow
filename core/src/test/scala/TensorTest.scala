@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
   */
 class TensorTest extends FunSuite {
 
-  test("Tensor3D all zerzoes") {
+  test("Tensor3D all zeroes") {
 
     val X = 5
     val Y = 5
