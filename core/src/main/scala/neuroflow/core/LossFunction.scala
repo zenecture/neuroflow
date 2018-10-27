@@ -73,8 +73,9 @@ trait LossFunction[V] extends Layout {
             _addInPl: OpAdd.InPlaceImpl2[CuMatrix[V], CuMatrix[V]]): (CuMatrix[V], CuMatrix[V])
 
   /**
-    * Optional post processing of raw output layer, i. e. transforming raw output values
-    * when evaluating the net. This can be seen as an implicit sink layer.
+    * Optional post processing of last layer when evaluating
+    * the net with this loss function attached. This can be seen
+    * as an implicit sink layer.
     *  */
   def sink(x: DenseMatrix[V])
            (implicit
