@@ -39,8 +39,7 @@ object XOR {
       layout = L,
       settings = Settings[Double](
         learningRate = { case (_, _) => 1.0 },
-        iterations = 100000,
-        lossFuncOutput = Some(LossFuncOutput(Some("/Users/felix/github/unversioned/lossFunc.txt")))
+        iterations = 100000
       )
     )
 
