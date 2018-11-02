@@ -3,8 +3,6 @@ package neuroflow.dsl
 import neuroflow.core._
 import neuroflow.dsl
 
-import scala.annotation.{implicitNotFound, tailrec}
-
 /**
   * @author bogdanski
   * @since 27.01.18
@@ -27,34 +25,41 @@ trait Layout extends Serializable {
 case class ::[+H <: Layer, +T <: Layout](head: H, tail: T) extends Layout
 
 
-trait Extractor[L <: Layout, Target, V] {
 
-  /**
-    * Extracts from [[Layout]] `l` a list
-    * of type `Target` and the loss function.
-    */
-  def apply(l: L): (List[Target], LossFunction[V])
+object Layout {
 
-}
+  implicit class LayoutTraversable(l: Layout) {
 
-object Extractor {
+    def foreach(f: PartialFunction[Layer, Unit]): Unit = trav(l)(f)(noOp)
 
-  implicit def extractor[L <: Layout, T, V]: Extractor[L, T, V] = new Extractor[L, T, V] {
-
-    def apply(l: L): (List[T], LossFunction[V]) = {
-      val buffer = scala.collection.mutable.ListBuffer.empty[T]
-      var loss: LossFunction[V] = null
-      trav(l, head => buffer += head, L => loss = L)
-      (buffer.toList, loss)
+    def map[A](f: PartialFunction[Layer, A]): Seq[A] = {
+      val bldr = Seq.newBuilder[A]
+      trav(l) { case l: Layer => bldr += f(l) } (noOp)
+      bldr.result()
     }
 
-    @tailrec private def trav(l: Layout, f: T => Unit, L: LossFunction[V] => Unit): Unit = l match {
+    def toSeq: Seq[Layer] = {
+      val bldr = Seq.newBuilder[Layer]
+      trav(l) { case l: Layer => bldr += l } (noOp)
+      bldr.result()
+    }
+
+    def toLossFunction[V]: LossFunction[V] = {
+      val bldr = Seq.newBuilder[LossFunction[V]]
+      trav[V](l){ case _ => } (lf => bldr += lf)
+      bldr.result().head
+    }
+
+    private def trav[V](xs: Layout)(f: PartialFunction[Layer, Unit])(g: LossFunction[V] => Unit): Unit = xs match {
       case head :: tail =>
-        f(head.asInstanceOf[T])
-        trav(tail, f, L)
-      case l: LossFunction[V] => L(l)
+        f(head)
+        trav(tail)(f)(g)
+      case l: LossFunction[V] => g(l)
     }
+
+    private val noOp: LossFunction[_] => Unit = { _ => }
 
   }
 
 }
+

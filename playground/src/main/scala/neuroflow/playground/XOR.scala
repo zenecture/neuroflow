@@ -27,7 +27,7 @@ object XOR {
 
      */
 
-    implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 1.0)
+    implicit val weights = WeightBreeder[Double].normal(μ = 0.0, σ = 2.0)
 
     val f = Sigmoid
 
@@ -38,8 +38,14 @@ object XOR {
     val net = Network(
       layout = L,
       settings = Settings[Double](
-        learningRate = { case (_, _) => 1.0 },
-        iterations = 100000
+        updateRule = Vanilla(),
+        batchSize = Some(4),
+        iterations = 100000,
+        learningRate = {
+          case (iter, α) if iter < 128 => 1.0
+          case (_, _)  => 0.5
+        },
+        precision = 1E-4
       )
     )
 

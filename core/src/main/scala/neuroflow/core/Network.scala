@@ -25,9 +25,8 @@ object Network extends Lexicon {
                                      (implicit
                                       weightBreeder: WeightBreeder[V],
                                       constructor: Constructor[V, N],
-                                      evidence: L IsValidLayoutFor N,
-                                      extractor: Extractor[L, Layer, V]): N = {
-    val (layers, loss) = extractor(layout)
+                                      evidence: L IsValidLayoutFor N): N = {
+    val (layers, loss) = (layout.toSeq, layout.toLossFunction[V])
     constructor(layers, loss, settings)
   }
 

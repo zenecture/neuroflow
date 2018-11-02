@@ -8,7 +8,7 @@ import neuroflow.core._
 import neuroflow.dsl.Convolution.autoTupler
 import neuroflow.dsl.Implicits._
 import neuroflow.dsl._
-import neuroflow.nets.gpu.ConvNetwork._
+import neuroflow.nets.cpu.ConvNetwork._
 
 import scala.util.Random
 
@@ -76,20 +76,15 @@ object ConvViz {
     writeLayers(stage = "after")
 
     def writeLayers(stage: String): Unit = {
+      val cs = L.map { case c: Convolution[Float] => Some(c) case _ => None }.flatten.zipWithIndex
       samples.foreach {
         case (id, xs, ys) =>
-          val t0 = (net Ω c0).apply(xs)
-          val t1 = (net Ω c1).apply(xs)
-          val t2 = (net Ω c2).apply(xs)
-          val t3 = (net Ω c3).apply(xs)
-          val i0s = imagesFromTensor3D(t0.double, boost = 1.3)
-          val i1s = imagesFromTensor3D(t1.double, boost = 1.3)
-          val i2s = imagesFromTensor3D(t2.double, boost = 1.3)
-          val i3s = imagesFromTensor3D(t3.double, boost = 1.3)
-          i0s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c0-$idx-$id", PNG) }
-          i1s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c1-$idx-$id", PNG) }
-          i2s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c2-$idx-$id", PNG) }
-          i3s.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/c3-$idx-$id", PNG) }
+          cs.foreach {
+            case (c: Convolution[Float], ci: Int) =>
+              val t = (net focus c).apply(xs)
+              val is = imagesFromTensor3D(t.double, boost = 1.3)
+              is.zipWithIndex.foreach { case (img, idx) => writeImage(img, path + s"/$stage" + s"/$ci-$idx-$id", PNG) }
+          }
       }
     }
 
