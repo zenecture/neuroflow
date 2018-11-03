@@ -53,8 +53,6 @@ class ConvNetworkNumTest  extends Specification {
 
     implicit object weights extends neuroflow.core.WeightBreeder.CNN_Builder[Double]
 
-    import neuroflow.dsl.Extractor.extractor
-
     val dim = (4, 4, 3)
     val out = 2
 
@@ -68,7 +66,7 @@ class ConvNetworkNumTest  extends Specification {
 
     val L = a :: b :: Dense(out, f) :: SquaredError()
 
-    val rand = weights.traverseAndBuild(extractor(L)._1, weights.normalSeed(0.1, 0.01))
+    val rand = weights.traverseAndBuild(L.toSeq, weights.normalSeed(0.1, 0.01))
 
     implicit val breeder = new WeightBreeder[Double] {
       def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
