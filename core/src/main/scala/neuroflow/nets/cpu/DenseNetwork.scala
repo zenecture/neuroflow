@@ -11,6 +11,7 @@ import neuroflow.dsl._
 
 import scala.annotation.tailrec
 import scala.collection.Seq
+import scala.util.Try
 
 
 /**
@@ -122,7 +123,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Vectors, ys: Vectors): Unit = {
+  def train(xs: Vectors, ys: Vectors): Try[Run] = Try {
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
@@ -132,7 +133,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
       info(s"Breeding batches ...")
     }
     val xsys = BatchBreeder.breedFFN(xs, ys, batchSize).map { case (xs, ys) => (prepare(xs), ys) }
-    run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0), precision, batch = 0, batches = xsys.size, iteration = 1, iterations, startTime = System.currentTimeMillis())
   }
 
   private def prepare(x: Matrix): Matrix = {
@@ -149,7 +150,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
     * The training loop.
     */
   @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, precision: Double, batch: Int,
-                           batches: Int, iteration: Int, maxIterations: Int): Unit = {
+                           batches: Int, iteration: Int, maxIterations: Int, startTime: Long): Run = {
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
@@ -159,9 +160,11 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
     maybeGraph(lossMean)
     waypoint(NoOp)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision,
+        (batch + 1) % batches, batches, iteration + 1, maxIterations, startTime)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
+      Run(startTime, System.currentTimeMillis(), iteration)
     }
   }
 
@@ -381,7 +384,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Vectors, ys: Vectors): Unit = {
+  def train(xs: Vectors, ys: Vectors): Try[Run] = Try {
     require(xs.size == ys.size, "Mismatch between sample sizes!")
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
@@ -391,7 +394,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
       info(s"Breeding batches ...")
     }
     val xsys = BatchBreeder.breedFFN(xs, ys, batchSize).map { case (xs, ys) => (prepare(xs), ys) }
-    run(xsys, learningRate(1 -> 1.0f), precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0f), precision, batch = 0, batches = xsys.size, iteration = 1, iterations, startTime = System.currentTimeMillis())
   }
 
   private def prepare(x: Matrix): Matrix = {
@@ -430,7 +433,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     * The training loop.
     */
   @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, precision: Double, batch: Int,
-                           batches: Int, iteration: Int, maxIterations: Int): Unit = {
+                           batches: Int, iteration: Int, maxIterations: Int, startTime: Long): Run = {
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
       if (settings.approximation.isDefined) adaptWeightsApprox(x, y, stepSize)
@@ -440,9 +443,11 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
     maybeGraph(lossMean)
     waypoint(NoOp)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), precision,
+        (batch + 1) % batches, batches, iteration + 1, maxIterations, startTime)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
+      Run(startTime, System.currentTimeMillis(), iteration)
     }
   }
 

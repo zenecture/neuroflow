@@ -3,10 +3,11 @@ package neuroflow.core
 import breeze.linalg.{DenseMatrix, DenseVector}
 import neuroflow.common._
 import neuroflow.core.Network._
-import neuroflow.dsl.{ Vector => _, _ }
+import neuroflow.dsl.{Vector => _, _}
 
 import scala.annotation.implicitNotFound
 import scala.collection._
+import scala.util.Try
 
 /**
   * @author bogdanski
@@ -76,16 +77,16 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
   def apply(in: In): Out
 
   /**
-    * Computes output for given inputs `in`
-    * using efficient batch mode.
-    */
-  def batchApply(xs: Seq[In]): Seq[Out]
-
-  /**
     * Computes output for given input `in`.
     * Alias for `net(x)` syntax.
     */
   def evaluate(in: In): Out = apply(in)
+
+  /**
+    * Computes output for given inputs `in`
+    * using efficient batch mode.
+    */
+  def batchApply(xs: Seq[In]): Seq[Out]
 
   /**
     * A focus (Ω) is used if the desired model output is not the [[neuroflow.dsl.Out]] layer, but a layer `l` in between.
@@ -99,49 +100,45 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
 }
 
 
-/** A minimal constructor for a [[Network]]. */
-@implicitNotFound("No constructor in scope for ${N}. Import your desired network or try: import neuroflow.nets.cpu.DenseNetwork._")
+@implicitNotFound(
+  "No constructor in scope for ${N}. Import your desired network or try: " +
+  "import neuroflow.nets.cpu.DenseNetwork._"
+)
 trait Constructor[V, +N <: Network[_, _, _]] {
   def apply(ls: Seq[Layer], loss: LossFunction[V], settings: Settings[V])(implicit weightBreeder: WeightBreeder[V]): N
 }
 
 
-trait FFN[V] extends Network[V, Vector[V], Vector[V]] {
+trait Training[V, M[_], N[_]] {
 
-  override def checkSettings(): Unit = {
-    if (settings.partitions.isDefined)
-      warn("FFNs don't support partitions. This setting has no effect.")
-  }
+  case class Run(startTime: Long, endTime: Long, iterations: Int)
 
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Vectors[V], ys: Vectors[V]): Unit
+  def train(xs: M[V], ys: N[V]): Try[Run]
 
 }
 
-
-trait CNN[V] extends Network[V, Tensor3D[V], Vector[V]] {
+trait FFN[V] extends Network[V, Vector[V], Vector[V]] with Training[V, Vectors, Vectors] {
 
   override def checkSettings(): Unit = {
     if (settings.partitions.isDefined)
-      warn("CNNs don't support partitions. This setting has no effect.")
+      warn("FFNs don't support partitions. This has no effect.")
   }
 
-  /**
-    * Trains this net with input `xs` against output `ys`.
-    */
-  def train(xs: Tensors[V], ys: Vectors[V]): Unit
+}
+
+
+trait CNN[V] extends Network[V, Tensor3D[V], Vector[V]] with Training[V, Tensors, Vectors] {
+
+  override def checkSettings(): Unit = {
+    if (settings.partitions.isDefined)
+      warn("CNNs don't support partitions. This has no effect.")
+  }
 
 }
 
 
-trait RNN[V] extends Network[V, Vectors[V], Vectors[V]] {
-
-  /**
-    * Takes input `xs` and trains this network against output `ys`.
-    */
-  def train(xs: Vectors[V], ys: Vectors[V]): Unit
-
-}
+trait RNN[V] extends Network[V, Vectors[V], Vectors[V]] with Training[V, Vectors, Vectors]
 

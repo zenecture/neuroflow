@@ -15,6 +15,7 @@ import neuroflow.dsl._
 
 import scala.annotation.tailrec
 import scala.collection._
+import scala.util.Try
 
 
 /**
@@ -104,21 +105,21 @@ case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Vectors, ys: Vectors): Unit = {
+  def train(xs: Vectors, ys: Vectors): Try[Run] = Try {
     import settings._
     val in = xs.map(x => x.asDenseMatrix).toArray
     val out = ys.map(y => y.asDenseMatrix).toArray
     noTargets = ys.zipWithIndex.filter { case (vec, idx) => vec.forall(_ == Double.PositiveInfinity) }.map(_._2).toSet
     xIndices = in.map(identityHashCode).zipWithIndex.toMap
     yIndices = out.map(identityHashCode).zipWithIndex.toMap
-    run(in, out, learningRate(1 -> 1.0), precision, 0, iterations)
+    run(in, out, learningRate(1 -> 1.0), precision, 0, iterations, startTime = System.currentTimeMillis())
   }
 
   /**
     * The eval loop.
     */
   @tailrec private def run(xs: Matrices, ys: Matrices, stepSize: Double, precision: Double,
-                           iteration: Int, maxIterations: Int): Unit = {
+                           iteration: Int, maxIterations: Int, startTime: Long): Run = {
     val error = lossFunction(xs, ys)
     val errorMean = mean(error)
     if (errorMean > precision && iteration < maxIterations) {
@@ -127,11 +128,12 @@ case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
       adaptWeights(xs, ys, stepSize)
       keepBest(errorMean)
       waypoint(NoOp)(iteration)
-      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations)
+      run(xs, ys, settings.learningRate(iteration + 1 -> stepSize), precision, iteration + 1, maxIterations, startTime)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
       takeBest()
       reset() // finally reset one more time
+      Run(startTime, System.currentTimeMillis(), iteration)
     }
   }
 

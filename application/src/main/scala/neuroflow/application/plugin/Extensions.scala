@@ -7,6 +7,7 @@ import neuroflow.application.processor.Image.TensorRGB
 import neuroflow.core.Tensor3D
 
 import scala.reflect.ClassTag
+import scala.util.Try
 
 
 /**
@@ -102,6 +103,8 @@ object Extensions {
       new TensorRGB(t.matrix.cols / t.Y, t.Y, t.matrix)
     }
   }
+
+
 
 }
 

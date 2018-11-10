@@ -11,6 +11,7 @@ import neuroflow.dsl._
 import scala.annotation.tailrec
 import scala.collection.Seq
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 /**
   *
@@ -120,7 +121,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Tensors, ys: Vectors): Unit = {
+  def train(xs: Tensors, ys: Vectors): Try[Run] = Try {
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
     require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
@@ -130,7 +131,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
       info(s"Breeding batches ...")
     }
     val (xsys, batchSizes) = BatchBreeder.breedCNN(xs, ys, batchSize)
-    run(xsys, learningRate(1 -> 1.0), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations, startTime = System.currentTimeMillis())
   }
 
 
@@ -176,7 +177,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     * The training loop.
     */
   @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Double, batchSizes: Map[Int, Int], precision: Double,
-                           batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
+                           batch: Int, batches: Int, iteration: Int, maxIterations: Int, startTime: Long): Run = {
     val batchSize = batchSizes(batch)
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
@@ -188,9 +189,10 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
     waypoint(NoOp)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
       run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSizes,
-        precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+        precision, (batch + 1) % batches, batches, iteration + 1, maxIterations, startTime)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
+      Run(startTime, System.currentTimeMillis(), iteration)
     }
   }
 
@@ -410,7 +412,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
   /**
     * Trains this net with input `xs` against output `ys`.
     */
-  def train(xs: Tensors, ys: Vectors): Unit = {
+  def train(xs: Tensors, ys: Vectors): Try[Run] = Try {
     import settings._
     val batchSize = settings.batchSize.getOrElse(xs.size)
     require(xs.size == ys.size, s"Mismatch between sample sizes. (${xs.size} != ${ys.size})")
@@ -420,7 +422,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
       info(s"Breeding batches ...")
     }
     val (xsys, batchSizes) = BatchBreeder.breedCNN(xs, ys, batchSize)
-    run(xsys, learningRate(1 -> 1.0f), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations)
+    run(xsys, learningRate(1 -> 1.0f), batchSizes, precision, batch = 0, batches = xsys.size, iteration = 1, iterations, startTime = System.currentTimeMillis())
   }
 
 
@@ -466,7 +468,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     * The training loop.
     */
   @tailrec private def run(xsys: Seq[(Matrix, Matrix)], stepSize: Float, batchSizes: Map[Int, Int], precision: Double,
-                           batch: Int, batches: Int, iteration: Int, maxIterations: Int): Unit = {
+                           batch: Int, batches: Int, iteration: Int, maxIterations: Int, startTime: Long): Run = {
     val batchSize = batchSizes(batch)
     val (x, y) = (xsys(batch)._1, xsys(batch)._2)
     val loss =
@@ -477,10 +479,11 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
     maybeGraph(lossMean)
     waypoint(NoOp)(iteration)
     if (lossMean > precision && iteration < maxIterations) {
-      run(xsys, settings.learningRate(iteration + 1 -> stepSize).toFloat, batchSizes,
-        precision, (batch + 1) % batches, batches, iteration + 1, maxIterations)
+      run(xsys, settings.learningRate(iteration + 1 -> stepSize), batchSizes,
+        precision, (batch + 1) % batches, batches, iteration + 1, maxIterations, startTime)
     } else {
       info(f"Took $iteration of $maxIterations iterations.")
+      Run(startTime, System.currentTimeMillis(), iteration)
     }
   }
 
