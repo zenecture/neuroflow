@@ -42,7 +42,7 @@ class DenseNetworkNumTest extends Specification {
 
   def check[Net <: FFN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
-    implicit object weights extends neuroflow.core.WeightBreeder.FFN_Builder[Double]
+    implicit object weights extends neuroflow.core.WeightBreeder.Breeder[Double]
 
     val f = ReLU
 

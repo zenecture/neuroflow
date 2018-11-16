@@ -45,7 +45,7 @@ object DigitRecognition {
       }
     }
 
-    val config = (1 to 3).map(_ -> (0.0, 0.01)) :+ 4 -> (0.0, 0.1)
+    val config = (1 to 3).map(_ -> (0.0f, 0.01f)) :+ 4 -> (0.0f, 0.1f)
     implicit val weights = WeightBreeder[Float].normal(config.toMap)
 
     val (f, g) = (ReLU.biased(0.1f), ReLU.biased(1.0f))

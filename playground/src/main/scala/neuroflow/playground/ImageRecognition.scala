@@ -60,13 +60,13 @@ object ImageRecognition {
 
     val L = c0 :: c1 :: c2 :: c3 :: c4 :: c5 :: c6 :: c7 :: c8 :: Dense(10, f) :: SoftmaxLogEntropy()
 
-    val μ = 0.0
+    val μ = 0.0f
 
     implicit val weights = WeightBreeder[Float].normal(Map(
-      0 -> (μ, 0.1),  1 -> (μ, 0.1), 2 -> (μ, 0.1),
-      3 -> (μ, 0.01), 4 -> (μ, 0.1), 5 -> (μ, 0.01),
-      6 -> (μ, 0.01), 7 -> (μ, 0.1), 8 -> (μ, 1.0),
-      9 -> (0.01, 0.01)
+      0 -> (μ, 0.1f),  1 -> (μ, 0.1f), 2 -> (μ, 0.1f),
+      3 -> (μ, 0.01f), 4 -> (μ, 0.1f), 5 -> (μ, 0.01f),
+      6 -> (μ, 0.01f), 7 -> (μ, 0.1f), 8 -> (μ, 1.0f),
+      9 -> (0.01f, 0.01f)
     ))
 
 //    implicit val weights = neuroflow.application.plugin.IO.File.weightBreeder[Float](wps + "-iter-1000.nf")

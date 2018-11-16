@@ -31,7 +31,7 @@ object ConvNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.CNN_Builder[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.Breeder[Double]
 
 
   implicit object single extends Constructor[Float, ConvNetworkFloat] {
@@ -40,7 +40,7 @@ object ConvNetwork {
     }
   }
 
-  implicit object weights_float extends neuroflow.core.WeightBreeder.CNN_Builder[Float]
+  implicit object weights_float extends neuroflow.core.WeightBreeder.Breeder[Float]
 
 }
 

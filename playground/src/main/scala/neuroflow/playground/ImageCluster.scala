@@ -71,9 +71,9 @@ object ImageCluster {
 
     val L = in :: cl :: id :: SquaredError()
 
-    val μ = 0.0
+    val μ = 0.0f
 
-    implicit val weights = WeightBreeder[Float].normal(μ, 0.001)
+    implicit val weights = WeightBreeder[Float].normal(μ, 0.001f)
 //    implicit val weights = IO.File.weightBreeder[Float](wps + "-iter-6400.nf")
 
     val net = Network(

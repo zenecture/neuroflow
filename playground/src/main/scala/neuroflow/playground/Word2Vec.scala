@@ -46,7 +46,7 @@ object Word2Vec {
     val output = "/Users/felix/github/unversioned/word2vec.txt"
     val wps = "/Users/felix/github/unversioned/word2vecWp.nf"
 
-    implicit val weights = WeightBreeder[Float].normal(Map(1 -> (0.0, 0.2), 2 -> (0.0, 0.01)))
+    implicit val weights = WeightBreeder[Float].normal(Map(1 -> (0.0f, 0.2f), 2 -> (0.0f, 0.01f)))
 //    implicit val weights = IO.File.weightBreeder[Float](wps)
 
     val corpus = Source.fromFile(getResourceFile("file/newsgroup/reduced.txt")).mkString.split(" ").map(_ -> 1)

@@ -51,10 +51,10 @@ object ConvViz {
 
     val L = c0 :: c1 :: c2 :: c3 :: Dense(2, f) :: SoftmaxLogEntropy()
 
-    val μ = 0
+    val μ = 0f
 
     implicit val weights = WeightBreeder[Float].normal(Map(
-      0 -> (μ, 0.1),  1 -> (μ, 1), 2 -> (μ, 0.1), 3 -> (μ, 1), 4 -> (1E-4, 1E-4)
+      0 -> (μ, 0.1f),  1 -> (μ, 1f), 2 -> (μ, 0.1f), 3 -> (μ, 1f), 4 -> (1E-4f, 1E-4f)
     ))
 
     val net = Network(
