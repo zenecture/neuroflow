@@ -31,10 +31,6 @@ object WeightBreeder {
     */
   def apply[V](implicit breeder: Breeder[V]): Breeder[V] = breeder
 
-  implicit object breeder_double extends Breeder[Double]
-  implicit object breeder_float extends Breeder[Float]
-
-
 
   trait Breeder[V] extends BaseOps[V] {
 
