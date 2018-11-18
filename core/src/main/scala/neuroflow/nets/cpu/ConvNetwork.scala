@@ -2,7 +2,6 @@ package neuroflow.nets.cpu
 
 import breeze.linalg._
 import breeze.stats._
-import neuroflow.core
 import neuroflow.core.Network._
 import neuroflow.core.WaypointLogic.NoOp
 import neuroflow.core.{CanProduce, _}
@@ -31,7 +30,7 @@ object ConvNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.Breeder[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.Initializer[Double]
 
 
   implicit object single extends Constructor[Float, ConvNetworkFloat] {
@@ -40,7 +39,7 @@ object ConvNetwork {
     }
   }
 
-  implicit object weights_float extends neuroflow.core.WeightBreeder.Breeder[Float]
+  implicit object weights_float extends neuroflow.core.WeightBreeder.Initializer[Float]
 
 }
 

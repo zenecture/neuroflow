@@ -34,7 +34,7 @@ object DenseNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.Breeder[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.Initializer[Double]
 
 
   implicit object float extends Constructor[Float, DenseNetworkFloat] {
@@ -43,7 +43,7 @@ object DenseNetwork {
     }
   }
 
-  implicit object weights_float extends neuroflow.core.WeightBreeder.Breeder[Float]
+  implicit object weights_float extends neuroflow.core.WeightBreeder.Initializer[Float]
 
 }
 

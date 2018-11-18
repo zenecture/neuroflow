@@ -46,7 +46,7 @@ object LSTMNetwork {
     }
   }
 
-  implicit object weights_double extends neuroflow.core.WeightBreeder.RNN_Breeder[Double]
+  implicit object weights_double extends neuroflow.core.WeightBreeder.RNN_Initializer[Double]
 
 }
 

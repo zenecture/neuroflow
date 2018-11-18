@@ -27,12 +27,12 @@ trait WeightBreeder[V] extends (Seq[Layer] => Weights[V])
 object WeightBreeder {
 
   /**
-    * Constructs `breeder` in scope.
+    * Gives `init` in scope to construct a `WeightBreeder`.
     */
-  def apply[V](implicit breeder: Breeder[V]): Breeder[V] = breeder
+  def apply[V](implicit init: Initializer[V]): Initializer[V] = init
 
 
-  trait Breeder[V] extends BaseOps[V] {
+  trait Initializer[V] extends BaseOps[V] {
 
     /**
       * Weights drawn from normal distribution with parameters `μ` and `σ`.
@@ -144,7 +144,7 @@ object WeightBreeder {
 
 
 
-  trait RNN_Breeder[V] extends Breeder[V] {
+  trait RNN_Initializer[V] extends Initializer[V] {
 
 
     /**

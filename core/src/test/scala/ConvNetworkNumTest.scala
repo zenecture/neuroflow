@@ -51,7 +51,7 @@ class ConvNetworkNumTest  extends Specification {
 
   def check[Net <: CNN[Double]]()(implicit net: Constructor[Double, Net]) = {
 
-    implicit object weights extends neuroflow.core.WeightBreeder.Breeder[Double]
+    implicit object weights extends neuroflow.core.WeightBreeder.Initializer[Double]
 
     val dim = (4, 4, 3)
     val out = 2
