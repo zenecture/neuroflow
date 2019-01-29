@@ -53,10 +53,10 @@ class DenseNetworkNumTest extends Specification {
          Dense  (7, f)   ::
          Dense  (2, f)   ::  SquaredError()
 
-    val rand = weights.traverseAndBuild(L.toSeq, weights.normalSeed(1.0, 0.1))
+    val rand = weights.traverseAndBuild(L.toSeq[Double], weights.normalSeed(1.0, 0.1))
 
     implicit val breeder = new WeightBreeder[Double] {
-      def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
+      def apply(layers: Seq[Layer[Double]]): Weights[Double] = rand.map(_.copy)
     }
 
     val debuggableA = Debuggable[Double]()

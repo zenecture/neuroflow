@@ -66,10 +66,10 @@ class ConvNetworkNumTest  extends Specification {
 
     val L = a :: b :: Dense(out, f) :: SquaredError()
 
-    val rand = weights.traverseAndBuild(L.toSeq, weights.normalSeed(0.1, 0.01))
+    val rand = weights.traverseAndBuild(L.toSeq[Double], weights.normalSeed(0.1, 0.01))
 
     implicit val breeder = new WeightBreeder[Double] {
-      def apply(layers: Seq[Layer]): Weights[Double] = rand.map(_.copy)
+      def apply(layers: Seq[Layer[Double]]): Weights[Double] = rand.map(_.copy)
     }
 
     val settings = Settings[Double](

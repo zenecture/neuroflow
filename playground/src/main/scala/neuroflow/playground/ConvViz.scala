@@ -76,7 +76,7 @@ object ConvViz {
     writeLayers(stage = "after")
 
     def writeLayers(stage: String): Unit = {
-      val cs = L.map { case c: Convolution[Float] => Some(c) case _ => None }.flatten.zipWithIndex
+      val cs = L.map[Option[Layer[Float]], Float] { case c: Convolution[Float] => Some(c) case _ => None }.flatten.zipWithIndex
       samples.foreach {
         case (id, xs, ys) =>
           cs.foreach {

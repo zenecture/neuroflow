@@ -17,12 +17,12 @@ import neuroflow.dsl
 trait Layout extends Serializable {
 
   /** Prepends this layout with a new layer `head`. */
-  def ::[H <: Layer](head: H): H :: this.type = dsl.::(head, tail = this)
+  def ::[H <: Layer[_]](head: H): H :: this.type = dsl.::(head, tail = this)
 
 }
 
 
-case class ::[+H <: Layer, +T <: Layout](head: H, tail: T) extends Layout
+case class ::[+H <: Layer[_], +T <: Layout](head: H, tail: T) extends Layout
 
 
 
@@ -30,17 +30,17 @@ object Layout {
 
   implicit class LayoutTraversable(l: Layout) {
 
-    def foreach(f: PartialFunction[Layer, Unit]): Unit = trav(l)(f)(noOp)
+    def foreach[V](f: PartialFunction[Layer[V], Unit]): Unit = trav(l)(f)(noOp)
 
-    def map[A](f: PartialFunction[Layer, A]): Seq[A] = {
+    def map[A, V](f: PartialFunction[Layer[V], A]): Seq[A] = {
       val bldr = Seq.newBuilder[A]
-      trav(l) { case l: Layer => bldr += f(l) } (noOp)
+      trav[V](l) { case l: Layer[V] => bldr += f(l) } (noOp)
       bldr.result()
     }
 
-    def toSeq: Seq[Layer] = {
-      val bldr = Seq.newBuilder[Layer]
-      trav(l) { case l: Layer => bldr += l } (noOp)
+    def toSeq[V]: Seq[Layer[V]] = {
+      val bldr = Seq.newBuilder[Layer[V]]
+      trav[V](l) { case l: Layer[V] => bldr += l } (noOp)
       bldr.result()
     }
 
@@ -50,8 +50,8 @@ object Layout {
       bldr.result().head
     }
 
-    private def trav[V](xs: Layout)(f: PartialFunction[Layer, Unit])(g: LossFunction[V] => Unit): Unit = xs match {
-      case head :: tail =>
+    private def trav[V](xs: Layout)(f: PartialFunction[Layer[V], Unit])(g: LossFunction[V] => Unit): Unit = xs match {
+      case (head: Layer[V]) :: tail =>
         f(head)
         trav(tail)(f)(g)
       case l: LossFunction[V] => g(l)

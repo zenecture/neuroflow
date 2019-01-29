@@ -27,7 +27,7 @@ import scala.util.Try
 object DenseNetwork {
 
   implicit object double extends Constructor[Double, DenseNetworkDouble] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): DenseNetworkDouble = {
+    def apply(ls: Seq[Layer[Double]], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): DenseNetworkDouble = {
       DenseNetworkDouble(ls, loss, settings, breeder(ls))
     }
   }
@@ -36,7 +36,7 @@ object DenseNetwork {
 
 
   implicit object float extends Constructor[Float, DenseNetworkFloat] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): DenseNetworkFloat = {
+    def apply(ls: Seq[Layer[Float]], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): DenseNetworkFloat = {
       DenseNetworkFloat(ls, loss, settings, breeder(ls))
     }
   }
@@ -47,7 +47,7 @@ object DenseNetwork {
 
 //<editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class DenseNetworkDouble(layers: Seq[Layer[Double]], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                             identifier: String = "neuroflow.nets.cpu.DenseNetwork", numericPrecision: String = "Double")
   extends FFN[Double] with WaypointLogic[Double] {
 
@@ -101,7 +101,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
   /**
     * `apply` under a focused layer.
     */
-  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
+  def focus[L <: Layer[Double]](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
     val lwi = layers.zipWithIndex
     val idx = lwi.find(_._1 eq l).orElse {
       val p = lwi.filter(_._1 == l)
@@ -308,7 +308,7 @@ case class DenseNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Dou
 
 //<editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
-case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
+case class DenseNetworkFloat(layers: Seq[Layer[Float]], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
                                            identifier: String = "neuroflow.nets.cpu.DenseNetwork", numericPrecision: String = "Single")
   extends FFN[Float] with WaypointLogic[Float] {
 
@@ -362,7 +362,7 @@ case class DenseNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Floa
   /**
     * `apply` under a focused layer.
     */
-  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
+  def focus[L <: Layer[Float]](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Vector => l.algebraicType = {
     val lwi = layers.zipWithIndex
     val idx = lwi.find(_._1 eq l).orElse {
       val p = lwi.filter(_._1 == l)

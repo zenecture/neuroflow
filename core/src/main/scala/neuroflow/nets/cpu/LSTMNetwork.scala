@@ -41,7 +41,7 @@ import scala.util.Try
 object LSTMNetwork {
 
   implicit object double extends Constructor[Double, LSTMNetworkDouble] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): LSTMNetworkDouble = {
+    def apply(ls: Seq[Layer[Double]], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): LSTMNetworkDouble = {
       LSTMNetworkDouble(ls, SquaredError(), settings, breeder(ls))
     }
   }
@@ -51,12 +51,12 @@ object LSTMNetwork {
 }
 
 
-case class LSTMNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class LSTMNetworkDouble(layers: Seq[Layer[Double]], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                      identifier: String = "neuroflow.nets.cpu.LSTMNetwork", numericPrecision: String = "Double")
   extends RNN[Double] with KeepBestLogic[Double] with WaypointLogic[Double] {
 
 
-  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(core.Network.Matrix[Double], L), l.algebraicType]): core.Network.Vectors[Double] => l.algebraicType = ???
+  def focus[L <: Layer[Double]](l: L)(implicit cp: CanProduce[(core.Network.Matrix[Double], L), l.algebraicType]): core.Network.Vectors[Double] => l.algebraicType = ???
 
   type Vector   = DenseVector[Double]
   type Matrix   = DenseMatrix[Double]

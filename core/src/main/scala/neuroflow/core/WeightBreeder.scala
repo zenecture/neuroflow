@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
 @implicitNotFound(
   "\nNo `WeightBreeder` in scope for type ${V}. Example to add a random " +
     "breeder:\nimplicit val breeder = neuroflow.core.WeightBreeder[${V}].random(0, 1)")
-trait WeightBreeder[V] extends (Seq[Layer] => Weights[V])
+trait WeightBreeder[V] extends (Seq[Layer[V]] => Weights[V])
 
 object WeightBreeder {
 
@@ -39,7 +39,7 @@ object WeightBreeder {
       */
     def normal[N <: Network[V, _, _]](μ: V, σ: V)(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: Double CanProduce V, cp_vd: V CanProduce Double): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, normalSeed(μ, σ))
+        def apply(layers: Seq[Layer[V]]): Weights = traverseAndBuild(layers, normalSeed(μ, σ))
       }
 
     /**
@@ -50,7 +50,7 @@ object WeightBreeder {
       */
     def normal[N <: Network[V, _, _]](config: Map[Int, (V, V)])(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: Double CanProduce V, cp_vd: V CanProduce Double): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, config.mapValues { case (μ, σ) => normalSeed(μ, σ) })
+        def apply(layers: Seq[Layer[V]]): Weights = traverseAndBuild(layers, config.mapValues { case (μ, σ) => normalSeed(μ, σ) })
       }
 
     /**
@@ -58,7 +58,7 @@ object WeightBreeder {
       */
     def random[N <: Network[V, _, _]](r: (V, V))(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: Double CanProduce V, cp_vd: V CanProduce Double): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, randomSeed(r))
+        def apply(layers: Seq[Layer[V]]): Weights = traverseAndBuild(layers, randomSeed(r))
       }
 
     /**
@@ -69,7 +69,7 @@ object WeightBreeder {
       */
     def random[N <: Network[V, _, _]](config: Map[Int, (V, V)])(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: Double CanProduce V, cp_vd: V CanProduce Double): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, config.mapValues { r => randomSeed(r) } )
+        def apply(layers: Seq[Layer[V]]): Weights = traverseAndBuild(layers, config.mapValues { r => randomSeed(r) } )
       }
 
     /**
@@ -77,7 +77,7 @@ object WeightBreeder {
       */
     def static[N <: Network[V, _, _]](seed: V)(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: Double CanProduce V, cp_vd: V CanProduce Double): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, () => seed)
+        def apply(layers: Seq[Layer[V]]): Weights = traverseAndBuild(layers, () => seed)
       }
 
     /**
@@ -87,7 +87,7 @@ object WeightBreeder {
       */
     def static[N <: Network[V, _, _]](config: Map[Int, V])(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: Double CanProduce V, cp_vd: V CanProduce Double): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = traverseAndBuild(layers, config.mapValues(seed => () => seed))
+        def apply(layers: Seq[Layer[V]]): Weights = traverseAndBuild(layers, config.mapValues(seed => () => seed))
       }
 
   }
@@ -98,14 +98,14 @@ object WeightBreeder {
 
     type Weights = Network.Weights[V]
 
-    def traverseAndBuild(layers: Seq[Layer], seed: () => V)(implicit ct: ClassTag[V], z: Zero[V]): Weights = {
+    def traverseAndBuild(layers: Seq[Layer[V]], seed: () => V)(implicit ct: ClassTag[V], z: Zero[V]): Weights = {
       val m = layers.indices.map((_, seed)).toMap
       traverseAndBuild(layers, m)
     }
 
-    def traverseAndBuild(layers: Seq[Layer], seed: Map[Int, () => V])(implicit ct: ClassTag[V], z: Zero[V]): Weights = {
+    def traverseAndBuild(layers: Seq[Layer[V]], seed: Map[Int, () => V])(implicit ct: ClassTag[V], z: Zero[V]): Weights = {
 
-      def build(l: Layer, idx: Int): Option[DenseMatrix[V]] = l match {
+      def build(l: Layer[V], idx: Int): Option[DenseMatrix[V]] = l match {
 
         case v: Vector[_]      =>
           if (seed.isDefinedAt(idx))
@@ -152,7 +152,7 @@ object WeightBreeder {
       */
     override def random[N <: Network[V, _, _]](r: (V, V))(implicit ct: ClassTag[V], zero: Zero[V], cp_dv: CanProduce[Double, V], cp_vd: CanProduce[V, Double]): WeightBreeder[V] =
       new WeightBreeder[V] {
-        def apply(layers: Seq[Layer]): Weights = {
+        def apply(layers: Seq[Layer[V]]): Weights = {
           val fc = traverseAndBuild(layers, layers.indices.map((_, randomSeed(r))).toMap)
           fc ++ recurrentEnrichment(layers, fc, layers.indices.map((_, randomSeed(r))).toMap)
         }
@@ -161,7 +161,7 @@ object WeightBreeder {
     /**
       * Enriches the given `layers` and their `weights` with recurrent LSTM connections.
       */
-    private def recurrentEnrichment(layers: Seq[Layer], weights: Weights, seed: Map[Int, () => V])(implicit ct: ClassTag[V], z: Zero[V]): Seq[DenseMatrix[V]] =
+    private def recurrentEnrichment(layers: Seq[Layer[V]], weights: Weights, seed: Map[Int, () => V])(implicit ct: ClassTag[V], z: Zero[V]): Seq[DenseMatrix[V]] =
       weights.dropRight(1).zipWithIndex.flatMap {
         case (ws, index) =>
           val ns = layers(index + 1).neurons

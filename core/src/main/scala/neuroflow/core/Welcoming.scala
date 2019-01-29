@@ -42,7 +42,7 @@ trait Welcoming { self: Network[_, _, _] =>
       |
     """.stripMargin
 
-  private def buildString(l: Layer): String =
+  private def buildString(l: Layer[_]): String =
     l match {
       case c:  Convolution[_]         => s"${c.dimInPadded._1}*${c.dimInPadded._2}*${c.dimInPadded._3} ~> [${c.field._1}*${c.field._2} : ${c.stride._1}*${c.stride._2}] ~> ${c.dimOut._1}*${c.dimOut._2}*${c.dimOut._3} (${c.activator.symbol})"
       case h: HasActivator[_]         => s"${h.neurons} ${l.symbol} (${h.activator.symbol})"
@@ -60,7 +60,7 @@ trait Welcoming { self: Network[_, _, _] =>
 
     val max = layers.map {
       case c: Convolution[_] => math.max(math.max(c.dimInPadded._1, c.dimInPadded._2), math.max(c.dimOut._1, c.dimOut._2))
-      case l: Layer          => l.neurons
+      case l: Layer[_]       => l.neurons
     }.max
 
     val f = if (max > 10) 10.0 / max.toDouble else 1.0
@@ -70,13 +70,13 @@ trait Welcoming { self: Network[_, _, _] =>
 //                                                  c.copy(dimIn = c.dimInPadded, field = (1, 1), stride = (1, 1)),
                                                   c.copy(dimIn = c.dimOut, field = (1, 1), stride = (1, 1))
                                                 )
-      case (l: Layer, _)                     => Seq(l)
+      case (l: Layer[_], _)                     => Seq(l)
     }.flatMap {
       case Convolution(dimIn, _, _, _, _, _) =>
         val m = (1 to math.ceil(dimIn._1.toDouble * f).toInt).map { _ => (dimIn._2, true, true) }
         val s = m.dropRight(1) :+ (m.last._1, m.last._2, false)
         s
-      case l: Layer => Seq((l.neurons, false, false))
+      case l: Layer[_] => Seq((l.neurons, false, false))
     }
 
     val center = math.ceil(((max * f) - 1.0) / 2.0)

@@ -27,7 +27,7 @@ object Network extends Lexicon {
                                       weightBreeder: WeightBreeder[V],
                                       constructor: Constructor[V, N],
                                       evidence: L IsValidLayoutFor N): N = {
-    val (layers, loss) = (layout.toSeq, layout.toLossFunction[V])
+    val (layers, loss) = (layout.toSeq[V], layout.toLossFunction[V])
     constructor(layers, loss, settings)
   }
 
@@ -59,7 +59,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
   val numericPrecision: String
 
   /** Layers of this neural network. */
-  val layers: Seq[Layer]
+  val layers: Seq[Layer[V]]
 
   /** The attached loss function. */
   val lossFunction: LossFunction[V]
@@ -92,8 +92,8 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
     * A focus (Ω) is used if the desired model output is not the [[neuroflow.dsl.Out]] layer, but a layer `l` in between.
     * The result is reshaped from the underworlds raw matrix to the layers `algebraicType`.
     */
-  def focus[L <: Layer](l: L)(implicit cp: (Matrix[V], L) CanProduce l.algebraicType): In => l.algebraicType
-  def Ω[L <: Layer](l: L)(implicit cp: (Matrix[V], L) CanProduce l.algebraicType): In => l.algebraicType = focus(l)
+  def focus[L <: Layer[V]](l: L)(implicit cp: (Matrix[V], L) CanProduce l.algebraicType): In => l.algebraicType
+  def Ω[L <: Layer[V]](l: L)(implicit cp: (Matrix[V], L) CanProduce l.algebraicType): In => l.algebraicType = focus(l)
 
   override def toString: String = weights.foldLeft("")(_ + "\n---\n" + _)
 
@@ -105,7 +105,7 @@ trait Network[V, In, Out] extends (In => Out) with Logs with LossFuncGrapher wit
   "import neuroflow.nets.cpu.DenseNetwork._"
 )
 trait Constructor[V, +N <: Network[_, _, _]] {
-  def apply(ls: Seq[Layer], loss: LossFunction[V], settings: Settings[V])(implicit weightBreeder: WeightBreeder[V]): N
+  def apply(ls: Seq[Layer[V]], loss: LossFunction[V], settings: Settings[V])(implicit weightBreeder: WeightBreeder[V]): N
 }
 
 

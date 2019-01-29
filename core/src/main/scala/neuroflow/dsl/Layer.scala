@@ -9,7 +9,7 @@ import neuroflow.core.{Activator, Tensor3D}
   */
 
 
-sealed trait Layer extends Serializable {
+sealed trait Layer[V] extends Serializable {
 
   /**
     * Algebraic representation
@@ -48,7 +48,7 @@ trait HasActivator[V] {
   * Input vector for a dense net, with `neurons` in this layer.
   * Optionally, an `activator` can be applied element wise.
   */
-case class Vector[V](dimension: Int, activator: Option[Activator[V]] = None) extends Layer with In {
+case class Vector[V](dimension: Int, activator: Option[Activator[V]] = None) extends Layer[V] with In {
   type algebraicType = DenseVector[V]
   val symbol: String = "Vector"
   val neurons: Int = dimension
@@ -60,7 +60,7 @@ case class Vector[V](dimension: Int, activator: Option[Activator[V]] = None) ext
   * A dense layer is fully connected, with `neurons` in this layer.
   * The `activator` function gets applied on the output element wise.
   */
-case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer with Out with HasActivator[V] {
+case class Dense[V](neurons: Int, activator: Activator[V]) extends Layer[V] with Out with HasActivator[V] {
   type algebraicType = DenseVector[V]
   val symbol: String = "Dense"
 }
@@ -85,7 +85,7 @@ case class Convolution[V](dimIn      :  (Int, Int, Int),
                           field      :  (Int, Int),
                           stride     :  (Int, Int),
                           filters    :   Int,
-                          activator  :   Activator[V]) extends Layer with HasActivator[V] with In {
+                          activator  :   Activator[V]) extends Layer[V] with HasActivator[V] with In {
 
   type algebraicType = Tensor3D[V]
 

@@ -34,7 +34,7 @@ trait StartsWith[L <: Layout, +Predicate]
 
 object StartsWith {
 
-  implicit def startsWith[H <: Layer, L <: Layout, H0 <: Layer]
+  implicit def startsWith[H <: Layer[_], L <: Layout, H0 <: Layer[_]]
     (implicit eq: H =:= H0): StartsWith[H :: L, H0] = new StartsWith[H :: L, H0] { }
 
 }
@@ -45,12 +45,12 @@ trait EndsWith[L <: Layout, +Predicate]
 
 object EndsWith {
 
-  implicit def habs[P <: Layer, V]: (P :: AbsCubicError[V]) EndsWith P = new ((P :: AbsCubicError[V]) EndsWith P) { }
-  implicit def hsme[P <: Layer, V]: (P :: SquaredError[V]) EndsWith P = new ((P :: SquaredError[V]) EndsWith P) { }
-  implicit def hsmx[P <: Layer, V]: (P :: SoftmaxLogEntropy[V]) EndsWith P = new ((P :: SoftmaxLogEntropy[V]) EndsWith P) { }
-  implicit def hsmxM[P <: Layer, V]: (P :: SoftmaxLogMultEntropy[V]) EndsWith P = new ((P :: SoftmaxLogMultEntropy[V]) EndsWith P) { }
+  implicit def habs[P <: Layer[_], V]: (P :: AbsCubicError[V]) EndsWith P = new ((P :: AbsCubicError[V]) EndsWith P) { }
+  implicit def hsme[P <: Layer[_], V]: (P :: SquaredError[V]) EndsWith P = new ((P :: SquaredError[V]) EndsWith P) { }
+  implicit def hsmx[P <: Layer[_], V]: (P :: SoftmaxLogEntropy[V]) EndsWith P = new ((P :: SoftmaxLogEntropy[V]) EndsWith P) { }
+  implicit def hsmxM[P <: Layer[_], V]: (P :: SoftmaxLogMultEntropy[V]) EndsWith P = new ((P :: SoftmaxLogMultEntropy[V]) EndsWith P) { }
 
-  implicit def hlist[H <: Layer, P <: Layer, L <: Layout]
+  implicit def hlist[H <: Layer[_], P <: Layer[_], L <: Layout]
     (implicit e: L EndsWith P): (H :: L) EndsWith P = new ((H :: L) EndsWith P) { }
 
 }

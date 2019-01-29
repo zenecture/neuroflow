@@ -30,7 +30,7 @@ object IO extends Logs {
       * Deserializes weights from `json` to construct a `WeightBreeder`.
       */
     def weightBreeder[V](json: String)(implicit cp: String CanProduce Weights[V]): WeightBreeder[V] = new WeightBreeder[V] {
-      def apply(ls: Seq[Layer]): Network.Weights[V] = cp(json)
+      def apply(ls: Seq[Layer[V]]): Network.Weights[V] = cp(json)
     }
 
     /**
@@ -51,7 +51,7 @@ object IO extends Logs {
       val out = ois.readObject().asInstanceOf[Array[RawMatrix[V]]]
       ois.close()
       new WeightBreeder[V] {
-        def apply(ls: Seq[Layer]): Network.Weights[V] = out.map(_.toDenseMatrix)
+        def apply(ls: Seq[Layer[V]]): Network.Weights[V] = out.map(_.toDenseMatrix)
       }
     }
 

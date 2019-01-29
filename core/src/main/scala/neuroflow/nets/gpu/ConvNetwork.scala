@@ -28,7 +28,7 @@ import scala.util.Try
 object ConvNetwork {
 
   implicit object double extends Constructor[Double, ConvNetworkDouble] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): ConvNetworkDouble = {
+    def apply(ls: Seq[Layer[Double]], loss: LossFunction[Double], settings: Settings[Double])(implicit breeder: WeightBreeder[Double]): ConvNetworkDouble = {
       ConvNetworkDouble(ls, loss, settings, breeder(ls))
     }
   }
@@ -37,7 +37,7 @@ object ConvNetwork {
 
 
   implicit object single extends Constructor[Float, ConvNetworkFloat] {
-    def apply(ls: Seq[Layer], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): ConvNetworkFloat = {
+    def apply(ls: Seq[Layer[Float]], loss: LossFunction[Float], settings: Settings[Float])(implicit breeder: WeightBreeder[Float]): ConvNetworkFloat = {
       ConvNetworkFloat(ls, loss, settings, breeder(ls))
     }
   }
@@ -50,7 +50,7 @@ object ConvNetwork {
 
 // <editor-fold defaultstate="collapsed" desc="Double Precision Impl">
 
-case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
+case class ConvNetworkDouble(layers: Seq[Layer[Double]], lossFunction: LossFunction[Double], settings: Settings[Double], weights: Weights[Double],
                                            identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Double")
   extends CNN[Double] with WaypointLogic[Double] {
 
@@ -126,7 +126,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
   /**
     * `apply` under a focused layer.
     */
-  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
+  def focus[L <: Layer[Double]](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
     val lwi = layers.zipWithIndex
     val idx = lwi.find(_._1 eq l).orElse {
       val p = lwi.filter(_._1 == l)
@@ -402,7 +402,7 @@ case class ConvNetworkDouble(layers: Seq[Layer], lossFunction: LossFunction[Doub
 
 // <editor-fold defaultstate="collapsed" desc="Single Precision Impl">
 
-case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
+case class ConvNetworkFloat(layers: Seq[Layer[Float]], lossFunction: LossFunction[Float], settings: Settings[Float], weights: Weights[Float],
                                           identifier: String = "neuroflow.nets.gpu.ConvNetwork", numericPrecision: String = "Single")
   extends CNN[Float] with WaypointLogic[Float] {
 
@@ -477,7 +477,7 @@ case class ConvNetworkFloat(layers: Seq[Layer], lossFunction: LossFunction[Float
   /**
     * `apply` under a focused layer.
     */
-  def focus[L <: Layer](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
+  def focus[L <: Layer[Float]](l: L)(implicit cp: CanProduce[(Matrix, L), l.algebraicType]): Tensor => l.algebraicType = {
     val lwi = layers.zipWithIndex
     val idx = lwi.find(_._1 eq l).orElse {
       val p = lwi.filter(_._1 == l)
