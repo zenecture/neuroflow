@@ -37,8 +37,8 @@ resolvers ++= Seq(
 
 If you are new to the math behind Neural Nets, you can read about the core principles here:
 
-  - <a href="http://www.znctr.com/blog/artificial-neural-networks">znctr.com/blog/artificial-neural-networks</a>
-  - <a href="http://www.znctr.com/blog/convolutional-nets">znctr.com/blog/convolutional-nets</a>
+  - <a href="https://bogdanski.github.io/artificial-neural-networks">bogdanski.github.io/artificial-neural-networks</a>
+  - <a href="https://bogdanski.github.io/convolutional-nets">bogdanski.github.io/convolutional-nets</a>
   
 Seeing code examples is a good way to get started. You may have a look at the playground for basic inspiration. 
 
