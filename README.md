@@ -224,7 +224,7 @@ be watched and adjusted to find good values, if a JVM debugger can't be attached
 ### Activators
 
 A neural net consists of matrix multiplications and function applications. Since matrix multiplication is inherently linear here,
-all non-linearity has to come from the cells activators. The predefined ones are common and should be sufficient for most data, 
+all non-linearity has to come from the cells activators. The <a href="https://github.com/zenecture/neuroflow/blob/master/core/src/main/scala/neuroflow/core/Activation.scala#L138">Predefined Activators</a> are common and should be sufficient for most data, 
 but at times special functions are required. Here is an example how to define your own:
 
 ```scala
@@ -240,7 +240,7 @@ If you need custom activators for GPU, you need to fork NF and implement them in
 
 ### Loss Functions
 
-You can tackle a lot of challenges by using the predefined loss functions. However, as with the activators, at times you need
+You can approach a lot of challenges using the <a href="https://github.com/zenecture/neuroflow/blob/master/core/src/main/scala/neuroflow/core/LossFunction.scala">Predefined Loss Functions</a>. However, as with the activators, at times you need
 your own loss function, `Y, X -> Loss, Gradient`, so here is how to write one, for both CPU and GPU:
 
 ```scala
